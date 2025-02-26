@@ -1,4 +1,4 @@
-import { Unzipped, unzip } from 'fflate';
+import { Unzipped, unzipSync } from 'fflate';
 
 export * from './archive';
 export * from './data';
@@ -8,15 +8,28 @@ import { CartridgeArchive } from './archive/CartridgeArchive';
 import { AssetDb, SceneDb } from './data';
 import { Cartridge } from './Cartridge';
 
+// @NOTE This function is not really async.
+// Would prefer proper async alternative `unzip()` from fflate, but encountering bugs in obscure scenario(s):
+//  - Safari on MacOS
+//  - Using next.js
+//  - Certain kinds of zip (0x80000 bytes or more)
+//  - Devtools open
+const unzipAsync = (data: Uint8Array): Promise<Unzipped> => {
+  return new Promise((resolve, reject) => {
+    try {
+      const result = unzipSync(data);
+      resolve(result);
+    } catch (e) {
+      reject(e);
+    }
+  });
+};
 
 export async function readCartridgeArchive(cartridgeBytes: Uint8Array): Promise<CartridgeArchive> {
-  const cartridgeData = await new Promise<Unzipped>((resolve, reject) => {
-    unzip(new Uint8Array(cartridgeBytes), (err, data) => {
-      if (err) reject(err);
-      else resolve(data);
-    });
-  });
-
+  const startTime = performance.now();
+  const cartridgeData = await unzipAsync(cartridgeBytes);
+  const endTime = performance.now();
+  console.log(`[Cartridge] (unzipAsync) Decompressed cartridge in ${endTime - startTime}ms`);
   return new CartridgeArchive(cartridgeData);
 }
 

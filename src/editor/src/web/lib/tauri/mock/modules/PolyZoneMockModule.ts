@@ -1,13 +1,27 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { unzip, zip } from 'fflate';
+import { Unzipped, unzipSync, zip } from 'fflate';
 
 import { TauriCommandArgs, TauriCommandReturnType } from '@lib/util/TauriCommands';
 
 import { Paths } from "../config";
 import { promisify, throwUnhandled } from '../util';
 
-const unzipAsync = promisify(unzip);
 const zipAsync = promisify(zip);
+// @NOTE Prefer async alternative `unzip()` from fflate, but bugs in obscure scenario(s):
+//  - Safari on MacOS
+//  - Using next.js
+//  - Certain kinds of zip (0x80000 bytes or more)
+//  - Devtools open
+const unzipAsync = (data: Uint8Array): Promise<Unzipped> => {
+  return new Promise((resolve, reject) => {
+    try {
+      const result = unzipSync(data);
+      resolve(result);
+    } catch (e) {
+      reject(e);
+    }
+  });
+};
 
 export class PolyZoneMockModule {
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type

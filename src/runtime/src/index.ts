@@ -114,13 +114,13 @@ export class Runtime {
     console.log(`[Runtime] (dispose) Destroying runtime`);
     this.cartridge = undefined;
 
-    this.game!.dispose();
+    this.game?.dispose();
     this.game = undefined;
 
-    this.scene!.dispose();
+    this.scene?.dispose();
     this.scene = undefined;
 
-    this.engine!.dispose();
+    this.engine?.dispose();
     this.engine = undefined;
 
     this.onDisposeCallbacks.forEach((callback) => callback());
