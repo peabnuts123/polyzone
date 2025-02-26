@@ -51,7 +51,7 @@ export class WrappedColor3Babylon extends Color3Core {
     return `[${this.r}, ${this.g}, ${this.b}]`;
   }
 
-  // @TODO We should probably stop relying on `super.r/y/z`
+  // @TODO We should probably stop relying on `super.r/g/b`
   // being the same as the underlying value
   // If we could just issue partial updates or always
   // reference the underlying value instead then we wouldn't
