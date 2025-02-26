@@ -210,8 +210,10 @@ async fn get_all_project_files(project_root: &PathBuf, ignore_filter: &IgnoreFil
                 // Strip project root from absolute paths
                 Some(result) => {
                     let relative_path = result.path.strip_prefix(project_root).unwrap().to_path_buf();
+                    // Replace Windows backslashes with forward slashes - not sure if there's a more efficient way of doing this ?
+                    let unix_path = PathBuf::from(relative_path.to_str().unwrap().replace("\\", "/"));
                     Some(ProjectFile {
-                        path: relative_path,
+                        path: unix_path,
                         hash: result.hash,
                     })
                 },

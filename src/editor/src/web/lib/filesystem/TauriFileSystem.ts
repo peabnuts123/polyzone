@@ -3,6 +3,7 @@ import { readFile, writeFile, rename, exists } from '@tauri-apps/plugin-fs';
 import { action, computed, makeObservable, observable, runInAction } from 'mobx';
 
 import { IFileSystem, VirtualFile } from "@polyzone/runtime/src/filesystem";
+import { joinToNativePath } from '@lib/util/path';
 
 /**
  * Minimum amount of time the FS will stay in the 'Writing' state for,
@@ -42,12 +43,12 @@ export class TauriFileSystem extends IFileSystem {
 
   public getUrlForPath(path: string): string {
     // @NOTE Append a random parameter to asset requests to prevent browser from caching the data
-    const cacheBustParam = (~~(Math.random()*0x10000 + 0x10000)).toString(16);
-    return convertFileSrc(`${this.projectRootDir}/${path}`) + `?cache_bust=${cacheBustParam}`;
+    const cacheBustParam = (~~(Math.random() * 0x10000 + 0x10000)).toString(16);
+    return convertFileSrc(this.resolvePathFromProjectRoot(path)) + `?cache_bust=${cacheBustParam}`;
   }
 
   public async readFile(path: string): Promise<VirtualFile> {
-    const fileBytes = await readFile(`${this.projectRootDir}/${path}`);
+    const fileBytes = await readFile(this.resolvePathFromProjectRoot(path));
     return new VirtualFile(fileBytes);
   }
 
@@ -56,7 +57,7 @@ export class TauriFileSystem extends IFileSystem {
     const startWriteTime = performance.now();
 
     try {
-      await writeFile(`${this.projectRootDir}/${path}`, data);
+      await writeFile(this.resolvePathFromProjectRoot(path), data);
 
       const writingDuration = performance.now() - startWriteTime;
       const waitTime = Math.max(MinimumWritingStatusDurationMs - writingDuration, 0);
@@ -75,8 +76,8 @@ export class TauriFileSystem extends IFileSystem {
   }
 
   public async moveFile(oldPath: string, newPath: string): Promise<void> {
-    oldPath = `${this.projectRootDir}/${oldPath}`;
-    newPath = `${this.projectRootDir}/${newPath}`;
+    oldPath = this.resolvePathFromProjectRoot(oldPath);
+    newPath = this.resolvePathFromProjectRoot(newPath);
 
     if (!await exists(oldPath)) {
       throw new Error(`Cannot move file: oldPath '${oldPath}' does not exist`);
@@ -89,6 +90,10 @@ export class TauriFileSystem extends IFileSystem {
       oldPath,
       newPath,
     );
+  }
+
+  private resolvePathFromProjectRoot(...pathSegments: string[]): string {
+    return joinToNativePath(this.projectRootDir, ...pathSegments);
   }
 
   public get writingState(): WritingState {

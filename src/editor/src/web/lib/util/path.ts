@@ -1,3 +1,5 @@
+import { sep } from '@tauri-apps/api/path';
+
 /**
  * Generic function for converting a list of hierarchical assets into a view
  * of a given virtual directory.
@@ -65,4 +67,13 @@ export function convertToSafeFileName(s: string): string {
   // @NOTE Remove characters that will make FS go brrrrr
   // Might need to be more restrictive with this later
   return s.replace(/[\/:*?"<>|]/g, '');
+}
+
+export function joinToNativePath(...pathSegments: string[]): string {
+  const NativePathSeparator = sep();
+
+  // Join all paths, replace all separators with separators appropriate to the current platform
+  return pathSegments
+    .map((pathSegment) => pathSegment.replace(/[/\\]/g, NativePathSeparator))
+    .join(NativePathSeparator);
 }
