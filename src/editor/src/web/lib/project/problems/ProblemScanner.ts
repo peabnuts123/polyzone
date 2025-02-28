@@ -24,6 +24,8 @@ export interface ScannerContext {
 // - Duplicate scenes in scene list
 // - Types referenced in package.json don't match editor version
 // - Types referenced are correct, but there is a newer version
+// - Things with the same guid: scene objects, assets, etc.
+// - Errors in script files
 
 export class ProblemScanner {
   private readonly projectController: ProjectController;
