@@ -14,7 +14,8 @@
     {
       "identifier": "fs:scope",
       "allow": [
-        "**/*"
+        "**/*",
+        "**/.*"
       ]
     },
     "core:window:allow-create",

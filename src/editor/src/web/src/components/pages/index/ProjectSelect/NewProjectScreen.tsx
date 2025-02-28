@@ -41,7 +41,7 @@ export const NewProjectScreen: FunctionComponent<NewProjectScreenProps> = ({ can
     if (!isFormValid) return;
 
     const documentsDirectory = await path.documentDir();
-    const defaultFileName = convertToSafeFileName(projectName);
+    const defaultFileName = convertToSafeFileName(projectName.trim());
     const defaultPath = await path.join(documentsDirectory, `${defaultFileName}.pzproj`);
     const savePath = await save({
       title: "Create new PolyZone project",
@@ -55,7 +55,7 @@ export const NewProjectScreen: FunctionComponent<NewProjectScreenProps> = ({ can
 
     // Write new project (including folder structure) to disk
     await createNewProject({
-      projectName,
+      projectName: projectName.trim(),
       projectPath: savePath,
     });
 
@@ -112,93 +112,148 @@ interface CreateNewProjectArgs {
 async function createNewProject({ projectName, projectPath }: CreateNewProjectArgs): Promise<void> {
   const projectDirRoot = await path.resolve(projectPath, '..');
 
-  // New data
-  // @TODO Any way we could add default comments to this? Modify with jsonc?
-  // - New scene
-  const newSceneDefinition: SceneDefinition = {
-    config: {
-      clearColor: { r: 255, g: 214, b: 253 },
-      lighting: {
-        ambient: {
-          color: { r: 255, g: 214, b: 253 },
-          intensity: 0.4,
-        },
-      },
-    },
-    objects: [
-      // @TODO default cube
-      {
-        id: uuid(),
-        name: "Camera",
-        transform: {
-          position: { x: 0, y: 0, z: -5 },
-          rotation: { x: 0, y: 0, z: 0 },
-          scale: { x: 1, y: 1, z: 1 },
-        },
-        children: [],
-        components: [
-          {
-            id: uuid(),
-            type: ComponentDefinitionType.Camera,
-          } satisfies CameraComponentDefinition,
-        ],
-      },
-      {
-        id: uuid(),
-        name: "Sun",
-        transform: {
-          position: { x: 0, y: 5, z: 0 },
-          rotation: { x: 0, y: 0, z: 0 },
-          scale: { x: 1, y: 1, z: 1 },
-        },
-        children: [],
-        components: [
-          {
-            id: uuid(),
-            type: ComponentDefinitionType.DirectionalLight,
+  // POLYZONE PROJECT
+  // ================
+  {
+    // Create top-level folders (if they do not already exist)
+    const TopLevelFolders = [
+      'models',
+      'scenes',
+      'scripts',
+      'textures',
+    ];
+    for (const topLevelFolder of TopLevelFolders) {
+      const folderPath = await path.resolve(projectDirRoot, topLevelFolder);
+      if (!await exists(folderPath)) {
+        await mkdir(folderPath);
+      }
+    }
+
+    // Scene file
+    // @TODO Any way we could add default comments to this? Modify with jsonc?
+    // Probably we could just do this with files on disk + write some TESTS to make sure they are valid
+    const newSceneDefinition: SceneDefinition = {
+      config: {
+        clearColor: { r: 255, g: 214, b: 253 },
+        lighting: {
+          ambient: {
             color: { r: 255, g: 214, b: 253 },
             intensity: 0.4,
-          } satisfies DirectionalLightComponentDefinition,
-        ],
+          },
+        },
       },
-    ],
-  };
-  const newSceneJson = JSON.stringify(newSceneDefinition, null, 2);
-  const newScenePath = `scenes/game.pzscene`;
-  const newProjectDefinition: ProjectDefinition = {
-    manifest: {
-      projectName,
-    },
-    assets: [],
-    scenes: [
-      {
-        id: uuid(),
-        path: newScenePath,
-        hash: await invoke('hash_data', {
-          data: Array.from(new TextEncoder().encode(newSceneJson)),
-        }),
-      },
-    ],
-  };
+      objects: [
+        // @TODO default cube
+        {
+          id: uuid(),
+          name: "Camera",
+          transform: {
+            position: { x: 0, y: 0, z: -5 },
+            rotation: { x: 0, y: 0, z: 0 },
+            scale: { x: 1, y: 1, z: 1 },
+          },
+          children: [],
+          components: [
+            {
+              id: uuid(),
+              type: ComponentDefinitionType.Camera,
+            } satisfies CameraComponentDefinition,
+          ],
+        },
+        {
+          id: uuid(),
+          name: "Sun",
+          transform: {
+            position: { x: 0, y: 5, z: 0 },
+            rotation: { x: 0, y: 0, z: 0 },
+            scale: { x: 1, y: 1, z: 1 },
+          },
+          children: [],
+          components: [
+            {
+              id: uuid(),
+              type: ComponentDefinitionType.DirectionalLight,
+              color: { r: 255, g: 214, b: 253 },
+              intensity: 0.4,
+            } satisfies DirectionalLightComponentDefinition,
+          ],
+        },
+      ],
+    };
+    const newSceneJson = JSON.stringify(newSceneDefinition, null, 2);
+    const newScenePath = `scenes/game.pzscene`;
 
-  // Create top-level folders (if they do not already exist)
-  const TopLevelFolders = [
-    'models',
-    'scenes',
-    'scripts',
-    'textures',
-  ];
-  for (const topLevelFolder of TopLevelFolders) {
-    const folderPath = await path.resolve(projectDirRoot, topLevelFolder);
-    if (!await exists(folderPath)) {
-      await mkdir(folderPath);
-    }
+    // Project file
+    const newProjectDefinition: ProjectDefinition = {
+      manifest: {
+        projectName,
+      },
+      assets: [],
+      scenes: [
+        {
+          id: uuid(),
+          path: newScenePath,
+          hash: await invoke('hash_data', {
+            data: Array.from(new TextEncoder().encode(newSceneJson)),
+          }),
+        },
+      ],
+    };
+
+    // Write new project file
+    await writeTextFile(projectPath, JSON.stringify(newProjectDefinition, null, 2));
+
+    // Write new scene
+    const newSceneAbsolutePath = await path.resolve(projectDirRoot, newScenePath);
+    await writeTextFile(newSceneAbsolutePath, newSceneJson);
   }
 
-  // Write new project file
-  await writeTextFile(projectPath, JSON.stringify(newProjectDefinition, null, 2));
+  // JAVASCRIPT PROJECT
+  // ==================
+  {
+    const PackageJson = {
+      "name": projectName
+        // `\uFE00-\uFE0F` are unicode "variant selectors" which create invisible marks when project name contains emoji
+        // @TODO Would love to make a nicer cross-locale way of sanitising this
+        .replace(/([^\p{Letter}\p{Mark}\p{Number}-]|[\uFE00-\uFE0F])+/gu, "-")  // Replace everything that isn't a letter or a number with dashes
+        .replace(/(^-+)|(-+$)/g, "")  // Strip leading / trailing slashes
+        .toLocaleLowerCase(), // To lower case (try and be somewhat sensitive about non-english names)
+      "private": true,
+      "version": "0.1.0",
+      "dependencies": {
+        "@polyzone/core": "polyzone-v0.1.0",
+        "typescript": "^5.7.3",
+      },
+    };
 
-  // Write new scene
-  const newSceneAbsolutePath = await path.resolve(projectDirRoot, newScenePath);
-  await writeTextFile(newSceneAbsolutePath, newSceneJson);
+    const TsConfig = {
+      "compilerOptions": {
+        "noEmit": true,
+        "strict": true,
+        "allowJs": true,
+        "target": "ESNext",
+        "esModuleInterop": true,
+        "isolatedModules": true,
+        "moduleResolution": "bundler",
+        "forceConsistentCasingInFileNames": true,
+      },
+    };
+
+    const packageJsonPath = await path.resolve(projectDirRoot, `package.json`);
+    await writeTextFile(packageJsonPath, JSON.stringify(PackageJson, null, 2));
+
+    const tsConfigPath = await path.resolve(projectDirRoot, `tsconfig.json`);
+    await writeTextFile(tsConfigPath, JSON.stringify(TsConfig, null, 2));
+  }
+
+  // MISC
+  // ====
+  {
+    const gitignore = [
+      `node_modules/`,
+    ].join('\n');
+
+    const gitignorePath = await path.resolve(projectDirRoot, `.gitignore`);
+    await writeTextFile(gitignorePath, gitignore);
+  }
 }
