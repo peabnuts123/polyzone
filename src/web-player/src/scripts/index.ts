@@ -2,7 +2,7 @@ import { Runtime } from '@polyzone/runtime';
 
 const CARTRIDGE_URL = `/sample-cartridge.pzcart`;
 
-async function main() {
+async function main(): Promise<void> {
   const canvas = document.getElementById('canvas') as HTMLCanvasElement | null;
   if (!canvas) throw new Error('Canvas element not found');
   const fpsCounter = document.getElementById('debug_framerate') as HTMLDivElement | null;

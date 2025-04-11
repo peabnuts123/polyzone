@@ -1,4 +1,3 @@
-import path from 'path';
 import { UserConfigExport, defineConfig } from 'vite';
 
 // https://vitejs.dev/config/
@@ -6,7 +5,7 @@ export default defineConfig(async (env) => {
   const config: UserConfigExport = {
     clearScreen: false,
     esbuild: {
-      target: "es2020"
+      target: "es2020",
     },
     server: {
       port: 1420,
