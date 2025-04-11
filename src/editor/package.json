@@ -15,9 +15,9 @@
     "tauri": "tauri"
   },
   "dependencies": {
-    "@babylonjs/core": "^7.18.0",
-    "@babylonjs/loaders": "^7.18.0",
-    "@babylonjs/materials": "^7.18.0",
+    "@babylonjs/core": "^8.2.0",
+    "@babylonjs/loaders": "^8.2.0",
+    "@babylonjs/materials": "^8.2.0",
     "@heroicons/react": "^2.2.0",
     "@tauri-apps/api": "^2.0.3",
     "@tauri-apps/plugin-dialog": "^2.0.1",

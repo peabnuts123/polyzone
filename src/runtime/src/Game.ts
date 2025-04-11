@@ -1,6 +1,6 @@
 import { AssetContainer } from "@babylonjs/core/assetContainer";
 import type { Scene as BabylonScene } from "@babylonjs/core/scene";
-import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
+import { LoadAssetContainerAsync } from "@babylonjs/core/Loading/sceneLoader";
 import { Color3 } from "@babylonjs/core/Maths/math.color";
 import { FreeCamera } from "@babylonjs/core/Cameras/freeCamera";
 import { Vector3 as Vector3Babylon } from "@babylonjs/core/Maths/math.vector";
@@ -230,7 +230,7 @@ export class Game {
     if (cached) {
       return cached;
     } else {
-      let assetContainer = await SceneLoader.LoadAssetContainerAsync(asset.babylonFetchUrl, undefined, this.babylonScene, undefined, asset.fileExtension);
+      let assetContainer = await LoadAssetContainerAsync(asset.babylonFetchUrl, this.babylonScene, { pluginExtension: asset.fileExtension });
       this.assetCache.set(asset, assetContainer);
       return assetContainer;
     }

@@ -26,6 +26,7 @@ export interface ScannerContext {
 // - Types referenced are correct, but there is a newer version
 // - Things with the same guid: scene objects, assets, etc.
 // - Errors in script files
+// - Asset dependency is missing e.g. missing texture files
 
 export class ProblemScanner {
   private readonly projectController: ProjectController;

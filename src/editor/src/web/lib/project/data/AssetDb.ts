@@ -102,8 +102,9 @@ export class AssetDb {
       }
     }
 
-    if (SceneLoader.IsPluginForExtensionAvailable(fileExtension)) {
-      const babylonPlugin = SceneLoader.GetPluginForExtension(fileExtension);
+    // Catch-all warning for future development
+    const babylonPlugin = SceneLoader.GetPluginForExtension(fileExtension);
+    if (babylonPlugin !== undefined) {
       console.warn(`Asset with extension '${fileExtension}' is being assigned asset type '${AssetType.Unknown}' despite asset having a well-known Babylon loader: ${babylonPlugin.name}`);
     }
 

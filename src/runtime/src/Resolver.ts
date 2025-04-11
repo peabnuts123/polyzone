@@ -1,4 +1,4 @@
-import { Tools } from '@babylonjs/core/Misc/tools';
+import { FileToolsOptions } from '@babylonjs/core/Misc/fileTools';
 import { IFileSystem } from './filesystem';
 
 /**
@@ -9,7 +9,7 @@ class Resolver {
   private fileSystems: Map<string, IFileSystem>;
 
   constructor() {
-    Tools.PreprocessUrl = this.resolve.bind(this);
+    FileToolsOptions.PreprocessUrl = this.resolve.bind(this);
     this.fileSystems = new Map();
   }
 

@@ -5,7 +5,7 @@ import { FreeCamera as FreeCameraBabylon } from '@babylonjs/core/Cameras/freeCam
 import { Vector3 as Vector3Babylon } from '@babylonjs/core/Maths/math.vector';
 import { HemisphericLight as HemisphericLightBabylon } from '@babylonjs/core/Lights/hemisphericLight';
 import { Color3 as Color3Babylon } from '@babylonjs/core/Maths/math.color';
-import { SceneLoader } from '@babylonjs/core/Loading/sceneLoader';
+import { LoadAssetContainerAsync } from '@babylonjs/core/Loading/sceneLoader';
 import "@babylonjs/loaders/OBJ/objFileLoader";
 import "@babylonjs/loaders/glTF";
 import { AssetContainer } from '@babylonjs/core/assetContainer';
@@ -367,12 +367,12 @@ export class SceneViewController {
     if (cached) {
       return cached;
     } else {
-      const assetContainer = await SceneLoader.LoadAssetContainerAsync(
+      const assetContainer = await LoadAssetContainerAsync(
         asset.babylonFetchUrl,
-        undefined,
         this.babylonScene,
-        undefined,
-        asset.fileExtension,
+        {
+          pluginExtension: asset.fileExtension,
+        },
       );
       this.assetCache.set(asset.id, assetContainer);
       return assetContainer;
