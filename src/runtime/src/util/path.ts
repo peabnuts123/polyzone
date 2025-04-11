@@ -5,7 +5,7 @@
  * @returns File extension include the dot (e.g. `.obj`), or empty string if path has no extension.
  */
 export function getFileExtension(path: string): string {
-  let match = /\.[^.]+$/.exec(path);
+  const match = /\.[^.]+$/.exec(path);
   if (match === null) {
     return '';
   } else {

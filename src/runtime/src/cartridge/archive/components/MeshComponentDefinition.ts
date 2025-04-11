@@ -1,6 +1,6 @@
-import type { MeshComponentData } from '@polyzone/runtime/src/cartridge';
+import type { MeshComponentData } from '@polyzone/runtime/src/cartridge'; // eslint-disable-line @typescript-eslint/no-unused-vars
 
-import type { CartridgeArchive } from '../CartridgeArchive';
+import type { CartridgeArchive } from '../CartridgeArchive'; // eslint-disable-line @typescript-eslint/no-unused-vars
 import { ComponentDefinitionBase } from "./ComponentDefinition";
 import { ComponentDefinitionType } from "./ComponentDefinitionType";
 

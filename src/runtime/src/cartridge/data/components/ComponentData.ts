@@ -1,4 +1,4 @@
-import type { GameObjectComponent } from '@polyzone/core/src/world'
+import type { GameObjectComponent } from '@polyzone/core/src/world'; // eslint-disable-line @typescript-eslint/no-unused-vars
 
 /**
  * Configuration data for a {@link GameObjectComponent}.

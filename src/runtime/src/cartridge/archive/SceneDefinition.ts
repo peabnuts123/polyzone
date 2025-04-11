@@ -1,6 +1,6 @@
-import type { SceneData } from '@polyzone/runtime/src/cartridge';
+import type { SceneData } from '@polyzone/runtime/src/cartridge'; // eslint-disable-line @typescript-eslint/no-unused-vars
 
-import type { CartridgeArchive } from './CartridgeArchive';
+import type { CartridgeArchive } from './CartridgeArchive'; // eslint-disable-line @typescript-eslint/no-unused-vars
 import { GameObjectDefinition } from "./GameObjectDefinition";
 import { ColorDefinition } from "./util";
 

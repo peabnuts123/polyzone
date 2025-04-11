@@ -1,6 +1,6 @@
-import type { ComponentData } from '@polyzone/runtime/src/cartridge';
+import type { ComponentData } from '@polyzone/runtime/src/cartridge'; // eslint-disable-line @typescript-eslint/no-unused-vars
 
-import type { CartridgeArchive } from '../CartridgeArchive';
+import type { CartridgeArchive } from '../CartridgeArchive'; // eslint-disable-line @typescript-eslint/no-unused-vars
 import { ComponentDefinitionType } from "./ComponentDefinitionType";
 import { CameraComponentDefinition } from './CameraComponentDefinition';
 import { DirectionalLightComponentDefinition } from './DirectionalLightComponentDefinition';

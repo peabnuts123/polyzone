@@ -1,7 +1,7 @@
 import { Color3 as Color3Babylon, Color4 as Color4Babylon } from '@babylonjs/core/Maths/math.color';
 import { IColor3Like, IColor4Like } from '@babylonjs/core/Maths/math.like';
 import { Color3 as Color3Core, Color4 as Color4Core } from '@polyzone/core/src/util';
-import { ColorDefinition } from '../../cartridge/archive/util'
+import { ColorDefinition } from '../../cartridge/archive/util';
 
 export * from './WrappedColor3Babylon';
 
@@ -48,7 +48,7 @@ export function toColor4Babylon(color: IColor4Like): Color4Babylon {
     color.r / factor,
     color.g / factor,
     color.b / factor,
-    1
+    1,
   );
 }
 

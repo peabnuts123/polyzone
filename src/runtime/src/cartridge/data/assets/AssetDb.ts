@@ -1,7 +1,7 @@
 import { SceneLoader } from '@babylonjs/core/Loading/sceneLoader';
 
 import { ClassReference } from '@polyzone/core/src/util';
-import type { AssetDefinition } from '@polyzone/runtime/src/cartridge/archive'
+import type { AssetDefinition } from '@polyzone/runtime/src/cartridge/archive';
 import { getFileExtension } from "@polyzone/runtime/src/util";
 import type { IFileSystem, VirtualFile } from '@polyzone/runtime/src/filesystem';
 
@@ -18,8 +18,8 @@ export const AssetTypeMap: Record<AssetType, string[]> = {
   [AssetType.Script]: ['.ts', '.js'],
   [AssetType.Sound]: ['.mp3', '.ogg', '.wav'],
   [AssetType.Texture]: ['.png', '.jpg', '.jpeg', '.bmp', '.basis', '.dds'],
-  [AssetType.Unknown]: []
-}
+  [AssetType.Unknown]: [],
+};
 
 export class AssetDb {
   public readonly assets: AssetData[];
@@ -34,7 +34,7 @@ export class AssetDb {
           id: assetDefinition.id,
           path: assetDefinition.path,
           resolverProtocol: fileSystem.resolverProtocol,
-        }
+        },
       );
     });
   }

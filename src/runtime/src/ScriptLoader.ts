@@ -4,13 +4,15 @@ import { VirtualFile } from './filesystem';
 
 const SCRIPT_PATH_PREFIX = `scripts/`;
 
+type ModuleGetterFn = (...args: unknown[]) => void;
+
 /**
  * Metadata of a script module
  */
 interface ModuleDefinition {
   id: string;
   dependencies: string[];
-  getter: Function;
+  getter: ModuleGetterFn;
 }
 
 /**
@@ -33,26 +35,26 @@ export class ScriptLoader {
   public constructor() {
     // Magic module definitions
     /* require */
-    this.moduleCache['require'] = () => { throw new Error(`Nested require is not supported, it should not be necessary`) };
+    this.moduleCache['require'] = () => { throw new Error(`Nested require is not supported, it should not be necessary`); };
     /* core modules */
     CoreModules.forEach((coreModule) => {
       this.moduleCache[coreModule.name] = coreModule.module;
-    })
+    });
   }
 
   /**
    * Load a script module from a {@link VirtualFile} into the cache.
    * @param scriptFile The script file to load.
    */
-  public loadModule(scriptAsset: AssetData, file: VirtualFile) {
+  public loadModule(scriptAsset: AssetData, file: VirtualFile): void {
     if (scriptAsset.type !== AssetType.Script) {
       throw new Error(`Cannot load non-script asset as module: ${scriptAsset}`);
     }
 
-    let moduleId = this.pathToModuleId(scriptAsset.path);
+    const moduleId = this.pathToModuleId(scriptAsset.path);
     if (this.moduleDefinitions[moduleId] !== undefined) {
       // @TODO just no-op / warn
-      throw new Error(`Tried to load duplicate module: ${scriptAsset.path}`)
+      throw new Error(`Tried to load duplicate module: ${scriptAsset.path}`);
     }
 
     let moduleDefinition: ModuleDefinition = undefined!;
@@ -82,7 +84,7 @@ export class ScriptLoader {
     if (scriptAsset.type !== AssetType.Script) {
       throw new Error(`Cannot get module for non-script file: ${scriptAsset}`);
     }
-    let moduleId = this.pathToModuleId(scriptAsset.path);
+    const moduleId = this.pathToModuleId(scriptAsset.path);
     return this.getModuleById(moduleId);
   }
 
@@ -117,7 +119,7 @@ export class ScriptLoader {
           } else {
             return this.getModuleById(dependencyId);
           }
-        })
+        });
 
         moduleDefinition.getter.call(undefined, ...dependencies);
 
@@ -141,7 +143,7 @@ export class ScriptLoader {
     } else throw new Error(`Unrecognised; path does not contain magic prefix: ${path}`);
 
     // Strip file extension (if any)
-    let extMatch = /(\.[^.]*)$/.exec(path);
+    const extMatch = /(\.[^.]*)$/.exec(path);
     return path.substring(0, path.length - (extMatch !== null ? extMatch[1].length : 0));
   }
 
@@ -150,10 +152,10 @@ export class ScriptLoader {
    * @param callback For sending the module definition back to the calling context
    * @param args Args passed into the function, by the script being loaded
    */
-  private defineModule(callback: (result: ModuleDefinition) => void, ...args: any[]) {
+  private defineModule(callback: (result: ModuleDefinition) => void, ...args: any[]): void {
     let moduleName: string | undefined;
     let dependencies: string[];
-    let moduleFn: Function;
+    let moduleFn: ModuleGetterFn;
     if (args.length == 2) {
       // @NOTE @ASSUMPTION params are (dependencies, definition)
       dependencies = args[0];

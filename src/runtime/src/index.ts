@@ -54,7 +54,7 @@ export class Runtime {
   public async loadCartridge(url: string): Promise<void>;
   public async loadCartridge(source: Uint8Array | string): Promise<void>;
   public async loadCartridge(source: Uint8Array | string): Promise<void> {
-    let timerStart = performance.now();
+    const timerStart = performance.now();
 
     let cartridgeArchive: CartridgeArchive;
     if (source instanceof Uint8Array) {
@@ -71,13 +71,13 @@ export class Runtime {
     console.log(`Loaded cartridge in ${(performance.now() - timerStart).toFixed(1)}ms`);
   }
 
-  public async run() {
+  public async run(): Promise<void> {
     if (this.cartridge === undefined) {
       throw new Error('No cartridge loaded');
     }
 
-    let initialCanvasWidth = this.canvas.width;
-    let initialCanvasHeight = this.canvas.height;
+    const initialCanvasWidth = this.canvas.width;
+    const initialCanvasHeight = this.canvas.height;
 
     this.engine = new Engine(this.canvas, false);
     // Override application resolution to fixed resolution
@@ -94,7 +94,7 @@ export class Runtime {
 
     // Boot game
     // *blows on cartridge*
-    let timerStart = performance.now();
+    const timerStart = performance.now();
     await this.game.loadCartridge(this.cartridge);
     console.log(`Loaded game in ${(performance.now() - timerStart).toFixed(1)}ms`);
 
@@ -110,7 +110,7 @@ export class Runtime {
     });
   }
 
-  public dispose() {
+  public dispose(): void {
     console.log(`[Runtime] (dispose) Destroying runtime`);
     this.cartridge = undefined;
 
@@ -127,17 +127,17 @@ export class Runtime {
   }
 }
 
-export function debug_modTexture(texture: BaseTexture) {
+export function debug_modTexture(texture: BaseTexture): void {
   // @TODO remove specular, add gouraud shading, flat shading, etc.
   // @TODO I guess write a big shader that I can use to do all the things I want
   if (texture.isReady()) {
-    texture.updateSamplingMode(Texture.NEAREST_SAMPLINGMODE)
+    texture.updateSamplingMode(Texture.NEAREST_SAMPLINGMODE);
     texture.anisotropicFilteringLevel = 0;
   } else {
     if (texture instanceof Texture) {
       texture.onLoadObservable.addOnce(() => {
         debug_modTexture(texture);
-      })
+      });
     } else {
       throw new Error(`Tried to wait for texture to load but texture is not of type 'Texture' - This is not implemented`);
     }

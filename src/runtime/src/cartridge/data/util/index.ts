@@ -9,8 +9,8 @@ import { MeshAssetData, ScriptAssetData } from '../assets';
 
 
 export function loadObjectDefinition(objectDefinition: GameObjectDefinition, assetDb: AssetDb): GameObjectData {
-  let components: ComponentData[] = [];
-  for (let componentDefinition of objectDefinition.components) {
+  const components: ComponentData[] = [];
+  for (const componentDefinition of objectDefinition.components) {
     switch (componentDefinition.type) {
       case ComponentDefinitionType.Mesh: {
         const meshComponentDefinition = componentDefinition as MeshComponentDefinition;
@@ -18,7 +18,7 @@ export function loadObjectDefinition(objectDefinition: GameObjectDefinition, ass
         if (isDefined(meshComponentDefinition.meshFileId)) {
           meshAsset = assetDb.getById(meshComponentDefinition.meshFileId, MeshAssetData);
         }
-        components.push(new MeshComponentData(componentDefinition.id, meshAsset));
+        components.push(new MeshComponentData(meshComponentDefinition.id, meshAsset));
         break;
       }
       case ComponentDefinitionType.Script: {
@@ -27,24 +27,24 @@ export function loadObjectDefinition(objectDefinition: GameObjectDefinition, ass
         if (isDefined(scriptComponentDefinition.scriptFileId)) {
           scriptAsset = assetDb.getById(scriptComponentDefinition.scriptFileId, ScriptAssetData);
         }
-        components.push(new ScriptComponentData(componentDefinition.id, scriptAsset));
+        components.push(new ScriptComponentData(scriptComponentDefinition.id, scriptAsset));
         break;
       }
       case ComponentDefinitionType.Camera: {
         const cameraComponentDefinition = componentDefinition as CameraComponentDefinition;
-        components.push(new CameraComponentData(componentDefinition.id));
+        components.push(new CameraComponentData(cameraComponentDefinition.id));
         break;
       }
       case ComponentDefinitionType.DirectionalLight: {
         const directionalLightComponentDefinition = componentDefinition as DirectionalLightComponentDefinition;
         const color = toColor3Core(directionalLightComponentDefinition.color);
-        components.push(new DirectionalLightComponentData(componentDefinition.id, directionalLightComponentDefinition.intensity, color));
+        components.push(new DirectionalLightComponentData(directionalLightComponentDefinition.id, directionalLightComponentDefinition.intensity, color));
         break;
       }
       case ComponentDefinitionType.PointLight: {
         const pointLightComponentDefinition = componentDefinition as PointLightComponentDefinition;
         const color = toColor3Core(pointLightComponentDefinition.color);
-        components.push(new PointLightComponentData(componentDefinition.id, pointLightComponentDefinition.intensity, color));
+        components.push(new PointLightComponentData(pointLightComponentDefinition.id, pointLightComponentDefinition.intensity, color));
         break;
       }
       default: {
@@ -68,6 +68,6 @@ export function loadObjectDefinition(objectDefinition: GameObjectDefinition, ass
       toVector3Core(objectDefinition.transform.scale),
     ),
     components,
-    children
+    children,
   );
 }

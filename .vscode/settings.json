@@ -6,6 +6,7 @@
   "eslint.workingDirectories": [
     "src/editor",
     "src/core",
+    "src/runtime",
   ],
   "rust-analyzer.linkedProjects": [
     "src/editor/src/app/Cargo.toml",

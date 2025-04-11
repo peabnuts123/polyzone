@@ -1,7 +1,7 @@
 import type { Color3 } from '@polyzone/core/src/util';
 
 
-import type { PointLightComponent } from '@polyzone/runtime/src/world/components';
+import type { PointLightComponent } from '@polyzone/runtime/src/world/components'; // eslint-disable-line @typescript-eslint/no-unused-vars
 
 import { ComponentData } from "./ComponentData";
 

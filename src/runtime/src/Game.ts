@@ -82,8 +82,8 @@ export class Game {
         cartridge.assetDb.loadAsset(asset)
           .then((file) => {
             this.scriptLoader.loadModule(asset, file);
-          })
-      ))
+          }),
+      ));
 
 
     // Load the first scene on the cartridge
@@ -111,7 +111,7 @@ export class Game {
     this.ambientLight.specular = Color3.Black();
 
     /* Load game objects */
-    for (let sceneObject of scene.objects) {
+    for (const sceneObject of scene.objects) {
       const gameObject = await this.createGameObjectFromData(sceneObject);
       World.addObject(gameObject);
     }
@@ -120,7 +120,7 @@ export class Game {
     // @NOTE Special case. init() is only called after ALL
     // GameObjects have been loaded, as opposed to immediately after adding
     // each object to the scene
-    for (let gameObject of World.gameObjects) {
+    for (const gameObject of World.gameObjects) {
       gameObject.init();
     }
   }
@@ -135,7 +135,7 @@ export class Game {
       gameObjectData.name,
       this.babylonScene,
       parentTransform,
-      gameObjectData.transform
+      gameObjectData.transform,
     );
 
     // Create all child objects first
@@ -152,7 +152,7 @@ export class Game {
     // Load game object components
     // @TODO this light thingy is nonsense, remove it
     let debug_lightCount = 0;
-    for (let componentData of gameObjectData.components) {
+    for (const componentData of gameObjectData.components) {
       // Load well-known inbuilt component types
       if (componentData instanceof MeshComponentData) {
         /* Mesh component */
@@ -169,7 +169,7 @@ export class Game {
         // Obviously only do this if the script component has a script asset assigned to it
         // otherwise, do nothing.
         if (componentData.scriptAsset) {
-          let scriptModule = this.scriptLoader.getModule(componentData.scriptAsset);
+          const scriptModule = this.scriptLoader.getModule(componentData.scriptAsset);
           if (
             scriptModule === undefined ||
             scriptModule === null ||
@@ -180,11 +180,11 @@ export class Game {
           }
 
           // Ensure script is of correct type
-          let CustomScriptComponent = scriptModule.default as typeof ScriptComponent;
+          const CustomScriptComponent = scriptModule.default as typeof ScriptComponent;
           if (
             !(
               (CustomScriptComponent instanceof Object) &&
-              ScriptComponent.isPrototypeOf(CustomScriptComponent)
+              Object.prototype.isPrototypeOf.call(ScriptComponent, CustomScriptComponent)
             )
           ) {
             throw new Error(`Cannot add component to GameObject. Default export from script '${componentData.scriptAsset.path}' is not of type 'ScriptComponent': ${CustomScriptComponent}`);
@@ -215,7 +215,7 @@ export class Game {
       } else {
         console.error(`[Game] (createGameObjectFromData) Unrecognised component data: `, componentData);
       }
-    };
+    }
 
     return gameObject;
   }
@@ -226,11 +226,11 @@ export class Game {
    * @returns The new asset, or a reference to the existing asset if it existed in the cache.
    */
   private async loadAssetCached(asset: AssetData): Promise<AssetContainer> {
-    let cached = this.assetCache.get(asset);
+    const cached = this.assetCache.get(asset);
     if (cached) {
       return cached;
     } else {
-      let assetContainer = await LoadAssetContainerAsync(asset.babylonFetchUrl, this.babylonScene, { pluginExtension: asset.fileExtension });
+      const assetContainer = await LoadAssetContainerAsync(asset.babylonFetchUrl, this.babylonScene, { pluginExtension: asset.fileExtension });
       this.assetCache.set(asset, assetContainer);
       return assetContainer;
     }

@@ -32,7 +32,7 @@ export class MeshComponent extends MeshComponentCore {
     this.sceneInstances = asset.instantiateModelsToScene();
     this.sceneInstances.rootNodes.forEach((node) => {
       node.parent = this.gameObject.transform.node;
-    })
+    });
   }
 
   public override onDestroy(): void {

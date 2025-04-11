@@ -56,7 +56,7 @@ export class WrappedVector3Babylon extends Vector3Core {
   // If we could just issue partial updates or always
   // reference the underlying value instead then we wouldn't
   // have to initialise + would prevent a category of bugs
-  public initialise(value: Vector3Babylon | undefined = undefined) {
+  public initialise(value: Vector3Babylon | undefined = undefined): void {
     value ??= this.getValue().clone();
     this.setValue(value);
   }

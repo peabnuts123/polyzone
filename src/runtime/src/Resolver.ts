@@ -20,13 +20,13 @@ class Resolver {
    * @param url The URL to resolve.
    */
   private resolve(url: string): string {
-    for (let [protocol, fileSystem] of this.fileSystems) {
+    for (const [protocol, fileSystem] of this.fileSystems) {
       if (url.startsWith(protocol)) {
         // @NOTE lo-fi canonicalisation hack using `decodeURIComponent` + trim leading slash
         // @NOTE crazy bug in browsers (!) non-http protocols are not parsed correctly,
         //  so we must strip the protocol off the URL. See: https://issues.chromium.org/issues/40063064
-        let canonical = decodeURIComponent(
-          new URL(url.substring(protocol.length), 'http://foo.bar').pathname
+        const canonical = decodeURIComponent(
+          new URL(url.substring(protocol.length), 'http://foo.bar').pathname,
         ).replace(/^\//, '');
 
         return fileSystem.getUrlForPath(canonical);
@@ -42,14 +42,14 @@ class Resolver {
    * @param protocol Url protocol prefix like `runtime://`
    * @param fileSystem AssetDb for resolving Urls with this protocol
    */
-  public registerFileSystem(fileSystem: IFileSystem) {
+  public registerFileSystem(fileSystem: IFileSystem): void {
     if (this.fileSystems.has(fileSystem.resolverProtocol)) {
-      console.error(`fileSystem is already registered in Resolver: ${fileSystem.resolverProtocol}`)
+      console.error(`fileSystem is already registered in Resolver: ${fileSystem.resolverProtocol}`);
     }
     this.fileSystems.set(fileSystem.resolverProtocol, fileSystem);
   }
 
-  public deregisterFileSystem(protocol: string) {
+  public deregisterFileSystem(protocol: string): void {
     this.fileSystems.delete(protocol);
   }
 }

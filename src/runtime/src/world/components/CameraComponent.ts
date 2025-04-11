@@ -23,12 +23,12 @@ export class CameraComponent extends CameraComponentCore {
     camera.parent = this.gameObject.transform.node;
   }
 
-  public pointAt(target: Vector3) {
+  public pointAt(target: Vector3): void {
     const direction = toVector3Babylon(target.subtract(this.gameObject.transform.position)).normalize();
     const quaternion = Quaternion.RotationYawPitchRoll(
       Math.atan2(direction.x, direction.z),
       Math.atan2(-direction.y, Math.sqrt(direction.x * direction.x + direction.z * direction.z)),
-      0
+      0,
     );
 
     // @NOTE Set the rotation of the GameObject itself

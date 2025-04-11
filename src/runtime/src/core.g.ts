@@ -125,5 +125,5 @@ export const CoreModules: CoreModuleDefinition[] = [
   {
     name: '@polyzone/core/modules/World',
     module: ModulesWorld,
-  }
+  },
 ];

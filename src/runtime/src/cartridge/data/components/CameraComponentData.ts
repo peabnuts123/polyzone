@@ -1,4 +1,4 @@
-import type { CameraComponent } from '@polyzone/runtime/src/world/components'
+import type { CameraComponent } from '@polyzone/runtime/src/world/components'; // eslint-disable-line @typescript-eslint/no-unused-vars
 
 import { ComponentData } from "./ComponentData";
 

@@ -1,4 +1,4 @@
-import { Matrix, Quaternion, Vector3 as Vector3Babylon } from '@babylonjs/core/Maths/math.vector';
+import { Quaternion, Vector3 as Vector3Babylon } from '@babylonjs/core/Maths/math.vector';
 import { TransformNode } from '@babylonjs/core/Meshes/transformNode';
 import type { Scene as BabylonScene } from '@babylonjs/core/scene';
 
@@ -10,7 +10,7 @@ import { toVector3Babylon, WrappedVector3Babylon } from '../util';
 import type { GameObject } from './GameObject';
 
 
-const debugLog = (_: string) => {};
+const debugLog = (_: string): void => { };
 // const debugLog = console.log;
 // const debugLog = console.trace;
 
@@ -75,14 +75,14 @@ export class Transform extends TransformCore {
 
         // @TODO multiplySelf?
         this.node.rotationQuaternion = this.node.rotationQuaternion.multiply(rotationDelta);
-      }
+      },
     );
     this._localRotation = new WrappedVector3Babylon(
       () => {
         if (this.node.rotationQuaternion === null) {
           return this.node.rotation;
         } else {
-          return this.node.rotationQuaternion.toEulerAngles()
+          return this.node.rotationQuaternion.toEulerAngles();
         }
       },
       (value) => {
@@ -123,29 +123,30 @@ export class Transform extends TransformCore {
           > Absolute scale = 1 x 3 = 3
           > Absolute scale of this object is 3 which is unexpected.
          */
-        if (parentScale.x <= Number.EPSILON) console.warn(`Cannot set world scale to '${value}' for object '${this.gameObject?.name}' as its parent(s) scale.x is currently 0. Its local scale.x will be set to 1. This will produce unexpected results if this object's parent(s) are scaled back to a non-zero value.`)
+        if (parentScale.x <= Number.EPSILON) console.warn(`Cannot set world scale to '${value}' for object '${this.gameObject?.name}' as its parent(s) scale.x is currently 0. Its local scale.x will be set to 1. This will produce unexpected results if this object's parent(s) are scaled back to a non-zero value.`);
         else {
           this.node.scaling.x = value.x / parentScale.x;
         }
-        if (parentScale.y <= Number.EPSILON) console.warn(`Cannot set world scale to '${value}' for object '${this.gameObject?.name}' as its parent(s) scale.y is currently 0. Its local scale.y will be set to 1. This will produce unexpected results if this object's parent(s) are scaled back to a non-zero value.`)
+        if (parentScale.y <= Number.EPSILON) console.warn(`Cannot set world scale to '${value}' for object '${this.gameObject?.name}' as its parent(s) scale.y is currently 0. Its local scale.y will be set to 1. This will produce unexpected results if this object's parent(s) are scaled back to a non-zero value.`);
         else {
           this.node.scaling.y = value.y / parentScale.y;
         }
-        if (parentScale.z <= Number.EPSILON) console.warn(`Cannot set world scale to '${value}' for object '${this.gameObject?.name}' as its parent(s) scale.z is currently 0. Its local scale.z will be set to 1. This will produce unexpected results if this object's parent(s) are scaled back to a non-zero value.`)
+        if (parentScale.z <= Number.EPSILON) console.warn(`Cannot set world scale to '${value}' for object '${this.gameObject?.name}' as its parent(s) scale.z is currently 0. Its local scale.z will be set to 1. This will produce unexpected results if this object's parent(s) are scaled back to a non-zero value.`);
         else {
           this.node.scaling.z = value.z / parentScale.z;
         }
 
         // @TODO Could we do this more efficiently?
+        // eslint-disable-next-line no-self-assign
         this.node.scaling = this.node.scaling; // @NOTE mark as dirty
         this.node.computeWorldMatrix(); // @NOTE force re-compute absolute scale
-      }
+      },
     );
     this._localScale = new WrappedVector3Babylon(
       () => this.node.scaling,
       (value) => {
         debugLog(`[Transform] (localScale.set): ${value}`);
-        this.node.scaling = value
+        this.node.scaling = value;
       },
     );
 
@@ -193,7 +194,7 @@ export class Transform extends TransformCore {
     if (this._parent !== undefined) {
       this._parent.children.splice(
         this._parent.children.indexOf(this),
-        1
+        1,
       );
     }
 
@@ -209,5 +210,5 @@ export class Transform extends TransformCore {
   public get gameObject(): GameObject { return this._gameObject; }
   public set gameObject(value: GameObject) { this._gameObject = value; }
 
-  public get children(): Transform[] { return this._children };
+  public get children(): Transform[] { return this._children; }
 }

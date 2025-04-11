@@ -51,7 +51,7 @@ class Modules {
   private modules: IModule[] = [
     Input,
     World,
-  ]
+  ];
 
   public onInit(): void {
     this.modules.forEach((module) => module.onInit());
@@ -61,7 +61,7 @@ class Modules {
     this.modules.forEach((module) => module.onUpdate(deltaTime));
   }
 
-  public dispose() {
+  public dispose(): void {
     this.modules.forEach((module) => module.dispose());
   }
 }

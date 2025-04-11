@@ -1,4 +1,4 @@
-import type Resolver from "@polyzone/runtime/src/Resolver";
+import type Resolver from "@polyzone/runtime/src/Resolver"; // eslint-disable-line @typescript-eslint/no-unused-vars
 import { baseName, getFileExtension, toPathList } from "@polyzone/runtime/src/util";
 
 import { AssetType } from "./AssetType";
@@ -12,7 +12,7 @@ export interface CreateAssetDataArgs {
   resolverProtocol: string;
 }
 
-export function createAssetData(type: AssetType, args: CreateAssetDataArgs) {
+export function createAssetData(type: AssetType, args: CreateAssetDataArgs): AssetData {
   switch (type) {
     case AssetType.Mesh:
       return new MeshAssetData(args);
@@ -55,7 +55,7 @@ export abstract class BaseAssetData {
   }
 
   public toString(): string {
-    return `Asset(${this.id}, ${this.type}, ${this.path})`
+    return `Asset(${this.id}, ${this.type}, ${this.path})`;
   }
 
   /**

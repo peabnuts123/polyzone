@@ -37,12 +37,12 @@ export class SceneData {
           intensity: sceneDefinition.config.lighting.ambient.intensity,
           color: toColor3Core(sceneDefinition.config.lighting.ambient.color),
         },
-      }
-    }
+      },
+    };
 
     /* Game Objects */
     this.objects = [];
-    for (let objectDefinition of sceneDefinition.objects) {
+    for (const objectDefinition of sceneDefinition.objects) {
       this.objects.push(loadObjectDefinition(objectDefinition, assetDb));
     }
   }

@@ -28,7 +28,7 @@ export class CartridgeFileSystem extends IFileSystem {
   }
 
   public readFileSync(path: string): VirtualFile {
-    let fileBytes = this.cartridgeData[path];
+    const fileBytes = this.cartridgeData[path];
     if (!fileBytes) {
       throw new NotFoundError(`No file found at path: '${path}'`);
     }

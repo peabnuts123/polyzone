@@ -7,14 +7,14 @@ export class SceneDb {
 
   public constructor(sceneDefinitions: SceneDefinition[], assetDb: AssetDb) {
     this.scenes = sceneDefinitions.map((sceneDefinition) =>
-      new SceneData(sceneDefinition, assetDb)
+      new SceneData(sceneDefinition, assetDb),
     );
   }
 
   public getByPathSuffix(pathSuffix: string): SceneData {
     const scenes = this.scenes.filter((scene) => {
       // Strip file extension from scene path
-      let pathName = scene.path.replace(/\.[^.]+$/, '');
+      const pathName = scene.path.replace(/\.[^.]+$/, '');
       // Test that suffix at least matches the path
       const looseMatch = pathName.endsWith(pathSuffix);
       // suffix must also match AT LEAST the entire file name of the scene

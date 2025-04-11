@@ -2,7 +2,7 @@ import { DeviceType } from "@babylonjs/core/DeviceInput/InputDevices/deviceEnums
 import { DeviceSourceManager } from "@babylonjs/core/DeviceInput/InputDevices/deviceSourceManager";
 import { Engine } from "@babylonjs/core/Engines/engine";
 
-import { InputButton, NativeInputManager } from '@polyzone/core/src/modules/Input'
+import { InputButton, NativeInputManager } from '@polyzone/core/src/modules/Input';
 
 // @NOTE Find keycodes here: https://www.babylonjs-playground.com/#CIBK2P
 enum KeyCodes {
@@ -39,7 +39,7 @@ const InputButtonToKeyCode: Record<InputButton, KeyCodes> = {
   [InputButton['Y']]: KeyCodes['Tilde'],
   [InputButton['Start']]: KeyCodes.Escape,
   [InputButton['Select']]: KeyCodes['Tilde'],
-}
+};
 
 
 const INPUT_THRESHOLD = 0.95;
@@ -76,7 +76,7 @@ export class BabylonInputManager implements NativeInputManager {
           console.log(`Device connected: "DualSense"`, eventData);
           break;
         default:
-          console.error(`Unknown device type: ${(eventData as any).deviceType}`)
+          console.error(`Unknown device type: ${(eventData as any).deviceType}`);
       }
     });
   }
@@ -86,9 +86,9 @@ export class BabylonInputManager implements NativeInputManager {
    * @param button The button to test
    */
   public isButtonPressed(button: InputButton): boolean {
-    let keyboard = this.manager.getDeviceSource(DeviceType.Keyboard);
+    const keyboard = this.manager.getDeviceSource(DeviceType.Keyboard);
     if (keyboard) {
-      let input = keyboard.getInput(InputButtonToKeyCode[button]);
+      const input = keyboard.getInput(InputButtonToKeyCode[button]);
       return input > INPUT_THRESHOLD;
     }
 
