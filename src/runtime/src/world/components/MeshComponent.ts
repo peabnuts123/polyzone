@@ -1,7 +1,10 @@
 import type { AssetContainer, InstantiatedEntries } from "@babylonjs/core/assetContainer";
+import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
+import { PBRMaterial } from "@babylonjs/core/Materials/PBR/pbrMaterial";
 
 import { MeshComponent as MeshComponentCore } from "@polyzone/core/src/world/components";
 import { debug_modTexture } from "@polyzone/runtime/src";
+import { HackedMaterial } from "@polyzone/runtime/src/HackyMaterial";
 
 import { GameObject } from "../GameObject";
 
@@ -24,9 +27,45 @@ export class MeshComponent extends MeshComponentCore {
     this.id = id;
     this.gameObject = gameObject;
 
-    // @TODO Implement a proper shader
     for (const texture of asset.textures) {
       debug_modTexture(texture);
+    }
+
+
+    for (let i = 0; i < asset.materials.length; i++) {
+      const oldMaterial = asset.materials[i];
+
+      let newMaterial: HackedMaterial | undefined;
+      if (oldMaterial instanceof StandardMaterial) {
+        newMaterial = new HackedMaterial(oldMaterial.name, asset.scene);
+        newMaterial.diffuseTexture = oldMaterial.diffuseTexture;
+        // newMaterial.alpha = oldMaterial.alpha;
+        // newMaterial.alphaCutOff = oldMaterial.alphaCutOff;
+        // newMaterial.alphaMode = oldMaterial.alphaMode;
+        newMaterial.opacityTexture = oldMaterial.opacityTexture;
+        // newMaterial.transparencyMode = oldMaterial.transparencyMode;
+      } else if (oldMaterial instanceof PBRMaterial) {
+        console.error(`Unimplemented material type: `, oldMaterial);
+      } else {
+        console.error(`Unimplemented material type: `, oldMaterial);
+      }
+
+      if (newMaterial !== undefined) {
+        // Replace material with master retro material
+        asset.scene.removeMaterial(oldMaterial);
+        asset.scene.addMaterial(newMaterial);
+
+        // Find any meshes referencing the old material and replace them
+        for (const mesh of asset.meshes) {
+          if (mesh.material?.name === oldMaterial.name) {
+            mesh.material = newMaterial;
+          }
+        }
+
+        // 🤷‍♀️
+        asset.materials[i] = newMaterial;
+        oldMaterial.dispose();
+      }
     }
 
     this.sceneInstances = asset.instantiateModelsToScene();
