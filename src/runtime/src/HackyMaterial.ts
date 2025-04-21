@@ -1,4 +1,3 @@
-/* eslint-disable  */
 import type { Observer } from "@babylonjs/core/Misc/observable";
 import { SmartArray } from "@babylonjs/core/Misc/smartArray";
 import type { IAnimatable } from "@babylonjs/core/Animations/animatable.interface";
@@ -110,6 +109,9 @@ import "@babylonjs/core/Shaders/ShadersInclude/depthPrePass";
 import "@babylonjs/core/Shaders/ShadersInclude/lightFragment";
 import "@babylonjs/core/Shaders/ShadersInclude/logDepthFragment";
 import "@babylonjs/core/Shaders/ShadersInclude/oitFragment";
+import "@babylonjs/core/Shaders/ShadersInclude/bonesDeclaration";
+import "@babylonjs/core/Shaders/ShadersInclude/bakedVertexAnimationDeclaration";
+
 
 
 
@@ -139,7 +141,6 @@ import "@babylonjs/core/Shaders/ShadersInclude/oitFragment";
 // import "@babylonjs/core/Shaders/ShadersInclude/oitFragment";
 import MasterVertexShaderSource from './shaders/master.vertex.fx';
 import MasterFragmentShaderSource from './shaders/master.fragment.fx';
-import { _WebAudioBusAndSoundSubGraph } from "@babylonjs/core/AudioV2/webAudio/subNodes/webAudioBusAndSoundSubGraph";
 
 
 const onCreatedEffectParameters = { effect: null as unknown as Effect, subMesh: null as unknown as Nullable<SubMesh> };
@@ -333,7 +334,7 @@ export class HackedMaterialDefines extends MaterialDefines implements IImageProc
     this.rebuild();
   }
 
-  public setReflectionMode(modeToEnable: string) {
+  public setReflectionMode(modeToEnable: string): void {
     const modes = [
       "REFLECTIONMAP_CUBIC",
       "REFLECTIONMAP_EXPLICIT",
@@ -353,11 +354,6 @@ export class HackedMaterialDefines extends MaterialDefines implements IImageProc
   }
 }
 
-/**
- * This is the default material used in Babylon. It is the best trade off between quality
- * and performances.
- * @see https://doc.babylonjs.com/features/featuresDeepDive/materials/using/materials_introduction
- */
 export class HackedMaterial extends PushMaterial {
   /**
    * Force all the standard materials to compile to glsl even on WebGPU engines.
@@ -370,17 +366,17 @@ export class HackedMaterial extends PushMaterial {
    */
   public diffuseTexture: Nullable<BaseTexture> = null;
 
-  /**
-   * AKA Occlusion Texture in other nomenclature, it helps adding baked shadows into your material.
-   */
-  public ambientTexture: Nullable<BaseTexture> = null;
+  // /**
+  //  * AKA Occlusion Texture in other nomenclature, it helps adding baked shadows into your material.
+  //  */
+  // public ambientTexture: Nullable<BaseTexture> = null;
 
-  /**
-   * Define the transparency of the material from a texture.
-   * The final alpha value can be read either from the red channel (if texture.getAlphaFromRGB is false)
-   * or from the luminance or the current texel (if texture.getAlphaFromRGB is true)
-   */
-  public opacityTexture: Nullable<BaseTexture> = null;
+  // /**
+  //  * Define the transparency of the material from a texture.
+  //  * The final alpha value can be read either from the red channel (if texture.getAlphaFromRGB is false)
+  //  * or from the luminance or the current texel (if texture.getAlphaFromRGB is true)
+  //  */
+  // public opacityTexture: Nullable<BaseTexture> = null;
 
   /**
    * Define the texture used to display the reflection.
@@ -388,36 +384,36 @@ export class HackedMaterial extends PushMaterial {
    */
   public reflectionTexture: Nullable<BaseTexture> = null;
 
-  /**
-   * Define texture of the material as if self lit.
-   * This will be mixed in the final result even in the absence of light.
-   */
-  public emissiveTexture: Nullable<BaseTexture> = null;
+  // /**
+  //  * Define texture of the material as if self lit.
+  //  * This will be mixed in the final result even in the absence of light.
+  //  */
+  // public emissiveTexture: Nullable<BaseTexture> = null;
 
-  /**
-   * Define how the color and intensity of the highlight given by the light in the material.
-   */
-  public specularTexture: Nullable<BaseTexture> = null;
+  // /**
+  //  * Define how the color and intensity of the highlight given by the light in the material.
+  //  */
+  // public specularTexture: Nullable<BaseTexture> = null;
 
-  /**
-   * Bump mapping is a technique to simulate bump and dents on a rendered surface.
-   * These are made by creating a normal map from an image. The means to do this can be found on the web, a search for 'normal map generator' will bring up free and paid for methods of doing this.
-   * @see https://doc.babylonjs.com/features/featuresDeepDive/materials/using/moreMaterials#bump-map
-   */
-  public bumpTexture: Nullable<BaseTexture> = null;
+  // /**
+  //  * Bump mapping is a technique to simulate bump and dents on a rendered surface.
+  //  * These are made by creating a normal map from an image. The means to do this can be found on the web, a search for 'normal map generator' will bring up free and paid for methods of doing this.
+  //  * @see https://doc.babylonjs.com/features/featuresDeepDive/materials/using/moreMaterials#bump-map
+  //  */
+  // public bumpTexture: Nullable<BaseTexture> = null;
 
-  /**
-   * Complex lighting can be computationally expensive to compute at runtime.
-   * To save on computation, lightmaps may be used to store calculated lighting in a texture which will be applied to a given mesh.
-   * @see https://doc.babylonjs.com/features/featuresDeepDive/lights/lights_introduction#lightmaps
-   */
-  public lightmapTexture: Nullable<BaseTexture> = null;
+  // /**
+  //  * Complex lighting can be computationally expensive to compute at runtime.
+  //  * To save on computation, lightmaps may be used to store calculated lighting in a texture which will be applied to a given mesh.
+  //  * @see https://doc.babylonjs.com/features/featuresDeepDive/lights/lights_introduction#lightmaps
+  //  */
+  // public lightmapTexture: Nullable<BaseTexture> = null;
 
-  /**
-   * Define the texture used to display the refraction.
-   * @see https://doc.babylonjs.com/features/featuresDeepDive/materials/using/reflectionTexture#how-to-obtain-reflections-and-refractions
-   */
-  public refractionTexture: Nullable<BaseTexture> = null;
+  // /**
+  //  * Define the texture used to display the refraction.
+  //  * @see https://doc.babylonjs.com/features/featuresDeepDive/materials/using/reflectionTexture#how-to-obtain-reflections-and-refractions
+  //  */
+  // public refractionTexture: Nullable<BaseTexture> = null;
 
   /**
    * The color of the material lit by the environmental background lighting.
@@ -430,10 +426,10 @@ export class HackedMaterial extends PushMaterial {
    */
   public diffuseColor = new Color3(1, 1, 1);
 
-  /**
-   * Define how the color and intensity of the highlight given by the light in the material.
-   */
-  public specularColor = new Color3(1, 1, 1);
+  // /**
+  //  * Define how the color and intensity of the highlight given by the light in the material.
+  //  */
+  // public specularColor = new Color3(1, 1, 1);
 
   /**
    * Define the color of the material as if self lit.
@@ -441,40 +437,40 @@ export class HackedMaterial extends PushMaterial {
    */
   public emissiveColor = new Color3(0, 0, 0);
 
-  /**
-   * Defines how sharp are the highlights in the material.
-   * The bigger the value the sharper giving a more glossy feeling to the result.
-   * Reversely, the smaller the value the blurrier giving a more rough feeling to the result.
-   */
-  public specularPower = 64;
+  // /**
+  //  * Defines how sharp are the highlights in the material.
+  //  * The bigger the value the sharper giving a more glossy feeling to the result.
+  //  * Reversely, the smaller the value the blurrier giving a more rough feeling to the result.
+  //  */
+  // public specularPower = 64;
 
   /**
    * Does the transparency come from the diffuse texture alpha channel.
    */
-  public useAlphaFromDiffuseTexture: boolean = false;
+  // public useAlphaFromDiffuseTexture: boolean = false;
 
   /**
    * If true, the emissive value is added into the end result, otherwise it is multiplied in.
    */
-  public useEmissiveAsIllumination: boolean = false;
+  // public useEmissiveAsIllumination: boolean = true;
 
-  /**
-   * If true, some kind of energy conservation will prevent the end result to be more than 1 by reducing
-   * the emissive level when the final color is close to one.
-   */
-  public linkEmissiveWithDiffuse: boolean = false;
+  // /**
+  //  * If true, some kind of energy conservation will prevent the end result to be more than 1 by reducing
+  //  * the emissive level when the final color is close to one.
+  //  */
+  // public linkEmissiveWithDiffuse: boolean = false;
 
   /**
    * Specifies that the material will keep the specular highlights over a transparent surface (only the most luminous ones).
    * A car glass is a good exemple of that. When sun reflects on it you can not see what is behind.
    */
-  public useSpecularOverAlpha: boolean = false;
+  // public useSpecularOverAlpha: boolean = false;
 
   /**
    * Specifies that the material will keeps the reflection highlights over a transparent surface (only the most luminous ones).
    * A car glass is a good exemple of that. When the street lights reflects on it you can not see what is behind.
    */
-  public useReflectionOverAlpha: boolean = false;
+  // public useReflectionOverAlpha: boolean = false;
 
   /**
    * Does lights from the scene impacts this material.
@@ -485,95 +481,97 @@ export class HackedMaterial extends PushMaterial {
   /**
    * Allows using an object space normal map (instead of tangent space).
    */
-  public useObjectSpaceNormalMap: boolean = false;
+  // public useObjectSpaceNormalMap: boolean = false;
 
   /**
    * Is parallax enabled or not.
    * @see https://doc.babylonjs.com/features/featuresDeepDive/materials/using/parallaxMapping
    */
-  public useParallax: boolean = false;
+  // public useParallax: boolean = false;
 
   /**
    * Is parallax occlusion enabled or not.
    * If true, the outcome is way more realistic than traditional Parallax but you can expect a performance hit that worthes consideration.
    * @see https://doc.babylonjs.com/features/featuresDeepDive/materials/using/parallaxMapping
    */
-  public useParallaxOcclusion: boolean = false;
+  // public useParallaxOcclusion: boolean = false;
 
   /**
    * Apply a scaling factor that determine which "depth" the height map should reprensent. A value between 0.05 and 0.1 is reasonnable in Parallax, you can reach 0.2 using Parallax Occlusion.
    */
-  public parallaxScaleBias = 0.05;
+  // public parallaxScaleBias = 0.05;
 
   /**
    * Helps to define how blurry the reflections should appears in the material.
    */
-  public roughness: number = 0;
+  // public roughness: number = 0;
 
   /**
    * In case of refraction, define the value of the index of refraction.
    * @see https://doc.babylonjs.com/features/featuresDeepDive/materials/using/reflectionTexture#how-to-obtain-reflections-and-refractions
    */
-  public indexOfRefraction = 0.98;
+  // public indexOfRefraction = 0.98;
 
   /**
    * Invert the refraction texture alongside the y axis.
    * It can be useful with procedural textures or probe for instance.
    * @see https://doc.babylonjs.com/features/featuresDeepDive/materials/using/reflectionTexture#how-to-obtain-reflections-and-refractions
    */
-  public invertRefractionY = true;
+  // public invertRefractionY = true;
 
   /**
    * Defines the alpha limits in alpha test mode.
+   * // @TODO why is this so homebrew?
    */
-  public alphaCutOff = 0.4;
+  public alphaCutOff = 0.5;
+
 
   /**
    * In case of light mapping, define whether the map contains light or shadow informations.
    */
-  public useLightmapAsShadowmap: boolean = false;
+  // public useLightmapAsShadowmap: boolean = false;
 
   // Fresnel
   /**
    * Define the diffuse fresnel parameters of the material.
    * @see https://doc.babylonjs.com/features/featuresDeepDive/materials/using/fresnelParameters
    */
-  public diffuseFresnelParameters: FresnelParameters = undefined!;
+  // public diffuseFresnelParameters: FresnelParameters = undefined!;
 
   /**
    * Define the opacity fresnel parameters of the material.
    * @see https://doc.babylonjs.com/features/featuresDeepDive/materials/using/fresnelParameters
    */
-  public opacityFresnelParameters: FresnelParameters = undefined!;
+  // public opacityFresnelParameters: FresnelParameters = undefined!;
 
   /**
    * Define the reflection fresnel parameters of the material.
    * @see https://doc.babylonjs.com/features/featuresDeepDive/materials/using/fresnelParameters
    */
-  public reflectionFresnelParameters: FresnelParameters = undefined!;
+  // public reflectionFresnelParameters: FresnelParameters = undefined!;
 
   /**
    * Define the refraction fresnel parameters of the material.
    * @see https://doc.babylonjs.com/features/featuresDeepDive/materials/using/fresnelParameters
    */
-  public refractionFresnelParameters: FresnelParameters = undefined!;
+  // public refractionFresnelParameters: FresnelParameters = undefined!;
 
   /**
    * Define the emissive fresnel parameters of the material.
    * @see https://doc.babylonjs.com/features/featuresDeepDive/materials/using/fresnelParameters
    */
-  public emissiveFresnelParameters: FresnelParameters = undefined!;
+  // public emissiveFresnelParameters: FresnelParameters = undefined!;
 
   /**
    * If true automatically deducts the fresnels values from the material specularity.
    * @see https://doc.babylonjs.com/features/featuresDeepDive/materials/using/fresnelParameters
    */
-  public useReflectionFresnelFromSpecular: boolean = false;
+  // public useReflectionFresnelFromSpecular: boolean = false;
 
   /**
    * Defines if the glossiness/roughness of the material should be read from the specular map alpha channel
    */
-  public useGlossinessFromSpecularMapAlpha: boolean = false;
+  // public useGlossinessFromSpecularMapAlpha: boolean = false;
 
   /**
    * Defines the maximum number of lights that can be used in the material
@@ -583,175 +581,175 @@ export class HackedMaterial extends PushMaterial {
   /**
    * If sets to true, x component of normal map value will invert (x = 1.0 - x).
    */
-  public invertNormalMapX: boolean = false;
+  // public invertNormalMapX: boolean = false;
 
   /**
    * If sets to true, y component of normal map value will invert (y = 1.0 - y).
    */
-  public invertNormalMapY: boolean = false;
+  // public invertNormalMapY: boolean = false;
 
   /**
    * If sets to true and backfaceCulling is false, normals will be flipped on the backside.
    */
-  public twoSidedLighting: boolean = false;
+  // public twoSidedLighting: boolean = false;
 
   /**
    * If sets to true, the decal map will be applied after the detail map. Else, it is applied before (default: false)
    */
-  public applyDecalMapAfterDetailMap: boolean = false;
+  // public applyDecalMapAfterDetailMap: boolean = false;
 
   /**
    * Default configuration related to image processing available in the standard Material.
    */
-  protected _imageProcessingConfiguration: ImageProcessingConfiguration = undefined!;
+  // protected _imageProcessingConfiguration: ImageProcessingConfiguration = undefined!;
 
   /**
    * Gets the image processing configuration used either in this material.
    */
-  public get imageProcessingConfiguration(): ImageProcessingConfiguration {
-    return this._imageProcessingConfiguration;
-  }
+  // public get imageProcessingConfiguration(): ImageProcessingConfiguration {
+  //   return this._imageProcessingConfiguration;
+  // }
 
-  /**
-   * Sets the Default image processing configuration used either in the this material.
-   *
-   * If sets to null, the scene one is in use.
-   */
-  public set imageProcessingConfiguration(value: ImageProcessingConfiguration) {
-    this._attachImageProcessingConfiguration(value);
+  // /**
+  //  * Sets the Default image processing configuration used either in the this material.
+  //  *
+  //  * If sets to null, the scene one is in use.
+  //  */
+  // public set imageProcessingConfiguration(value: ImageProcessingConfiguration) {
+  //   this._attachImageProcessingConfiguration(value);
 
-    // Ensure the effect will be rebuilt.
-    this._markAllSubMeshesAsTexturesDirty();
-  }
+  //   // Ensure the effect will be rebuilt.
+  //   this._markAllSubMeshesAsTexturesDirty();
+  // }
 
   /**
    * Keep track of the image processing observer to allow dispose and replace.
    */
-  private _imageProcessingObserver: Nullable<Observer<ImageProcessingConfiguration>> = null;
+  // private _imageProcessingObserver: Nullable<Observer<ImageProcessingConfiguration>> = null;
 
   /**
    * Attaches a new image processing configuration to the Standard Material.
    * @param configuration
    */
-  protected _attachImageProcessingConfiguration(configuration: Nullable<ImageProcessingConfiguration>): void {
-    if (configuration === this._imageProcessingConfiguration) {
-      return;
-    }
+  // protected _attachImageProcessingConfiguration(configuration: Nullable<ImageProcessingConfiguration>): void {
+  //   if (configuration === this._imageProcessingConfiguration) {
+  //     return;
+  //   }
 
-    // Detaches observer
-    if (this._imageProcessingConfiguration && this._imageProcessingObserver) {
-      this._imageProcessingConfiguration.onUpdateParameters.remove(this._imageProcessingObserver);
-    }
+  //   // Detaches observer
+  //   if (this._imageProcessingConfiguration && this._imageProcessingObserver) {
+  //     this._imageProcessingConfiguration.onUpdateParameters.remove(this._imageProcessingObserver);
+  //   }
 
-    // Pick the scene configuration if needed
-    if (!configuration) {
-      this._imageProcessingConfiguration = this.getScene().imageProcessingConfiguration;
-    } else {
-      this._imageProcessingConfiguration = configuration;
-    }
+  //   // Pick the scene configuration if needed
+  //   if (!configuration) {
+  //     this._imageProcessingConfiguration = this.getScene().imageProcessingConfiguration;
+  //   } else {
+  //     this._imageProcessingConfiguration = configuration;
+  //   }
 
-    // Attaches observer
-    if (this._imageProcessingConfiguration) {
-      this._imageProcessingObserver = this._imageProcessingConfiguration.onUpdateParameters.add(() => {
-        this._markAllSubMeshesAsImageProcessingDirty();
-      });
-    }
-  }
+  //   // Attaches observer
+  //   if (this._imageProcessingConfiguration) {
+  //     this._imageProcessingObserver = this._imageProcessingConfiguration.onUpdateParameters.add(() => {
+  //       this._markAllSubMeshesAsImageProcessingDirty();
+  //     });
+  //   }
+  // }
 
   /**
    * Defines additional PrePass parameters for the material.
    */
-  public readonly prePassConfiguration: PrePassConfiguration;
+  // public readonly prePassConfiguration: PrePassConfiguration;
 
   /**
    * Can this material render to prepass
    */
-  public override get isPrePassCapable(): boolean {
-    return !this.disableDepthWrite;
-  }
+  // public override get isPrePassCapable(): boolean {
+  //   return !this.disableDepthWrite;
+  // }
 
   /**
    * Gets whether the color curves effect is enabled.
    */
-  public get cameraColorCurvesEnabled(): boolean {
-    return this.imageProcessingConfiguration.colorCurvesEnabled;
-  }
+  // public get cameraColorCurvesEnabled(): boolean {
+  //   return this.imageProcessingConfiguration.colorCurvesEnabled;
+  // }
   /**
    * Sets whether the color curves effect is enabled.
    */
-  public set cameraColorCurvesEnabled(value: boolean) {
-    this.imageProcessingConfiguration.colorCurvesEnabled = value;
-  }
+  // public set cameraColorCurvesEnabled(value: boolean) {
+  //   this.imageProcessingConfiguration.colorCurvesEnabled = value;
+  // }
 
   /**
    * Gets whether the color grading effect is enabled.
    */
-  public get cameraColorGradingEnabled(): boolean {
-    return this.imageProcessingConfiguration.colorGradingEnabled;
-  }
+  // public get cameraColorGradingEnabled(): boolean {
+  //   return this.imageProcessingConfiguration.colorGradingEnabled;
+  // }
   /**
    * Gets whether the color grading effect is enabled.
    */
-  public set cameraColorGradingEnabled(value: boolean) {
-    this.imageProcessingConfiguration.colorGradingEnabled = value;
-  }
+  // public set cameraColorGradingEnabled(value: boolean) {
+  //   this.imageProcessingConfiguration.colorGradingEnabled = value;
+  // }
 
   /**
    * Gets whether tonemapping is enabled or not.
    */
-  public get cameraToneMappingEnabled(): boolean {
-    return this._imageProcessingConfiguration.toneMappingEnabled;
-  }
+  // public get cameraToneMappingEnabled(): boolean {
+  //   return this._imageProcessingConfiguration.toneMappingEnabled;
+  // }
   /**
    * Sets whether tonemapping is enabled or not
    */
-  public set cameraToneMappingEnabled(value: boolean) {
-    this._imageProcessingConfiguration.toneMappingEnabled = value;
-  }
+  // public set cameraToneMappingEnabled(value: boolean) {
+  //   this._imageProcessingConfiguration.toneMappingEnabled = value;
+  // }
 
   /**
    * The camera exposure used on this material.
    * This property is here and not in the camera to allow controlling exposure without full screen post process.
    * This corresponds to a photographic exposure.
    */
-  public get cameraExposure(): number {
-    return this._imageProcessingConfiguration.exposure;
-  }
+  // public get cameraExposure(): number {
+  //   return this._imageProcessingConfiguration.exposure;
+  // }
   /**
    * The camera exposure used on this material.
    * This property is here and not in the camera to allow controlling exposure without full screen post process.
    * This corresponds to a photographic exposure.
    */
-  public set cameraExposure(value: number) {
-    this._imageProcessingConfiguration.exposure = value;
-  }
+  // public set cameraExposure(value: number) {
+  //   this._imageProcessingConfiguration.exposure = value;
+  // }
 
   /**
    * Gets The camera contrast used on this material.
    */
-  public get cameraContrast(): number {
-    return this._imageProcessingConfiguration.contrast;
-  }
+  // public get cameraContrast(): number {
+  //   return this._imageProcessingConfiguration.contrast;
+  // }
 
   /**
    * Sets The camera contrast used on this material.
    */
-  public set cameraContrast(value: number) {
-    this._imageProcessingConfiguration.contrast = value;
-  }
+  // public set cameraContrast(value: number) {
+  //   this._imageProcessingConfiguration.contrast = value;
+  // }
 
   /**
    * Gets the Color Grading 2D Lookup Texture.
    */
-  public get cameraColorGradingTexture(): Nullable<BaseTexture> {
-    return this._imageProcessingConfiguration.colorGradingTexture;
-  }
+  // public get cameraColorGradingTexture(): Nullable<BaseTexture> {
+  //   return this._imageProcessingConfiguration.colorGradingTexture;
+  // }
   /**
    * Sets the Color Grading 2D Lookup Texture.
    */
-  public set cameraColorGradingTexture(value: Nullable<BaseTexture>) {
-    this._imageProcessingConfiguration.colorGradingTexture = value;
-  }
+  // public set cameraColorGradingTexture(value: Nullable<BaseTexture>) {
+  //   this._imageProcessingConfiguration.colorGradingTexture = value;
+  // }
 
   /**
    * The color grading curves provide additional color adjustmnent that is applied after any color grading transform (3D LUT).
@@ -759,34 +757,34 @@ export class HackedMaterial extends PushMaterial {
    * These are similar to controls found in many professional imaging or colorist software. The global controls are applied to the entire image. For advanced tuning, extra controls are provided to adjust the shadow, midtone and highlight areas of the image;
    * corresponding to low luminance, medium luminance, and high luminance areas respectively.
    */
-  public get cameraColorCurves(): Nullable<ColorCurves> {
-    return this._imageProcessingConfiguration.colorCurves;
-  }
+  // public get cameraColorCurves(): Nullable<ColorCurves> {
+  //   return this._imageProcessingConfiguration.colorCurves;
+  // }
   /**
    * The color grading curves provide additional color adjustment that is applied after any color grading transform (3D LUT).
    * They allow basic adjustment of saturation and small exposure adjustments, along with color filter tinting to provide white balance adjustment or more stylistic effects.
    * These are similar to controls found in many professional imaging or colorist software. The global controls are applied to the entire image. For advanced tuning, extra controls are provided to adjust the shadow, midtone and highlight areas of the image;
    * corresponding to low luminance, medium luminance, and high luminance areas respectively.
    */
-  public set cameraColorCurves(value: Nullable<ColorCurves>) {
-    this._imageProcessingConfiguration.colorCurves = value;
-  }
+  // public set cameraColorCurves(value: Nullable<ColorCurves>) {
+  //   this._imageProcessingConfiguration.colorCurves = value;
+  // }
 
   /**
    * Can this material render to several textures at once
    */
-  public override get canRenderToMRT() {
-    return true;
-  }
+  // public override get canRenderToMRT(): boolean {
+  //   return true;
+  // }
 
   /**
    * Defines the detail map parameters for the material.
    */
-  public readonly detailMap: DetailMapConfiguration;
+  // public readonly detailMap: DetailMapConfiguration;
 
-  protected _renderTargets = new SmartArray<RenderTargetTexture>(16);
-  protected _globalAmbientColor = new Color3(0, 0, 0);
-  protected _cacheHasRenderTargetTextures = false;
+  // protected _renderTargets = new SmartArray<RenderTargetTexture>(16);
+  // protected _globalAmbientColor = new Color3(0, 0, 0);
+  // protected _cacheHasRenderTargetTextures = false;
 
   /**
    * Instantiates a new standard material.
@@ -800,108 +798,108 @@ export class HackedMaterial extends PushMaterial {
   constructor(name: string, scene?: Scene, forceGLSL = false) {
     super(name, scene, undefined, forceGLSL || HackedMaterial.ForceGLSL);
 
-    this.detailMap = new DetailMapConfiguration(this as unknown as StandardMaterial);
+    // this.detailMap = new DetailMapConfiguration(this as unknown as StandardMaterial);
 
     // Setup the default processing configuration to the scene.
-    this._attachImageProcessingConfiguration(null);
-    this.prePassConfiguration = new PrePassConfiguration();
+    // this._attachImageProcessingConfiguration(null);
+    // this.prePassConfiguration = new PrePassConfiguration();
 
-    this.getRenderTargetTextures = (): SmartArray<RenderTargetTexture> => {
-      this._renderTargets.reset();
+    // this.getRenderTargetTextures = (): SmartArray<RenderTargetTexture> => {
+    //   this._renderTargets.reset();
 
-      if (HackedMaterial.ReflectionTextureEnabled && this.reflectionTexture && this.reflectionTexture.isRenderTarget) {
-        this._renderTargets.push(<RenderTargetTexture>this.reflectionTexture);
-      }
+    //   if (HackedMaterial.ReflectionTextureEnabled && this.reflectionTexture && this.reflectionTexture.isRenderTarget) {
+    //     this._renderTargets.push(<RenderTargetTexture>this.reflectionTexture);
+    //   }
 
-      if (HackedMaterial.RefractionTextureEnabled && this.refractionTexture && this.refractionTexture.isRenderTarget) {
-        this._renderTargets.push(<RenderTargetTexture>this.refractionTexture);
-      }
+    //   if (HackedMaterial.RefractionTextureEnabled && this.refractionTexture && this.refractionTexture.isRenderTarget) {
+    //     this._renderTargets.push(<RenderTargetTexture>this.refractionTexture);
+    //   }
 
-      this._eventInfo.renderTargets = this._renderTargets;
-      this._callbackPluginEventFillRenderTargetTextures(this._eventInfo);
+    //   this._eventInfo.renderTargets = this._renderTargets;
+    //   this._callbackPluginEventFillRenderTargetTextures(this._eventInfo);
 
-      return this._renderTargets;
-    };
+    //   return this._renderTargets;
+    // };
   }
 
   /**
    * Gets a boolean indicating that current material needs to register RTT
    */
-  public override get hasRenderTargetTextures(): boolean {
-    if (HackedMaterial.ReflectionTextureEnabled && this.reflectionTexture && this.reflectionTexture.isRenderTarget) {
-      return true;
-    }
+  // public override get hasRenderTargetTextures(): boolean {
+  //   if (HackedMaterial.ReflectionTextureEnabled && this.reflectionTexture && this.reflectionTexture.isRenderTarget) {
+  //     return true;
+  //   }
 
-    if (HackedMaterial.RefractionTextureEnabled && this.refractionTexture && this.refractionTexture.isRenderTarget) {
-      return true;
-    }
+  //   if (HackedMaterial.RefractionTextureEnabled && this.refractionTexture && this.refractionTexture.isRenderTarget) {
+  //     return true;
+  //   }
 
-    return this._cacheHasRenderTargetTextures;
-  }
+  //   return this._cacheHasRenderTargetTextures;
+  // }
 
   /**
    * Gets the current class name of the material e.g. "HackedMaterial"
    * Mainly use in serialization.
    * @returns the class name
    */
-  public override getClassName(): string {
-    return "HackedMaterial";
-  }
+  // public override getClassName(): string {
+  //   return "HackedMaterial";
+  // }
 
-  /**
-   * Specifies if the material will require alpha blending
-   * @returns a boolean specifying if alpha blending is needed
-   */
-  public override needAlphaBlending(): boolean {
-    if (this._hasTransparencyMode) {
-      return this._transparencyModeIsBlend;
-    }
+  // /**
+  //  * Specifies if the material will require alpha blending
+  //  * @returns a boolean specifying if alpha blending is needed
+  //  */
+  // public override needAlphaBlending(): boolean {
+  //   if (this._hasTransparencyMode) {
+  //     return this._transparencyModeIsBlend;
+  //   }
 
-    if (this._disableAlphaBlending) {
-      return false;
-    }
+  //   if (this._disableAlphaBlending) {
+  //     return false;
+  //   }
 
-    return (
-      this.alpha < 1.0 ||
-      this.opacityTexture != null ||
-      this._shouldUseAlphaFromDiffuseTexture() ||
-      (this.opacityFresnelParameters && this.opacityFresnelParameters.isEnabled)
-    );
-  }
+  //   return (
+  //     this.alpha < 1.0 ||
+  //     // this.opacityTexture != null ||
+  //     this._shouldUseAlphaFromDiffuseTexture()// ||
+  //     // (this.opacityFresnelParameters && this.opacityFresnelParameters.isEnabled)
+  //   );
+  // }
 
   /**
    * Specifies if this material should be rendered in alpha test mode
    * @returns a boolean specifying if an alpha test is needed.
    */
-  public override needAlphaTesting(): boolean {
-    if (this._hasTransparencyMode) {
-      return this._transparencyModeIsTest;
-    }
+  // public override needAlphaTesting(): boolean {
+  //   if (this._hasTransparencyMode) {
+  //     return this._transparencyModeIsTest;
+  //   }
 
-    return this._hasAlphaChannel() && (this._transparencyMode == null || this._transparencyMode === Material.MATERIAL_ALPHATEST);
-  }
+  //   return this._hasAlphaChannel() && (this._transparencyMode == null || this._transparencyMode === Material.MATERIAL_ALPHATEST);
+  // }
 
   /**
    * @returns whether or not the alpha value of the diffuse texture should be used for alpha blending.
    */
-  protected _shouldUseAlphaFromDiffuseTexture(): boolean {
-    return this.diffuseTexture != null && this.diffuseTexture.hasAlpha && this.useAlphaFromDiffuseTexture && this._transparencyMode !== Material.MATERIAL_OPAQUE;
-  }
+  // protected _shouldUseAlphaFromDiffuseTexture(): boolean {
+  //   return this.diffuseTexture != null && this.diffuseTexture.hasAlpha && /* this.useAlphaFromDiffuseTexture && */ this._transparencyMode !== Material.MATERIAL_OPAQUE;
+  // }
 
   /**
    * @returns whether or not there is a usable alpha channel for transparency.
    */
-  protected _hasAlphaChannel(): boolean {
-    return (this.diffuseTexture != null && this.diffuseTexture.hasAlpha) || this.opacityTexture != null;
-  }
+  // protected _hasAlphaChannel(): boolean {
+  //   return (this.diffuseTexture != null && this.diffuseTexture.hasAlpha) || this.opacityTexture != null;
+  // }
 
   /**
    * Get the texture used for alpha test purpose.
    * @returns the diffuse texture in case of the standard material.
    */
-  public override getAlphaTestTexture(): Nullable<BaseTexture> {
-    return this.diffuseTexture;
-  }
+  // public override getAlphaTestTexture(): Nullable<BaseTexture> {
+  //   return this.diffuseTexture;
+  // }
 
   /**
    * Get if the submesh is ready to be used and all its information available.
@@ -941,34 +939,34 @@ export class HackedMaterial extends PushMaterial {
     defines._needNormals = PrepareDefinesForLights(scene, mesh, defines, true, this.maxSimultaneousLights, this.disableLighting);
 
     // Multiview
-    PrepareDefinesForMultiview(scene, defines);
+    // PrepareDefinesForMultiview(scene, defines);
 
     // PrePass
-    const oit = this.needAlphaBlendingForMesh(mesh) && this.getScene().useOrderIndependentTransparency;
-    PrepareDefinesForPrePass(scene, defines, this.canRenderToMRT && !oit);
+    // const oit = this.needAlphaBlendingForMesh(mesh) && this.getScene().useOrderIndependentTransparency;
+    // PrepareDefinesForPrePass(scene, defines, this.canRenderToMRT && !oit);
 
     // Order independant transparency
-    PrepareDefinesForOIT(scene, defines, oit);
+    // PrepareDefinesForOIT(scene, defines, oit);
 
     MaterialHelperGeometryRendering.PrepareDefines(engine.currentRenderPassId, mesh, defines);
 
     // Textures
     if (defines._areTexturesDirty) {
-      this._eventInfo.hasRenderTargetTextures = false;
-      this._callbackPluginEventHasRenderTargetTextures(this._eventInfo);
-      this._cacheHasRenderTargetTextures = this._eventInfo.hasRenderTargetTextures;
+      // this._eventInfo.hasRenderTargetTextures = false;
+      // this._callbackPluginEventHasRenderTargetTextures(this._eventInfo);
+      // this._cacheHasRenderTargetTextures = this._eventInfo.hasRenderTargetTextures;
       defines._needUVs = false;
-      for (let i = 1; i <= Constants.MAX_SUPPORTED_UV_SETS; ++i) {
-        defines["MAINUV" + i] = false;
-      }
+      // for (let i = 1; i <= Constants.MAX_SUPPORTED_UV_SETS; ++i) {
+      //   defines["MAINUV" + i] = false;
+      // }
       if (scene.texturesEnabled) {
         defines.DIFFUSEDIRECTUV = 0;
-        defines.BUMPDIRECTUV = 0;
-        defines.AMBIENTDIRECTUV = 0;
-        defines.OPACITYDIRECTUV = 0;
-        defines.EMISSIVEDIRECTUV = 0;
-        defines.SPECULARDIRECTUV = 0;
-        defines.LIGHTMAPDIRECTUV = 0;
+        // defines.BUMPDIRECTUV = 0;
+        // defines.AMBIENTDIRECTUV = 0;
+        // defines.OPACITYDIRECTUV = 0;
+        // defines.EMISSIVEDIRECTUV = 0;
+        // defines.SPECULARDIRECTUV = 0;
+        // defines.LIGHTMAPDIRECTUV = 0;
 
         if (this.diffuseTexture && HackedMaterial.DiffuseTextureEnabled) {
           if (!this.diffuseTexture.isReadyOrNotBlocking()) {
@@ -980,27 +978,28 @@ export class HackedMaterial extends PushMaterial {
           defines.DIFFUSE = false;
         }
 
-        if (this.ambientTexture && HackedMaterial.AmbientTextureEnabled) {
-          if (!this.ambientTexture.isReadyOrNotBlocking()) {
-            return false;
-          } else {
-            PrepareDefinesForMergedUV(this.ambientTexture, defines, "AMBIENT");
-          }
-        } else {
-          defines.AMBIENT = false;
-        }
+        // if (this.ambientTexture && HackedMaterial.AmbientTextureEnabled) {
+        //   if (!this.ambientTexture.isReadyOrNotBlocking()) {
+        //     return false;
+        //   } else {
+        //     PrepareDefinesForMergedUV(this.ambientTexture, defines, "AMBIENT");
+        //   }
+        // } else {
+        //   defines.AMBIENT = false;
+        // }
 
-        if (this.opacityTexture && HackedMaterial.OpacityTextureEnabled) {
-          if (!this.opacityTexture.isReadyOrNotBlocking()) {
-            return false;
-          } else {
-            PrepareDefinesForMergedUV(this.opacityTexture, defines, "OPACITY");
-            defines.OPACITYRGB = this.opacityTexture.getAlphaFromRGB;
-          }
-        } else {
-          defines.OPACITY = false;
-        }
+        // if (this.opacityTexture && HackedMaterial.OpacityTextureEnabled) {
+        //   if (!this.opacityTexture.isReadyOrNotBlocking()) {
+        //     return false;
+        //   } else {
+        //     PrepareDefinesForMergedUV(this.opacityTexture, defines, "OPACITY");
+        //     defines.OPACITYRGB = this.opacityTexture.getAlphaFromRGB;
+        //   }
+        // } else {
+        //   defines.OPACITY = false;
+        // }
 
+        // @TODO Simplify after implement cubemaps
         if (this.reflectionTexture && HackedMaterial.ReflectionTextureEnabled) {
           if (!this.reflectionTexture.isReadyOrNotBlocking()) {
             return false;
@@ -1008,12 +1007,14 @@ export class HackedMaterial extends PushMaterial {
             defines._needNormals = true;
             defines.REFLECTION = true;
 
-            defines.ROUGHNESS = this.roughness > 0;
-            defines.REFLECTIONOVERALPHA = this.useReflectionOverAlpha;
+            // defines.ROUGHNESS = this.roughness > 0;
+            // defines.REFLECTIONOVERALPHA = this.useReflectionOverAlpha;
             defines.INVERTCUBICMAP = this.reflectionTexture.coordinatesMode === Texture.INVCUBIC_MODE;
             defines.REFLECTIONMAP_3D = this.reflectionTexture.isCube;
-            defines.REFLECTIONMAP_OPPOSITEZ =
-              defines.REFLECTIONMAP_3D && this.getScene().useRightHandedSystem ? !this.reflectionTexture.invertZ : this.reflectionTexture.invertZ;
+            defines.REFLECTIONMAP_OPPOSITEZ = defines.REFLECTIONMAP_3D &&
+              this.getScene().useRightHandedSystem
+              ? !this.reflectionTexture.invertZ
+              : this.reflectionTexture.invertZ;
             defines.RGBDREFLECTION = this.reflectionTexture.isRGBD;
 
             switch (this.reflectionTexture.coordinatesMode) {
@@ -1055,93 +1056,96 @@ export class HackedMaterial extends PushMaterial {
           defines.REFLECTIONMAP_OPPOSITEZ = false;
         }
 
-        if (this.emissiveTexture && HackedMaterial.EmissiveTextureEnabled) {
-          if (!this.emissiveTexture.isReadyOrNotBlocking()) {
-            return false;
-          } else {
-            PrepareDefinesForMergedUV(this.emissiveTexture, defines, "EMISSIVE");
-          }
-        } else {
-          defines.EMISSIVE = false;
-        }
+        // if (this.emissiveTexture && HackedMaterial.EmissiveTextureEnabled) {
+        //   if (!this.emissiveTexture.isReadyOrNotBlocking()) {
+        //     return false;
+        //   } else {
+        //     PrepareDefinesForMergedUV(this.emissiveTexture, defines, "EMISSIVE");
+        //   }
+        // } else {
+        //   defines.EMISSIVE = false;
+        // }
 
-        if (this.lightmapTexture && HackedMaterial.LightmapTextureEnabled) {
-          if (!this.lightmapTexture.isReadyOrNotBlocking()) {
-            return false;
-          } else {
-            PrepareDefinesForMergedUV(this.lightmapTexture, defines, "LIGHTMAP");
-            defines.USELIGHTMAPASSHADOWMAP = this.useLightmapAsShadowmap;
-            defines.RGBDLIGHTMAP = this.lightmapTexture.isRGBD;
-          }
-        } else {
-          defines.LIGHTMAP = false;
-        }
+        // if (this.lightmapTexture && HackedMaterial.LightmapTextureEnabled) {
+        //   if (!this.lightmapTexture.isReadyOrNotBlocking()) {
+        //     return false;
+        //   } else {
+        //     PrepareDefinesForMergedUV(this.lightmapTexture, defines, "LIGHTMAP");
+        //     defines.USELIGHTMAPASSHADOWMAP = this.useLightmapAsShadowmap;
+        //     defines.RGBDLIGHTMAP = this.lightmapTexture.isRGBD;
+        //   }
+        // } else {
+        //   defines.LIGHTMAP = false;
+        // }
 
-        if (this.specularTexture && HackedMaterial.SpecularTextureEnabled) {
-          if (!this.specularTexture.isReadyOrNotBlocking()) {
-            return false;
-          } else {
-            PrepareDefinesForMergedUV(this.specularTexture, defines, "SPECULAR");
-            defines.GLOSSINESS = this.useGlossinessFromSpecularMapAlpha;
-          }
-        } else {
-          defines.SPECULAR = false;
-        }
+        // if (this.specularTexture && HackedMaterial.SpecularTextureEnabled) {
+        //   if (!this.specularTexture.isReadyOrNotBlocking()) {
+        //     return false;
+        //   } else {
+        //     PrepareDefinesForMergedUV(this.specularTexture, defines, "SPECULAR");
+        //     defines.GLOSSINESS = this.useGlossinessFromSpecularMapAlpha;
+        //   }
+        // } else {
+        //   defines.SPECULAR = false;
+        // }
 
-        if (scene.getEngine().getCaps().standardDerivatives && this.bumpTexture && HackedMaterial.BumpTextureEnabled) {
-          // Bump texture can not be not blocking.
-          if (!this.bumpTexture.isReady()) {
-            return false;
-          } else {
-            PrepareDefinesForMergedUV(this.bumpTexture, defines, "BUMP");
+        // if (scene.getEngine().getCaps().standardDerivatives && this.bumpTexture && HackedMaterial.BumpTextureEnabled) {
+        //   // Bump texture can not be not blocking.
+        //   if (!this.bumpTexture.isReady()) {
+        //     return false;
+        //   } else {
+        //     PrepareDefinesForMergedUV(this.bumpTexture, defines, "BUMP");
 
-            defines.PARALLAX = this.useParallax;
-            defines.PARALLAX_RHS = scene.useRightHandedSystem;
-            defines.PARALLAXOCCLUSION = this.useParallaxOcclusion;
-          }
+        //     defines.PARALLAX = this.useParallax;
+        //     defines.PARALLAX_RHS = scene.useRightHandedSystem;
+        //     defines.PARALLAXOCCLUSION = this.useParallaxOcclusion;
+        //   }
 
-          defines.OBJECTSPACE_NORMALMAP = this.useObjectSpaceNormalMap;
-        } else {
-          defines.BUMP = false;
-          defines.PARALLAX = false;
-          defines.PARALLAX_RHS = false;
-          defines.PARALLAXOCCLUSION = false;
-        }
+        //   defines.OBJECTSPACE_NORMALMAP = this.useObjectSpaceNormalMap;
+        // } else {
+        //   defines.BUMP = false;
+        //   defines.PARALLAX = false;
+        //   defines.PARALLAX_RHS = false;
+        //   defines.PARALLAXOCCLUSION = false;
+        // }
 
-        if (this.refractionTexture && HackedMaterial.RefractionTextureEnabled) {
-          if (!this.refractionTexture.isReadyOrNotBlocking()) {
-            return false;
-          } else {
-            defines._needUVs = true;
-            defines.REFRACTION = true;
+        // if (this.refractionTexture && HackedMaterial.RefractionTextureEnabled) {
+        //   if (!this.refractionTexture.isReadyOrNotBlocking()) {
+        //     return false;
+        //   } else {
+        //     defines._needUVs = true;
+        //     defines.REFRACTION = true;
 
-            defines.REFRACTIONMAP_3D = this.refractionTexture.isCube;
-            defines.RGBDREFRACTION = this.refractionTexture.isRGBD;
-            defines.USE_LOCAL_REFRACTIONMAP_CUBIC = (<any>this.refractionTexture).boundingBoxSize ? true : false;
-          }
-        } else {
-          defines.REFRACTION = false;
-        }
+        //     defines.REFRACTIONMAP_3D = this.refractionTexture.isCube;
+        //     defines.RGBDREFRACTION = this.refractionTexture.isRGBD;
+        //     defines.USE_LOCAL_REFRACTIONMAP_CUBIC = (<any>this.refractionTexture).boundingBoxSize ? true : false;
+        //   }
+        // } else {
+        //   defines.REFRACTION = false;
+        // }
 
-        defines.TWOSIDEDLIGHTING = !this._backFaceCulling && this.twoSidedLighting;
+        // defines.TWOSIDEDLIGHTING = !this._backFaceCulling && this.twoSidedLighting;
       } else {
         defines.DIFFUSE = false;
-        defines.AMBIENT = false;
-        defines.OPACITY = false;
+        // defines.AMBIENT = false;
+        // defines.OPACITY = false;
         defines.REFLECTION = false;
-        defines.EMISSIVE = false;
-        defines.LIGHTMAP = false;
-        defines.BUMP = false;
-        defines.REFRACTION = false;
+        // defines.EMISSIVE = false;
+        // defines.LIGHTMAP = false;
+        // defines.BUMP = false;
+        // defines.REFRACTION = false;
       }
 
-      defines.ALPHAFROMDIFFUSE = this._shouldUseAlphaFromDiffuseTexture();
+      // defines.ALPHAFROMDIFFUSE = this._shouldUseAlphaFromDiffuseTexture();
+      // @TODO how does transparency work?
+      defines.ALPHAFROMDIFFUSE = true;
 
-      defines.EMISSIVEASILLUMINATION = this.useEmissiveAsIllumination;
+      // defines.EMISSIVEASILLUMINATION = this.useEmissiveAsIllumination; // @TODO is true
+      defines.EMISSIVEASILLUMINATION = true; // @TODO how does emmission work?
 
-      defines.LINKEMISSIVEWITHDIFFUSE = this.linkEmissiveWithDiffuse;
+      // defines.LINKEMISSIVEWITHDIFFUSE = this.linkEmissiveWithDiffuse; // @TODO what does this do in code?
 
-      defines.SPECULAROVERALPHA = this.useSpecularOverAlpha;
+      // defines.SPECULAROVERALPHA = this.useSpecularOverAlpha;
 
       defines.PREMULTIPLYALPHA = this.alphaMode === Constants.ALPHA_PREMULTIPLIED || this.alphaMode === Constants.ALPHA_PREMULTIPLIED_PORTERDUFF;
 
@@ -1159,55 +1163,55 @@ export class HackedMaterial extends PushMaterial {
       return false;
     }
 
-    if (defines._areImageProcessingDirty && this._imageProcessingConfiguration) {
-      if (!this._imageProcessingConfiguration.isReady()) {
-        return false;
-      }
+    // if (defines._areImageProcessingDirty && this._imageProcessingConfiguration) {
+    //   if (!this._imageProcessingConfiguration.isReady()) {
+    //     return false;
+    //   }
 
-      this._imageProcessingConfiguration.prepareDefines(defines);
+    //   this._imageProcessingConfiguration.prepareDefines(defines);
 
-      defines.IS_REFLECTION_LINEAR = this.reflectionTexture != null && !this.reflectionTexture.gammaSpace;
-      defines.IS_REFRACTION_LINEAR = this.refractionTexture != null && !this.refractionTexture.gammaSpace;
-    }
+    //   defines.IS_REFLECTION_LINEAR = this.reflectionTexture != null && !this.reflectionTexture.gammaSpace;
+    //   defines.IS_REFRACTION_LINEAR = this.refractionTexture != null && !this.refractionTexture.gammaSpace;
+    // }
 
-    if (defines._areFresnelDirty) {
-      if (HackedMaterial.FresnelEnabled) {
-        // Fresnel
-        if (
-          this.diffuseFresnelParameters ||
-          this.opacityFresnelParameters ||
-          this.emissiveFresnelParameters ||
-          this.refractionFresnelParameters ||
-          this.reflectionFresnelParameters
-        ) {
-          defines.DIFFUSEFRESNEL = this.diffuseFresnelParameters && this.diffuseFresnelParameters.isEnabled;
+    // if (defines._areFresnelDirty) {
+    //   if (HackedMaterial.FresnelEnabled) {
+    //     // Fresnel
+    //     if (
+    //       this.diffuseFresnelParameters ||
+    //       this.opacityFresnelParameters ||
+    //       this.emissiveFresnelParameters ||
+    //       this.refractionFresnelParameters ||
+    //       this.reflectionFresnelParameters
+    //     ) {
+    //       defines.DIFFUSEFRESNEL = this.diffuseFresnelParameters && this.diffuseFresnelParameters.isEnabled;
 
-          defines.OPACITYFRESNEL = this.opacityFresnelParameters && this.opacityFresnelParameters.isEnabled;
+    //       defines.OPACITYFRESNEL = this.opacityFresnelParameters && this.opacityFresnelParameters.isEnabled;
 
-          defines.REFLECTIONFRESNEL = this.reflectionFresnelParameters && this.reflectionFresnelParameters.isEnabled;
+    //       defines.REFLECTIONFRESNEL = this.reflectionFresnelParameters && this.reflectionFresnelParameters.isEnabled;
 
-          defines.REFLECTIONFRESNELFROMSPECULAR = this.useReflectionFresnelFromSpecular;
+    //       defines.REFLECTIONFRESNELFROMSPECULAR = this.useReflectionFresnelFromSpecular;
 
-          defines.REFRACTIONFRESNEL = this.refractionFresnelParameters && this.refractionFresnelParameters.isEnabled;
+    //       defines.REFRACTIONFRESNEL = this.refractionFresnelParameters && this.refractionFresnelParameters.isEnabled;
 
-          defines.EMISSIVEFRESNEL = this.emissiveFresnelParameters && this.emissiveFresnelParameters.isEnabled;
+    //       defines.EMISSIVEFRESNEL = this.emissiveFresnelParameters && this.emissiveFresnelParameters.isEnabled;
 
-          defines._needNormals = true;
-          defines.FRESNEL = true;
-        }
-      } else {
-        defines.FRESNEL = false;
-      }
-    }
+    //       defines._needNormals = true;
+    //       defines.FRESNEL = true;
+    //     }
+    //   } else {
+    //     defines.FRESNEL = false;
+    //   }
+    // }
 
-    // Check if Area Lights have LTC texture.
-    if (defines["AREALIGHTUSED"]) {
-      for (let index = 0; index < mesh.lightSources.length; index++) {
-        if (!mesh.lightSources[index]._isReady()) {
-          return false;
-        }
-      }
-    }
+    // // Check if Area Lights have LTC texture.
+    // if (defines["AREALIGHTUSED"]) {
+    //   for (let index = 0; index < mesh.lightSources.length; index++) {
+    //     if (!mesh.lightSources[index]._isReady()) {
+    //       return false;
+    //     }
+    //   }
+    // }
 
     // Misc.
     PrepareDefinesForMisc(
@@ -1218,7 +1222,7 @@ export class HackedMaterial extends PushMaterial {
       this.fogEnabled,
       this.needAlphaTestingForMesh(mesh),
       defines,
-      this.applyDecalMapAfterDetailMap
+      false, // this.applyDecalMapAfterDetailMap,
     );
 
     // Values that need to be evaluated on every frame
@@ -1244,41 +1248,41 @@ export class HackedMaterial extends PushMaterial {
 
       // Fallbacks
       const fallbacks = new EffectFallbacks();
-      if (defines.REFLECTION) {
-        fallbacks.addFallback(0, "REFLECTION");
-      }
+      // if (defines.REFLECTION) {
+      //   fallbacks.addFallback(0, "REFLECTION");
+      // }
 
-      if (defines.SPECULAR) {
-        fallbacks.addFallback(0, "SPECULAR");
-      }
+      // if (defines.SPECULAR) {
+      //   fallbacks.addFallback(0, "SPECULAR");
+      // }
 
-      if (defines.BUMP) {
-        fallbacks.addFallback(0, "BUMP");
-      }
+      // if (defines.BUMP) {
+      //   fallbacks.addFallback(0, "BUMP");
+      // }
 
-      if (defines.PARALLAX) {
-        fallbacks.addFallback(1, "PARALLAX");
-      }
+      // if (defines.PARALLAX) {
+      //   fallbacks.addFallback(1, "PARALLAX");
+      // }
 
-      if (defines.PARALLAX_RHS) {
-        fallbacks.addFallback(1, "PARALLAX_RHS");
-      }
+      // if (defines.PARALLAX_RHS) {
+      //   fallbacks.addFallback(1, "PARALLAX_RHS");
+      // }
 
-      if (defines.PARALLAXOCCLUSION) {
-        fallbacks.addFallback(0, "PARALLAXOCCLUSION");
-      }
+      // if (defines.PARALLAXOCCLUSION) {
+      //   fallbacks.addFallback(0, "PARALLAXOCCLUSION");
+      // }
 
-      if (defines.SPECULAROVERALPHA) {
-        fallbacks.addFallback(0, "SPECULAROVERALPHA");
-      }
+      // if (defines.SPECULAROVERALPHA) {
+      //   fallbacks.addFallback(0, "SPECULAROVERALPHA");
+      // }
 
       if (defines.FOG) {
         fallbacks.addFallback(1, "FOG");
       }
 
-      if (defines.POINTSIZE) {
-        fallbacks.addFallback(0, "POINTSIZE");
-      }
+      // if (defines.POINTSIZE) {
+      //   fallbacks.addFallback(0, "POINTSIZE");
+      // }
 
       if (defines.LOGARITHMICDEPTH) {
         fallbacks.addFallback(0, "LOGARITHMICDEPTH");
@@ -1286,37 +1290,38 @@ export class HackedMaterial extends PushMaterial {
 
       HandleFallbacksForShadows(defines, fallbacks, this.maxSimultaneousLights);
 
-      if (defines.SPECULARTERM) {
-        fallbacks.addFallback(0, "SPECULARTERM");
-      }
+      // if (defines.SPECULARTERM) {
+      //   fallbacks.addFallback(0, "SPECULARTERM");
+      // }
 
-      if (defines.DIFFUSEFRESNEL) {
-        fallbacks.addFallback(1, "DIFFUSEFRESNEL");
-      }
+      // if (defines.DIFFUSEFRESNEL) {
+      //   fallbacks.addFallback(1, "DIFFUSEFRESNEL");
+      // }
 
-      if (defines.OPACITYFRESNEL) {
-        fallbacks.addFallback(2, "OPACITYFRESNEL");
-      }
+      // if (defines.OPACITYFRESNEL) {
+      //   fallbacks.addFallback(2, "OPACITYFRESNEL");
+      // }
 
-      if (defines.REFLECTIONFRESNEL) {
-        fallbacks.addFallback(3, "REFLECTIONFRESNEL");
-      }
+      // if (defines.REFLECTIONFRESNEL) {
+      // fallbacks.addFallback(3, "REFLECTIONFRESNEL");
+      // }
 
-      if (defines.EMISSIVEFRESNEL) {
-        fallbacks.addFallback(4, "EMISSIVEFRESNEL");
-      }
+      // if (defines.EMISSIVEFRESNEL) {
+      //   fallbacks.addFallback(4, "EMISSIVEFRESNEL");
+      // }
 
-      if (defines.FRESNEL) {
-        fallbacks.addFallback(4, "FRESNEL");
-      }
+      // if (defines.FRESNEL) {
+      //   fallbacks.addFallback(4, "FRESNEL");
+      // }
 
-      if (defines.MULTIVIEW) {
-        fallbacks.addFallback(0, "MULTIVIEW");
-      }
+      // if (defines.MULTIVIEW) {
+      //   fallbacks.addFallback(0, "MULTIVIEW");
+      // }
 
       //Attributes
       const attribs = [VertexBuffer.PositionKind];
 
+      // @TODO needed?
       if (defines.NORMAL) {
         attribs.push(VertexBuffer.NormalKind);
       }
@@ -1350,47 +1355,47 @@ export class HackedMaterial extends PushMaterial {
         "vLightsType",
         "vAmbientColor",
         "vDiffuseColor",
-        "vSpecularColor",
+        // "vSpecularColor",
         "vEmissiveColor",
         "visibility",
         "vFogInfos",
         "vFogColor",
-        "pointSize",
+        // "pointSize",
         "vDiffuseInfos",
-        "vAmbientInfos",
-        "vOpacityInfos",
+        // "vAmbientInfos",
+        // "vOpacityInfos",
         "vReflectionInfos",
-        "vEmissiveInfos",
-        "vSpecularInfos",
-        "vBumpInfos",
-        "vLightmapInfos",
-        "vRefractionInfos",
+        // "vEmissiveInfos",
+        // "vSpecularInfos",
+        // "vBumpInfos",
+        // "vLightmapInfos",
+        // "vRefractionInfos",
         "mBones",
         "diffuseMatrix",
-        "ambientMatrix",
-        "opacityMatrix",
+        // "ambientMatrix",
+        // "opacityMatrix",
         "reflectionMatrix",
-        "emissiveMatrix",
-        "specularMatrix",
-        "bumpMatrix",
-        "normalMatrix",
-        "lightmapMatrix",
-        "refractionMatrix",
-        "diffuseLeftColor",
-        "diffuseRightColor",
-        "opacityParts",
-        "reflectionLeftColor",
-        "reflectionRightColor",
-        "emissiveLeftColor",
-        "emissiveRightColor",
-        "refractionLeftColor",
-        "refractionRightColor",
+        // "emissiveMatrix",
+        // "specularMatrix",
+        // "bumpMatrix",
+        // "normalMatrix",
+        // "lightmapMatrix",
+        // "refractionMatrix",
+        // "diffuseLeftColor",
+        // "diffuseRightColor",
+        // "opacityParts",
+        // "reflectionLeftColor",
+        // "reflectionRightColor",
+        // "emissiveLeftColor",
+        // "emissiveRightColor",
+        // "refractionLeftColor",
+        // "refractionRightColor",
         "vReflectionPosition",
         "vReflectionSize",
-        "vRefractionPosition",
-        "vRefractionSize",
+        // "vRefractionPosition",
+        // "vRefractionSize",
         "logarithmicDepthConstant",
-        "vTangentSpaceParams",
+        // "vTangentSpaceParams",
         "alphaCutOff",
         "boneTextureWidth",
         "morphTargetTextureInfo",
@@ -1399,22 +1404,22 @@ export class HackedMaterial extends PushMaterial {
 
       const samplers = [
         "diffuseSampler",
-        "ambientSampler",
-        "opacitySampler",
+        // "ambientSampler",
+        // "opacitySampler",
         "reflectionCubeSampler",
         "reflection2DSampler",
-        "emissiveSampler",
-        "specularSampler",
-        "bumpSampler",
-        "lightmapSampler",
-        "refractionCubeSampler",
-        "refraction2DSampler",
+        // "emissiveSampler",
+        // "specularSampler",
+        // "bumpSampler",
+        // "lightmapSampler",
+        // "refractionCubeSampler",
+        // "refraction2DSampler",
         "boneSampler",
         "morphTargets",
         "oitDepthSampler",
         "oitFrontColorSampler",
-        "areaLightsLTC1Sampler",
-        "areaLightsLTC2Sampler",
+        // "areaLightsLTC1Sampler",
+        // "areaLightsLTC2Sampler",
       ];
 
       const uniformBuffers = ["Material", "Scene", "Mesh"];
@@ -1428,20 +1433,20 @@ export class HackedMaterial extends PushMaterial {
       this._eventInfo.attributes = attribs;
       this._eventInfo.samplers = samplers;
       this._eventInfo.uniformBuffersNames = uniformBuffers;
-      this._eventInfo.customCode = undefined;
+      // this._eventInfo.customCode = undefined;
       this._eventInfo.mesh = mesh;
       this._eventInfo.indexParameters = indexParameters;
       this._callbackPluginEventGeneric(MaterialPluginEvent.PrepareEffect, this._eventInfo);
 
       MaterialHelperGeometryRendering.AddUniformsAndSamplers(uniforms, samplers);
 
-      PrePassConfiguration.AddUniforms(uniforms);
-      PrePassConfiguration.AddSamplers(samplers);
+      // PrePassConfiguration.AddUniforms(uniforms);
+      // PrePassConfiguration.AddSamplers(samplers);
 
-      if (ImageProcessingConfiguration) {
-        ImageProcessingConfiguration.PrepareUniforms(uniforms, defines);
-        ImageProcessingConfiguration.PrepareSamplers(samplers, defines);
-      }
+      // if (ImageProcessingConfiguration) {
+      //   ImageProcessingConfiguration.PrepareUniforms(uniforms, defines);
+      //   ImageProcessingConfiguration.PrepareSamplers(samplers, defines);
+      // }
 
       PrepareUniformsAndSamplersList(<IEffectCreationOptions>{
         uniformsNames: uniforms,
@@ -1453,7 +1458,7 @@ export class HackedMaterial extends PushMaterial {
 
       addClipPlaneUniforms(uniforms);
 
-      const csnrOptions: ICustomShaderNameResolveOptions = {};
+      // const csnrOptions: ICustomShaderNameResolveOptions = {};
 
       // if (this.customShaderNameResolve) {
       //     shaderName = this.customShaderNameResolve(shaderName, uniforms, uniformBuffers, samplers, defines, attribs, csnrOptions);
@@ -1467,7 +1472,7 @@ export class HackedMaterial extends PushMaterial {
           vertexSource: MasterVertexShaderSource,
           fragmentSource: MasterFragmentShaderSource,
         } satisfies IShaderPath,
-        <IEffectCreationOptions>{
+        {
           attributes: attribs,
           uniformsNames: uniforms,
           uniformBuffersNames: uniformBuffers,
@@ -1477,15 +1482,17 @@ export class HackedMaterial extends PushMaterial {
           onCompiled: this.onCompiled,
           onError: this.onError,
           indexParameters,
-          processFinalCode: csnrOptions.processFinalCode,
-          processCodeAfterIncludes: this._eventInfo.customCode,
+          // processFinalCode: csnrOptions.processFinalCode,
+          processFinalCode: (type, code, defines) => {
+            console.log(`[${this.name}] (processFinalCode) (type='${type}')`, code);
+            return code;
+          },
           multiTarget: defines.PREPASS,
           shaderLanguage: this._shaderLanguage,
-        },
-        engine
+        } satisfies IEffectCreationOptions,
+        engine,
       );
 
-      this._eventInfo.customCode = undefined;
 
       if (effect) {
         if (this._onEffectCreatedObservable) {
@@ -1533,43 +1540,43 @@ export class HackedMaterial extends PushMaterial {
   public override buildUniformLayout(): void {
     // Order is important !
     const ubo = this._uniformBuffer;
-    ubo.addUniform("diffuseLeftColor", 4);
-    ubo.addUniform("diffuseRightColor", 4);
-    ubo.addUniform("opacityParts", 4);
-    ubo.addUniform("reflectionLeftColor", 4);
-    ubo.addUniform("reflectionRightColor", 4);
-    ubo.addUniform("refractionLeftColor", 4);
-    ubo.addUniform("refractionRightColor", 4);
-    ubo.addUniform("emissiveLeftColor", 4);
-    ubo.addUniform("emissiveRightColor", 4);
+    // ubo.addUniform("diffuseLeftColor", 4);
+    // ubo.addUniform("diffuseRightColor", 4);
+    // ubo.addUniform("opacityParts", 4);
+    // ubo.addUniform("reflectionLeftColor", 4);
+    // ubo.addUniform("reflectionRightColor", 4);
+    // ubo.addUniform("refractionLeftColor", 4);
+    // ubo.addUniform("refractionRightColor", 4);
+    // ubo.addUniform("emissiveLeftColor", 4);
+    // ubo.addUniform("emissiveRightColor", 4);
 
     ubo.addUniform("vDiffuseInfos", 2);
-    ubo.addUniform("vAmbientInfos", 2);
-    ubo.addUniform("vOpacityInfos", 2);
+    // ubo.addUniform("vAmbientInfos", 2);
+    // ubo.addUniform("vOpacityInfos", 2);
     ubo.addUniform("vReflectionInfos", 2);
     ubo.addUniform("vReflectionPosition", 3);
     ubo.addUniform("vReflectionSize", 3);
-    ubo.addUniform("vEmissiveInfos", 2);
-    ubo.addUniform("vLightmapInfos", 2);
-    ubo.addUniform("vSpecularInfos", 2);
-    ubo.addUniform("vBumpInfos", 3);
+    // ubo.addUniform("vEmissiveInfos", 2);
+    // ubo.addUniform("vLightmapInfos", 2);
+    // ubo.addUniform("vSpecularInfos", 2);
+    // ubo.addUniform("vBumpInfos", 3);
 
     ubo.addUniform("diffuseMatrix", 16);
     ubo.addUniform("ambientMatrix", 16);
-    ubo.addUniform("opacityMatrix", 16);
+    // ubo.addUniform("opacityMatrix", 16);
     ubo.addUniform("reflectionMatrix", 16);
     ubo.addUniform("emissiveMatrix", 16);
     ubo.addUniform("lightmapMatrix", 16);
     ubo.addUniform("specularMatrix", 16);
     ubo.addUniform("bumpMatrix", 16);
-    ubo.addUniform("vTangentSpaceParams", 2);
-    ubo.addUniform("pointSize", 1);
+    // ubo.addUniform("vTangentSpaceParams", 2);
+    // ubo.addUniform("pointSize", 1);
     ubo.addUniform("alphaCutOff", 1);
-    ubo.addUniform("refractionMatrix", 16);
-    ubo.addUniform("vRefractionInfos", 4);
-    ubo.addUniform("vRefractionPosition", 3);
-    ubo.addUniform("vRefractionSize", 3);
-    ubo.addUniform("vSpecularColor", 4);
+    // ubo.addUniform("refractionMatrix", 16);
+    // ubo.addUniform("vRefractionInfos", 4);
+    // ubo.addUniform("vRefractionPosition", 3);
+    // ubo.addUniform("vRefractionSize", 3);
+    // ubo.addUniform("vSpecularColor", 4);
     ubo.addUniform("vEmissiveColor", 3);
     ubo.addUniform("vDiffuseColor", 4);
     ubo.addUniform("vAmbientColor", 3);
@@ -1604,7 +1611,7 @@ export class HackedMaterial extends PushMaterial {
     // Binding unconditionally
     this._uniformBuffer.bindToEffect(effect, "Material");
 
-    this.prePassConfiguration.bindForSubMesh(this._activeEffect, scene, mesh, world, this.isFrozen);
+    // this.prePassConfiguration.bindForSubMesh(this._activeEffect, scene, mesh, world, this.isFrozen);
 
     MaterialHelperGeometryRendering.Bind(scene.getEngine().currentRenderPassId, this._activeEffect, mesh, world, this);
 
@@ -1612,10 +1619,10 @@ export class HackedMaterial extends PushMaterial {
     this._callbackPluginEventHardBindForSubMesh(this._eventInfo);
 
     // Normal Matrix
-    if (defines.OBJECTSPACE_NORMALMAP) {
-      world.toNormalMatrix(this._normalMatrix);
-      this.bindOnlyNormalMatrix(this._normalMatrix);
-    }
+    // if (defines.OBJECTSPACE_NORMALMAP) {
+    //   world.toNormalMatrix(this._normalMatrix);
+    //   this.bindOnlyNormalMatrix(this._normalMatrix);
+    // }
 
     const mustRebind = this._mustRebind(scene, effect, subMesh, mesh.visibility);
 
@@ -1625,40 +1632,40 @@ export class HackedMaterial extends PushMaterial {
     if (mustRebind) {
       this.bindViewProjection(effect);
       if (!ubo.useUbo || !this.isFrozen || !ubo.isSync || subMesh._drawWrapper._forceRebindOnNextCall) {
-        if (HackedMaterial.FresnelEnabled && defines.FRESNEL) {
-          // Fresnel
-          if (this.diffuseFresnelParameters && this.diffuseFresnelParameters.isEnabled) {
-            ubo.updateColor4("diffuseLeftColor", this.diffuseFresnelParameters.leftColor, this.diffuseFresnelParameters.power);
-            ubo.updateColor4("diffuseRightColor", this.diffuseFresnelParameters.rightColor, this.diffuseFresnelParameters.bias);
-          }
+        // if (HackedMaterial.FresnelEnabled && defines.FRESNEL) {
+        //   // Fresnel
+        //   // if (this.diffuseFresnelParameters && this.diffuseFresnelParameters.isEnabled) {
+        //   //   ubo.updateColor4("diffuseLeftColor", this.diffuseFresnelParameters.leftColor, this.diffuseFresnelParameters.power);
+        //   //   ubo.updateColor4("diffuseRightColor", this.diffuseFresnelParameters.rightColor, this.diffuseFresnelParameters.bias);
+        //   // }
 
-          if (this.opacityFresnelParameters && this.opacityFresnelParameters.isEnabled) {
-            ubo.updateColor4(
-              "opacityParts",
-              new Color3(
-                this.opacityFresnelParameters.leftColor.toLuminance(),
-                this.opacityFresnelParameters.rightColor.toLuminance(),
-                this.opacityFresnelParameters.bias
-              ),
-              this.opacityFresnelParameters.power
-            );
-          }
+        //   if (this.opacityFresnelParameters && this.opacityFresnelParameters.isEnabled) {
+        //     ubo.updateColor4(
+        //       "opacityParts",
+        //       new Color3(
+        //         this.opacityFresnelParameters.leftColor.toLuminance(),
+        //         this.opacityFresnelParameters.rightColor.toLuminance(),
+        //         this.opacityFresnelParameters.bias,
+        //       ),
+        //       this.opacityFresnelParameters.power,
+        //     );
+        //   }
 
-          if (this.reflectionFresnelParameters && this.reflectionFresnelParameters.isEnabled) {
-            ubo.updateColor4("reflectionLeftColor", this.reflectionFresnelParameters.leftColor, this.reflectionFresnelParameters.power);
-            ubo.updateColor4("reflectionRightColor", this.reflectionFresnelParameters.rightColor, this.reflectionFresnelParameters.bias);
-          }
+        //   if (this.reflectionFresnelParameters && this.reflectionFresnelParameters.isEnabled) {
+        //     ubo.updateColor4("reflectionLeftColor", this.reflectionFresnelParameters.leftColor, this.reflectionFresnelParameters.power);
+        //     ubo.updateColor4("reflectionRightColor", this.reflectionFresnelParameters.rightColor, this.reflectionFresnelParameters.bias);
+        //   }
 
-          if (this.refractionFresnelParameters && this.refractionFresnelParameters.isEnabled) {
-            ubo.updateColor4("refractionLeftColor", this.refractionFresnelParameters.leftColor, this.refractionFresnelParameters.power);
-            ubo.updateColor4("refractionRightColor", this.refractionFresnelParameters.rightColor, this.refractionFresnelParameters.bias);
-          }
+        //   if (this.refractionFresnelParameters && this.refractionFresnelParameters.isEnabled) {
+        //     ubo.updateColor4("refractionLeftColor", this.refractionFresnelParameters.leftColor, this.refractionFresnelParameters.power);
+        //     ubo.updateColor4("refractionRightColor", this.refractionFresnelParameters.rightColor, this.refractionFresnelParameters.bias);
+        //   }
 
-          if (this.emissiveFresnelParameters && this.emissiveFresnelParameters.isEnabled) {
-            ubo.updateColor4("emissiveLeftColor", this.emissiveFresnelParameters.leftColor, this.emissiveFresnelParameters.power);
-            ubo.updateColor4("emissiveRightColor", this.emissiveFresnelParameters.rightColor, this.emissiveFresnelParameters.bias);
-          }
-        }
+        //   if (this.emissiveFresnelParameters && this.emissiveFresnelParameters.isEnabled) {
+        //     ubo.updateColor4("emissiveLeftColor", this.emissiveFresnelParameters.leftColor, this.emissiveFresnelParameters.power);
+        //     ubo.updateColor4("emissiveRightColor", this.emissiveFresnelParameters.rightColor, this.emissiveFresnelParameters.bias);
+        //   }
+        // }
 
         // Textures
         if (scene.texturesEnabled) {
@@ -1667,22 +1674,27 @@ export class HackedMaterial extends PushMaterial {
             BindTextureMatrix(this.diffuseTexture, ubo, "diffuse");
           }
 
-          if (this.ambientTexture && HackedMaterial.AmbientTextureEnabled) {
-            ubo.updateFloat2("vAmbientInfos", this.ambientTexture.coordinatesIndex, this.ambientTexture.level);
-            BindTextureMatrix(this.ambientTexture, ubo, "ambient");
-          }
+          // if (this.ambientTexture && HackedMaterial.AmbientTextureEnabled) {
+          //   ubo.updateFloat2("vAmbientInfos", this.ambientTexture.coordinatesIndex, this.ambientTexture.level);
+          //   BindTextureMatrix(this.ambientTexture, ubo, "ambient");
+          // }
 
-          if (this.opacityTexture && HackedMaterial.OpacityTextureEnabled) {
-            ubo.updateFloat2("vOpacityInfos", this.opacityTexture.coordinatesIndex, this.opacityTexture.level);
-            BindTextureMatrix(this.opacityTexture, ubo, "opacity");
-          }
+          // if (this.opacityTexture && HackedMaterial.OpacityTextureEnabled) {
+          //   ubo.updateFloat2("vOpacityInfos", this.opacityTexture.coordinatesIndex, this.opacityTexture.level);
+          //   BindTextureMatrix(this.opacityTexture, ubo, "opacity");
+          // }
 
-          if (this._hasAlphaChannel()) {
+          // if (this._hasAlphaChannel()) {
+          // if (this.transparencyMode !== Material.MATERIAL_OPAQUE) {
             ubo.updateFloat("alphaCutOff", this.alphaCutOff);
-          }
+          // }
+          // }
+
+          // @TODO @DEBUG
+          const ReflectionRoughness = 0;
 
           if (this.reflectionTexture && HackedMaterial.ReflectionTextureEnabled) {
-            ubo.updateFloat2("vReflectionInfos", this.reflectionTexture.level, this.roughness);
+            ubo.updateFloat2("vReflectionInfos", this.reflectionTexture.level, ReflectionRoughness);
             ubo.updateMatrix("reflectionMatrix", this.reflectionTexture.getReflectionTextureMatrix());
 
             if ((<any>this.reflectionTexture).boundingBoxSize) {
@@ -1692,67 +1704,67 @@ export class HackedMaterial extends PushMaterial {
               ubo.updateVector3("vReflectionSize", cubeTexture.boundingBoxSize);
             }
           } else {
-            ubo.updateFloat2("vReflectionInfos", 0.0, this.roughness);
+            ubo.updateFloat2("vReflectionInfos", 0.0, ReflectionRoughness);
           }
 
-          if (this.emissiveTexture && HackedMaterial.EmissiveTextureEnabled) {
-            ubo.updateFloat2("vEmissiveInfos", this.emissiveTexture.coordinatesIndex, this.emissiveTexture.level);
-            BindTextureMatrix(this.emissiveTexture, ubo, "emissive");
-          }
+          // if (this.emissiveTexture && HackedMaterial.EmissiveTextureEnabled) {
+          //   ubo.updateFloat2("vEmissiveInfos", this.emissiveTexture.coordinatesIndex, this.emissiveTexture.level);
+          //   BindTextureMatrix(this.emissiveTexture, ubo, "emissive");
+          // }
 
-          if (this.lightmapTexture && HackedMaterial.LightmapTextureEnabled) {
-            ubo.updateFloat2("vLightmapInfos", this.lightmapTexture.coordinatesIndex, this.lightmapTexture.level);
-            BindTextureMatrix(this.lightmapTexture, ubo, "lightmap");
-          }
+          // if (this.lightmapTexture && HackedMaterial.LightmapTextureEnabled) {
+          //   ubo.updateFloat2("vLightmapInfos", this.lightmapTexture.coordinatesIndex, this.lightmapTexture.level);
+          //   BindTextureMatrix(this.lightmapTexture, ubo, "lightmap");
+          // }
 
-          if (this.specularTexture && HackedMaterial.SpecularTextureEnabled) {
-            ubo.updateFloat2("vSpecularInfos", this.specularTexture.coordinatesIndex, this.specularTexture.level);
-            BindTextureMatrix(this.specularTexture, ubo, "specular");
-          }
+          // if (this.specularTexture && HackedMaterial.SpecularTextureEnabled) {
+          //   ubo.updateFloat2("vSpecularInfos", this.specularTexture.coordinatesIndex, this.specularTexture.level);
+          //   BindTextureMatrix(this.specularTexture, ubo, "specular");
+          // }
 
-          if (this.bumpTexture && scene.getEngine().getCaps().standardDerivatives && HackedMaterial.BumpTextureEnabled) {
-            ubo.updateFloat3("vBumpInfos", this.bumpTexture.coordinatesIndex, 1.0 / this.bumpTexture.level, this.parallaxScaleBias);
-            BindTextureMatrix(this.bumpTexture, ubo, "bump");
+          // if (this.bumpTexture && scene.getEngine().getCaps().standardDerivatives && HackedMaterial.BumpTextureEnabled) {
+          //   ubo.updateFloat3("vBumpInfos", this.bumpTexture.coordinatesIndex, 1.0 / this.bumpTexture.level, this.parallaxScaleBias);
+          //   BindTextureMatrix(this.bumpTexture, ubo, "bump");
 
-            if (scene._mirroredCameraPosition) {
-              ubo.updateFloat2("vTangentSpaceParams", this.invertNormalMapX ? 1.0 : -1.0, this.invertNormalMapY ? 1.0 : -1.0);
-            } else {
-              ubo.updateFloat2("vTangentSpaceParams", this.invertNormalMapX ? -1.0 : 1.0, this.invertNormalMapY ? -1.0 : 1.0);
-            }
-          }
+          //   if (scene._mirroredCameraPosition) {
+          //     ubo.updateFloat2("vTangentSpaceParams", this.invertNormalMapX ? 1.0 : -1.0, this.invertNormalMapY ? 1.0 : -1.0);
+          //   } else {
+          //     ubo.updateFloat2("vTangentSpaceParams", this.invertNormalMapX ? -1.0 : 1.0, this.invertNormalMapY ? -1.0 : 1.0);
+          //   }
+          // }
 
-          if (this.refractionTexture && HackedMaterial.RefractionTextureEnabled) {
-            let depth = 1.0;
-            if (!this.refractionTexture.isCube) {
-              ubo.updateMatrix("refractionMatrix", this.refractionTexture.getReflectionTextureMatrix());
+          // if (this.refractionTexture && HackedMaterial.RefractionTextureEnabled) {
+          //   let depth = 1.0;
+          //   if (!this.refractionTexture.isCube) {
+          //     ubo.updateMatrix("refractionMatrix", this.refractionTexture.getReflectionTextureMatrix());
 
-              if ((<any>this.refractionTexture).depth) {
-                depth = (<any>this.refractionTexture).depth;
-              }
-            }
-            ubo.updateFloat4("vRefractionInfos", this.refractionTexture.level, this.indexOfRefraction, depth, this.invertRefractionY ? -1 : 1);
+          //     if ((<any>this.refractionTexture).depth) {
+          //       depth = (<any>this.refractionTexture).depth;
+          //     }
+          //   }
+          //   ubo.updateFloat4("vRefractionInfos", this.refractionTexture.level, this.indexOfRefraction, depth, this.invertRefractionY ? -1 : 1);
 
-            if ((<any>this.refractionTexture).boundingBoxSize) {
-              const cubeTexture = <CubeTexture>this.refractionTexture;
+          //   if ((<any>this.refractionTexture).boundingBoxSize) {
+          //     const cubeTexture = <CubeTexture>this.refractionTexture;
 
-              ubo.updateVector3("vRefractionPosition", cubeTexture.boundingBoxPosition);
-              ubo.updateVector3("vRefractionSize", cubeTexture.boundingBoxSize);
-            }
-          }
+          //     ubo.updateVector3("vRefractionPosition", cubeTexture.boundingBoxPosition);
+          //     ubo.updateVector3("vRefractionSize", cubeTexture.boundingBoxSize);
+          //   }
+          // }
         }
 
         // Point size
-        if (this.pointsCloud) {
-          ubo.updateFloat("pointSize", this.pointSize);
-        }
+        // if (this.pointsCloud) {
+        //   ubo.updateFloat("pointSize", this.pointSize);
+        // }
 
-        ubo.updateColor4("vSpecularColor", this.specularColor, this.specularPower);
+        // ubo.updateColor4("vSpecularColor", this.specularColor, this.specularPower);
 
         ubo.updateColor3("vEmissiveColor", HackedMaterial.EmissiveTextureEnabled ? this.emissiveColor : Color3.BlackReadOnly);
         ubo.updateColor4("vDiffuseColor", this.diffuseColor, this.alpha);
 
-        scene.ambientColor.multiplyToRef(this.ambientColor, this._globalAmbientColor);
-        ubo.updateColor3("vAmbientColor", this._globalAmbientColor);
+        // scene.ambientColor.multiplyToRef(this.ambientColor, this._globalAmbientColor);
+        ubo.updateColor3("vAmbientColor", this.ambientColor);
       }
 
       // Textures
@@ -1761,13 +1773,13 @@ export class HackedMaterial extends PushMaterial {
           effect.setTexture("diffuseSampler", this.diffuseTexture);
         }
 
-        if (this.ambientTexture && HackedMaterial.AmbientTextureEnabled) {
-          effect.setTexture("ambientSampler", this.ambientTexture);
-        }
+        // if (this.ambientTexture && HackedMaterial.AmbientTextureEnabled) {
+        //   effect.setTexture("ambientSampler", this.ambientTexture);
+        // }
 
-        if (this.opacityTexture && HackedMaterial.OpacityTextureEnabled) {
-          effect.setTexture("opacitySampler", this.opacityTexture);
-        }
+        // if (this.opacityTexture && HackedMaterial.OpacityTextureEnabled) {
+        //   effect.setTexture("opacitySampler", this.opacityTexture);
+        // }
 
         if (this.reflectionTexture && HackedMaterial.ReflectionTextureEnabled) {
           if (this.reflectionTexture.isCube) {
@@ -1777,29 +1789,29 @@ export class HackedMaterial extends PushMaterial {
           }
         }
 
-        if (this.emissiveTexture && HackedMaterial.EmissiveTextureEnabled) {
-          effect.setTexture("emissiveSampler", this.emissiveTexture);
-        }
+        // if (this.emissiveTexture && HackedMaterial.EmissiveTextureEnabled) {
+        //   effect.setTexture("emissiveSampler", this.emissiveTexture);
+        // }
 
-        if (this.lightmapTexture && HackedMaterial.LightmapTextureEnabled) {
-          effect.setTexture("lightmapSampler", this.lightmapTexture);
-        }
+        // if (this.lightmapTexture && HackedMaterial.LightmapTextureEnabled) {
+        //   effect.setTexture("lightmapSampler", this.lightmapTexture);
+        // }
 
-        if (this.specularTexture && HackedMaterial.SpecularTextureEnabled) {
-          effect.setTexture("specularSampler", this.specularTexture);
-        }
+        // if (this.specularTexture && HackedMaterial.SpecularTextureEnabled) {
+        //   effect.setTexture("specularSampler", this.specularTexture);
+        // }
 
-        if (this.bumpTexture && scene.getEngine().getCaps().standardDerivatives && HackedMaterial.BumpTextureEnabled) {
-          effect.setTexture("bumpSampler", this.bumpTexture);
-        }
+        // if (this.bumpTexture && scene.getEngine().getCaps().standardDerivatives && HackedMaterial.BumpTextureEnabled) {
+        //   effect.setTexture("bumpSampler", this.bumpTexture);
+        // }
 
-        if (this.refractionTexture && HackedMaterial.RefractionTextureEnabled) {
-          if (this.refractionTexture.isCube) {
-            effect.setTexture("refractionCubeSampler", this.refractionTexture);
-          } else {
-            effect.setTexture("refraction2DSampler", this.refractionTexture);
-          }
-        }
+        // if (this.refractionTexture && HackedMaterial.RefractionTextureEnabled) {
+        //   if (this.refractionTexture.isCube) {
+        //     effect.setTexture("refractionCubeSampler", this.refractionTexture);
+        //   } else {
+        //     effect.setTexture("refraction2DSampler", this.refractionTexture);
+        //   }
+        // }
       }
 
       // OIT with depth peeling
@@ -1829,7 +1841,7 @@ export class HackedMaterial extends PushMaterial {
       if (
         (scene.fogEnabled && mesh.applyFog && scene.fogMode !== Scene.FOGMODE_NONE) ||
         this.reflectionTexture ||
-        this.refractionTexture ||
+        // this.refractionTexture ||
         mesh.receiveShadows ||
         defines.PREPASS
       ) {
@@ -1854,9 +1866,9 @@ export class HackedMaterial extends PushMaterial {
       }
 
       // image processing
-      if (this._imageProcessingConfiguration && !this._imageProcessingConfiguration.applyByPostProcess) {
-        this._imageProcessingConfiguration.bind(this._activeEffect);
-      }
+      // if (this._imageProcessingConfiguration && !this._imageProcessingConfiguration.applyByPostProcess) {
+      //   this._imageProcessingConfiguration.bind(this._activeEffect);
+      // }
     }
 
     this._afterBind(mesh, this._activeEffect, subMesh);
@@ -1874,37 +1886,37 @@ export class HackedMaterial extends PushMaterial {
       results.push(this.diffuseTexture);
     }
 
-    if (this.ambientTexture && this.ambientTexture.animations && this.ambientTexture.animations.length > 0) {
-      results.push(this.ambientTexture);
-    }
+    // if (this.ambientTexture && this.ambientTexture.animations && this.ambientTexture.animations.length > 0) {
+    //   results.push(this.ambientTexture);
+    // }
 
-    if (this.opacityTexture && this.opacityTexture.animations && this.opacityTexture.animations.length > 0) {
-      results.push(this.opacityTexture);
-    }
+    // if (this.opacityTexture && this.opacityTexture.animations && this.opacityTexture.animations.length > 0) {
+    //   results.push(this.opacityTexture);
+    // }
 
     if (this.reflectionTexture && this.reflectionTexture.animations && this.reflectionTexture.animations.length > 0) {
       results.push(this.reflectionTexture);
     }
 
-    if (this.emissiveTexture && this.emissiveTexture.animations && this.emissiveTexture.animations.length > 0) {
-      results.push(this.emissiveTexture);
-    }
+    // if (this.emissiveTexture && this.emissiveTexture.animations && this.emissiveTexture.animations.length > 0) {
+    //   results.push(this.emissiveTexture);
+    // }
 
-    if (this.specularTexture && this.specularTexture.animations && this.specularTexture.animations.length > 0) {
-      results.push(this.specularTexture);
-    }
+    // if (this.specularTexture && this.specularTexture.animations && this.specularTexture.animations.length > 0) {
+    //   results.push(this.specularTexture);
+    // }
 
-    if (this.bumpTexture && this.bumpTexture.animations && this.bumpTexture.animations.length > 0) {
-      results.push(this.bumpTexture);
-    }
+    // if (this.bumpTexture && this.bumpTexture.animations && this.bumpTexture.animations.length > 0) {
+    //   results.push(this.bumpTexture);
+    // }
 
-    if (this.lightmapTexture && this.lightmapTexture.animations && this.lightmapTexture.animations.length > 0) {
-      results.push(this.lightmapTexture);
-    }
+    // if (this.lightmapTexture && this.lightmapTexture.animations && this.lightmapTexture.animations.length > 0) {
+    //   results.push(this.lightmapTexture);
+    // }
 
-    if (this.refractionTexture && this.refractionTexture.animations && this.refractionTexture.animations.length > 0) {
-      results.push(this.refractionTexture);
-    }
+    // if (this.refractionTexture && this.refractionTexture.animations && this.refractionTexture.animations.length > 0) {
+    //   results.push(this.refractionTexture);
+    // }
 
     return results;
   }
@@ -1920,37 +1932,37 @@ export class HackedMaterial extends PushMaterial {
       activeTextures.push(this.diffuseTexture);
     }
 
-    if (this.ambientTexture) {
-      activeTextures.push(this.ambientTexture);
-    }
+    // if (this.ambientTexture) {
+    //   activeTextures.push(this.ambientTexture);
+    // }
 
-    if (this.opacityTexture) {
-      activeTextures.push(this.opacityTexture);
-    }
+    // if (this.opacityTexture) {
+    //   activeTextures.push(this.opacityTexture);
+    // }
 
     if (this.reflectionTexture) {
       activeTextures.push(this.reflectionTexture);
     }
 
-    if (this.emissiveTexture) {
-      activeTextures.push(this.emissiveTexture);
-    }
+    // if (this.emissiveTexture) {
+    //   activeTextures.push(this.emissiveTexture);
+    // }
 
-    if (this.specularTexture) {
-      activeTextures.push(this.specularTexture);
-    }
+    // if (this.specularTexture) {
+    //   activeTextures.push(this.specularTexture);
+    // }
 
-    if (this.bumpTexture) {
-      activeTextures.push(this.bumpTexture);
-    }
+    // if (this.bumpTexture) {
+    //   activeTextures.push(this.bumpTexture);
+    // }
 
-    if (this.lightmapTexture) {
-      activeTextures.push(this.lightmapTexture);
-    }
+    // if (this.lightmapTexture) {
+    //   activeTextures.push(this.lightmapTexture);
+    // }
 
-    if (this.refractionTexture) {
-      activeTextures.push(this.refractionTexture);
-    }
+    // if (this.refractionTexture) {
+    //   activeTextures.push(this.refractionTexture);
+    // }
 
     return activeTextures;
   }
@@ -1969,37 +1981,37 @@ export class HackedMaterial extends PushMaterial {
       return true;
     }
 
-    if (this.ambientTexture === texture) {
-      return true;
-    }
+    // if (this.ambientTexture === texture) {
+    //   return true;
+    // }
 
-    if (this.opacityTexture === texture) {
-      return true;
-    }
+    // if (this.opacityTexture === texture) {
+    //   return true;
+    // }
 
     if (this.reflectionTexture === texture) {
       return true;
     }
 
-    if (this.emissiveTexture === texture) {
-      return true;
-    }
+    // if (this.emissiveTexture === texture) {
+    //   return true;
+    // }
 
-    if (this.specularTexture === texture) {
-      return true;
-    }
+    // if (this.specularTexture === texture) {
+    //   return true;
+    // }
 
-    if (this.bumpTexture === texture) {
-      return true;
-    }
+    // if (this.bumpTexture === texture) {
+    //   return true;
+    // }
 
-    if (this.lightmapTexture === texture) {
-      return true;
-    }
+    // if (this.lightmapTexture === texture) {
+    //   return true;
+    // }
 
-    if (this.refractionTexture === texture) {
-      return true;
-    }
+    // if (this.refractionTexture === texture) {
+    //   return true;
+    // }
 
     return false;
   }
@@ -2012,19 +2024,19 @@ export class HackedMaterial extends PushMaterial {
   public override dispose(forceDisposeEffect?: boolean, forceDisposeTextures?: boolean): void {
     if (forceDisposeTextures) {
       this.diffuseTexture?.dispose();
-      this.ambientTexture?.dispose();
-      this.opacityTexture?.dispose();
+      // this.ambientTexture?.dispose();
+      // this.opacityTexture?.dispose();
       this.reflectionTexture?.dispose();
-      this.emissiveTexture?.dispose();
-      this.specularTexture?.dispose();
-      this.bumpTexture?.dispose();
-      this.lightmapTexture?.dispose();
-      this.refractionTexture?.dispose();
+      // this.emissiveTexture?.dispose();
+      // this.specularTexture?.dispose();
+      // this.bumpTexture?.dispose();
+      // this.lightmapTexture?.dispose();
+      // this.refractionTexture?.dispose();
     }
 
-    if (this._imageProcessingConfiguration && this._imageProcessingObserver) {
-      this._imageProcessingConfiguration.onUpdateParameters.remove(this._imageProcessingObserver);
-    }
+    // if (this._imageProcessingConfiguration && this._imageProcessingObserver) {
+    //   this._imageProcessingConfiguration.onUpdateParameters.remove(this._imageProcessingObserver);
+    // }
 
     super.dispose(forceDisposeEffect, forceDisposeTextures);
   }
