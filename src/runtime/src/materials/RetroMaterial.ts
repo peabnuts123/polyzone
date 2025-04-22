@@ -145,7 +145,7 @@ import MasterFragmentShaderSource from './shaders/master.fragment.fx';
 
 /*
   @TODO Features
-    - Ambient color (from lighting?)
+    // - Ambient color (from lighting?)
     - Diffuse texture (alpha is opacity) - optional
     - Diffuse color (tint) (including alpha)
     - Reflection texture
@@ -364,17 +364,53 @@ export class RetroMaterialDefines extends MaterialDefines implements IImageProce
   }
 }
 
+
 export class RetroMaterial extends PushMaterial {
   /**
    * Force all the standard materials to compile to glsl even on WebGPU engines.
    * False by default. This is mostly meant for backward compatibility.
    */
-  public static ForceGLSL = false;
+  // public static ForceGLSL = false;
 
+  /**
+   * Defines the alpha limits in alpha test mode.
+   */
+  private static AlphaTestCutoff = 0.5;
+  /**
+   * Defines the maximum number of lights that can be used in the material
+   */
+  private static MaxSimultaneousLights: number = 4;
+
+  /**
+   * The color of the material lit by the environmental background lighting.
+   * @see https://doc.babylonjs.com/features/featuresDeepDive/materials/using/materials_introduction#ambient-color-example
+   */
+  public ambientColor = new Color3(0, 0, 0);
   /**
    * The basic texture of the material as viewed under a light.
    */
   public diffuseTexture: Nullable<BaseTexture> = null;
+  /**
+   * The basic color of the material as viewed under a light.
+   */
+  public diffuseColor = new Color3(1, 1, 1);
+  /**
+   * Define the texture used to display the reflection.
+   * @see https://doc.babylonjs.com/features/featuresDeepDive/materials/using/reflectionTexture#how-to-obtain-reflections-and-refractions
+   */
+  public reflectionTexture: Nullable<CubeTexture> = null;
+
+  /**
+   * Define the color of the material as if self lit.
+   * This will be mixed in the final result even in the absence of light.
+   */
+  public emissiveColor = new Color3(0, 0, 0);
+
+  /**
+   * Does lights from the scene impacts this material.
+   * It can be a nice trick for performance to disable lighting on a fully emissive material.
+   */
+  public disableLighting: boolean = false;
 
   // /**
   //  * AKA Occlusion Texture in other nomenclature, it helps adding baked shadows into your material.
@@ -388,11 +424,7 @@ export class RetroMaterial extends PushMaterial {
   //  */
   // public opacityTexture: Nullable<BaseTexture> = null;
 
-  /**
-   * Define the texture used to display the reflection.
-   * @see https://doc.babylonjs.com/features/featuresDeepDive/materials/using/reflectionTexture#how-to-obtain-reflections-and-refractions
-   */
-  public reflectionTexture: Nullable<BaseTexture> = null;
+
 
   // /**
   //  * Define texture of the material as if self lit.
@@ -425,27 +457,16 @@ export class RetroMaterial extends PushMaterial {
   //  */
   // public refractionTexture: Nullable<BaseTexture> = null;
 
-  /**
-   * The color of the material lit by the environmental background lighting.
-   * @see https://doc.babylonjs.com/features/featuresDeepDive/materials/using/materials_introduction#ambient-color-example
-   */
-  public ambientColor = new Color3(0, 0, 0);
 
-  /**
-   * The basic color of the material as viewed under a light.
-   */
-  public diffuseColor = new Color3(1, 1, 1);
+
+
 
   // /**
   //  * Define how the color and intensity of the highlight given by the light in the material.
   //  */
   // public specularColor = new Color3(1, 1, 1);
 
-  /**
-   * Define the color of the material as if self lit.
-   * This will be mixed in the final result even in the absence of light.
-   */
-  public emissiveColor = new Color3(0, 0, 0);
+
 
   // /**
   //  * Defines how sharp are the highlights in the material.
@@ -482,11 +503,7 @@ export class RetroMaterial extends PushMaterial {
    */
   // public useReflectionOverAlpha: boolean = false;
 
-  /**
-   * Does lights from the scene impacts this material.
-   * It can be a nice trick for performance to disable lighting on a fully emissive material.
-   */
-  public disableLighting: boolean = false;
+
 
   /**
    * Allows using an object space normal map (instead of tangent space).
@@ -528,13 +545,6 @@ export class RetroMaterial extends PushMaterial {
    * @see https://doc.babylonjs.com/features/featuresDeepDive/materials/using/reflectionTexture#how-to-obtain-reflections-and-refractions
    */
   // public invertRefractionY = true;
-
-  /**
-   * Defines the alpha limits in alpha test mode.
-   * // @TODO why is this so homebrew?
-   */
-  public alphaCutOff = 0.5;
-
 
   /**
    * In case of light mapping, define whether the map contains light or shadow informations.
@@ -582,11 +592,6 @@ export class RetroMaterial extends PushMaterial {
    * Defines if the glossiness/roughness of the material should be read from the specular map alpha channel
    */
   // public useGlossinessFromSpecularMapAlpha: boolean = false;
-
-  /**
-   * Defines the maximum number of lights that can be used in the material
-   */
-  public maxSimultaneousLights: number = 4;
 
   /**
    * If sets to true, x component of normal map value will invert (x = 1.0 - x).
@@ -803,10 +808,10 @@ export class RetroMaterial extends PushMaterial {
    * @see https://doc.babylonjs.com/features/featuresDeepDive/materials/using/materials_introduction
    * @param name Define the name of the material in the scene
    * @param scene Define the scene the material belong to
-   * @param forceGLSL Use the GLSL code generation for the shader (even on WebGPU). Default is false
+  //  * @param forceGLSL Use the GLSL code generation for the shader (even on WebGPU). Default is false
    */
-  constructor(name: string, scene?: Scene, forceGLSL = false) {
-    super(name, scene, undefined, forceGLSL || RetroMaterial.ForceGLSL);
+  constructor(name: string, scene?: Scene/* , forceGLSL = false */) {
+    super(name, scene, undefined /*, forceGLSL || RetroMaterial.ForceGLSL */);
 
     // this.detailMap = new DetailMapConfiguration(this as unknown as StandardMaterial);
 
@@ -946,7 +951,7 @@ export class RetroMaterial extends PushMaterial {
     const engine = scene.getEngine();
 
     // Lights
-    defines._needNormals = PrepareDefinesForLights(scene, mesh, defines, true, this.maxSimultaneousLights, this.disableLighting);
+    defines._needNormals = PrepareDefinesForLights(scene, mesh, defines, false, RetroMaterial.MaxSimultaneousLights, this.disableLighting);
 
     // Multiview
     // PrepareDefinesForMultiview(scene, defines);
@@ -1298,7 +1303,7 @@ export class RetroMaterial extends PushMaterial {
         fallbacks.addFallback(0, "LOGARITHMICDEPTH");
       }
 
-      HandleFallbacksForShadows(defines, fallbacks, this.maxSimultaneousLights);
+      HandleFallbacksForShadows(defines, fallbacks, RetroMaterial.MaxSimultaneousLights);
 
       // if (defines.SPECULARTERM) {
       //   fallbacks.addFallback(0, "SPECULARTERM");
@@ -1434,7 +1439,7 @@ export class RetroMaterial extends PushMaterial {
 
       const uniformBuffers = ["Material", "Scene", "Mesh"];
 
-      const indexParameters = { maxSimultaneousLights: this.maxSimultaneousLights, maxSimultaneousMorphTargets: defines.NUM_MORPH_INFLUENCERS };
+      const indexParameters = { maxSimultaneousLights: RetroMaterial.MaxSimultaneousLights, maxSimultaneousMorphTargets: defines.NUM_MORPH_INFLUENCERS };
 
       this._eventInfo.fallbacks = fallbacks;
       this._eventInfo.fallbackRank = 0;
@@ -1463,7 +1468,7 @@ export class RetroMaterial extends PushMaterial {
         uniformBuffersNames: uniformBuffers,
         samplers: samplers,
         defines: defines,
-        maxSimultaneousLights: this.maxSimultaneousLights,
+        maxSimultaneousLights: RetroMaterial.MaxSimultaneousLights,
       });
 
       addClipPlaneUniforms(uniforms);
@@ -1699,7 +1704,7 @@ export class RetroMaterial extends PushMaterial {
 
           // if (this._hasAlphaChannel()) {
           // if (this.transparencyMode !== Material.MATERIAL_OPAQUE) {
-            ubo.updateFloat("alphaCutOff", this.alphaCutOff);
+          ubo.updateFloat("alphaCutOff", RetroMaterial.AlphaTestCutoff);
           // }
           // }
 
@@ -1710,11 +1715,9 @@ export class RetroMaterial extends PushMaterial {
             ubo.updateFloat2("vReflectionInfos", this.reflectionTexture.level, ReflectionRoughness);
             ubo.updateMatrix("reflectionMatrix", this.reflectionTexture.getReflectionTextureMatrix());
 
-            if ((<any>this.reflectionTexture).boundingBoxSize) {
-              const cubeTexture = <CubeTexture>this.reflectionTexture;
-
-              ubo.updateVector3("vReflectionPosition", cubeTexture.boundingBoxPosition);
-              ubo.updateVector3("vReflectionSize", cubeTexture.boundingBoxSize);
+            if (this.reflectionTexture.boundingBoxSize) {
+              ubo.updateVector3("vReflectionPosition", this.reflectionTexture.boundingBoxPosition);
+              ubo.updateVector3("vReflectionSize", this.reflectionTexture.boundingBoxSize);
             }
           } else {
             ubo.updateFloat2("vReflectionInfos", 0.0, ReflectionRoughness);
@@ -1847,7 +1850,7 @@ export class RetroMaterial extends PushMaterial {
     if (mustRebind || !this.isFrozen) {
       // Lights
       if (scene.lightsEnabled && !this.disableLighting) {
-        BindLights(scene, mesh, effect, defines, this.maxSimultaneousLights);
+        BindLights(scene, mesh, effect, defines, RetroMaterial.MaxSimultaneousLights);
       }
 
       // View
