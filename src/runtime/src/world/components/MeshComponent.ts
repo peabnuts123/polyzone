@@ -7,6 +7,8 @@ import { debug_modTexture } from "@polyzone/runtime/src";
 import { HackedMaterial } from "@polyzone/runtime/src/HackyMaterial";
 
 import { GameObject } from "../GameObject";
+import { Material } from "@babylonjs/core/Materials/material";
+import { CubeTexture } from "@babylonjs/core/Materials/Textures/cubeTexture";
 
 /**
  * Loads a mesh for this GameObject
@@ -37,13 +39,11 @@ export class MeshComponent extends MeshComponentCore {
 
       let newMaterial: HackedMaterial | undefined;
       if (oldMaterial instanceof StandardMaterial) {
+        // @TODO material editor Tool
         newMaterial = new HackedMaterial(oldMaterial.name, asset.scene);
         newMaterial.diffuseTexture = oldMaterial.diffuseTexture;
-        // newMaterial.alpha = oldMaterial.alpha;
-        // newMaterial.alphaCutOff = oldMaterial.alphaCutOff;
-        // newMaterial.alphaMode = oldMaterial.alphaMode;
-        newMaterial.opacityTexture = oldMaterial.opacityTexture;
-        // newMaterial.transparencyMode = oldMaterial.transparencyMode;
+
+        newMaterial.transparencyMode = oldMaterial.opacityTexture ? Material.MATERIAL_ALPHABLEND : Material.MATERIAL_OPAQUE;
       } else if (oldMaterial instanceof PBRMaterial) {
         console.error(`Unimplemented material type: `, oldMaterial);
       } else {

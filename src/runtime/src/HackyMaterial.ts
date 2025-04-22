@@ -143,6 +143,16 @@ import MasterVertexShaderSource from './shaders/master.vertex.fx';
 import MasterFragmentShaderSource from './shaders/master.fragment.fx';
 
 
+/*
+  @TODO Features
+    - Ambient color (from lighting?)
+    - Diffuse texture (alpha is opacity) - optional
+    - Diffuse color (tint) (including alpha)
+    - Reflection texture
+    // - Reflection color (covered by diffuse color?)
+    - Emission color
+ */
+
 const onCreatedEffectParameters = { effect: null as unknown as Effect, subMesh: null as unknown as Nullable<SubMesh> };
 
 /** @internal */
