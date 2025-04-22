@@ -26,6 +26,11 @@ export function mockTauri(): void {
         label: MockEventSystem.windowLabel,
       }, TauriInternals?.metadata?.currentWebview),
     }, TauriInternals?.metadata),
+    plugins: Object.assign({
+      path: Object.assign({
+        sep: '/',
+      }, TauriInternals?.plugins?.path),
+    }, TauriInternals?.plugins),
   }, TauriInternals);
 
   mockIPC((cmd, args) =>
