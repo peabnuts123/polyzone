@@ -156,7 +156,7 @@ import MasterFragmentShaderSource from './shaders/master.fragment.fx';
 const onCreatedEffectParameters = { effect: null as unknown as Effect, subMesh: null as unknown as Nullable<SubMesh> };
 
 /** @internal */
-export class HackedMaterialDefines extends MaterialDefines implements IImageProcessingConfigurationDefines {
+export class RetroMaterialDefines extends MaterialDefines implements IImageProcessingConfigurationDefines {
   public MAINUV1 = false;
   public MAINUV2 = false;
   public MAINUV3 = false;
@@ -364,7 +364,7 @@ export class HackedMaterialDefines extends MaterialDefines implements IImageProc
   }
 }
 
-export class HackedMaterial extends PushMaterial {
+export class RetroMaterial extends PushMaterial {
   /**
    * Force all the standard materials to compile to glsl even on WebGPU engines.
    * False by default. This is mostly meant for backward compatibility.
@@ -806,7 +806,7 @@ export class HackedMaterial extends PushMaterial {
    * @param forceGLSL Use the GLSL code generation for the shader (even on WebGPU). Default is false
    */
   constructor(name: string, scene?: Scene, forceGLSL = false) {
-    super(name, scene, undefined, forceGLSL || HackedMaterial.ForceGLSL);
+    super(name, scene, undefined, forceGLSL || RetroMaterial.ForceGLSL);
 
     // this.detailMap = new DetailMapConfiguration(this as unknown as StandardMaterial);
 
@@ -817,11 +817,11 @@ export class HackedMaterial extends PushMaterial {
     // this.getRenderTargetTextures = (): SmartArray<RenderTargetTexture> => {
     //   this._renderTargets.reset();
 
-    //   if (HackedMaterial.ReflectionTextureEnabled && this.reflectionTexture && this.reflectionTexture.isRenderTarget) {
+    //   if (RetroMaterial.ReflectionTextureEnabled && this.reflectionTexture && this.reflectionTexture.isRenderTarget) {
     //     this._renderTargets.push(<RenderTargetTexture>this.reflectionTexture);
     //   }
 
-    //   if (HackedMaterial.RefractionTextureEnabled && this.refractionTexture && this.refractionTexture.isRenderTarget) {
+    //   if (RetroMaterial.RefractionTextureEnabled && this.refractionTexture && this.refractionTexture.isRenderTarget) {
     //     this._renderTargets.push(<RenderTargetTexture>this.refractionTexture);
     //   }
 
@@ -836,11 +836,11 @@ export class HackedMaterial extends PushMaterial {
    * Gets a boolean indicating that current material needs to register RTT
    */
   // public override get hasRenderTargetTextures(): boolean {
-  //   if (HackedMaterial.ReflectionTextureEnabled && this.reflectionTexture && this.reflectionTexture.isRenderTarget) {
+  //   if (RetroMaterial.ReflectionTextureEnabled && this.reflectionTexture && this.reflectionTexture.isRenderTarget) {
   //     return true;
   //   }
 
-  //   if (HackedMaterial.RefractionTextureEnabled && this.refractionTexture && this.refractionTexture.isRenderTarget) {
+  //   if (RetroMaterial.RefractionTextureEnabled && this.refractionTexture && this.refractionTexture.isRenderTarget) {
   //     return true;
   //   }
 
@@ -848,12 +848,12 @@ export class HackedMaterial extends PushMaterial {
   // }
 
   /**
-   * Gets the current class name of the material e.g. "HackedMaterial"
+   * Gets the current class name of the material e.g. "RetroMaterial"
    * Mainly use in serialization.
    * @returns the class name
    */
   // public override getClassName(): string {
-  //   return "HackedMaterial";
+  //   return "RetroMaterial";
   // }
 
   // /**
@@ -934,11 +934,11 @@ export class HackedMaterial extends PushMaterial {
 
     if (!subMesh.materialDefines) {
       this._callbackPluginEventGeneric(MaterialPluginEvent.GetDefineNames, this._eventInfo);
-      subMesh.materialDefines = new HackedMaterialDefines(this._eventInfo.defineNames);
+      subMesh.materialDefines = new RetroMaterialDefines(this._eventInfo.defineNames);
     }
 
     const scene = this.getScene();
-    const defines = <HackedMaterialDefines>subMesh.materialDefines;
+    const defines = <RetroMaterialDefines>subMesh.materialDefines;
     if (this._isReadyForSubMesh(subMesh)) {
       return true;
     }
@@ -978,7 +978,7 @@ export class HackedMaterial extends PushMaterial {
         // defines.SPECULARDIRECTUV = 0;
         // defines.LIGHTMAPDIRECTUV = 0;
 
-        if (this.diffuseTexture && HackedMaterial.DiffuseTextureEnabled) {
+        if (this.diffuseTexture && RetroMaterial.DiffuseTextureEnabled) {
           if (!this.diffuseTexture.isReadyOrNotBlocking()) {
             return false;
           } else {
@@ -988,7 +988,7 @@ export class HackedMaterial extends PushMaterial {
           defines.DIFFUSE = false;
         }
 
-        // if (this.ambientTexture && HackedMaterial.AmbientTextureEnabled) {
+        // if (this.ambientTexture && RetroMaterial.AmbientTextureEnabled) {
         //   if (!this.ambientTexture.isReadyOrNotBlocking()) {
         //     return false;
         //   } else {
@@ -998,7 +998,7 @@ export class HackedMaterial extends PushMaterial {
         //   defines.AMBIENT = false;
         // }
 
-        // if (this.opacityTexture && HackedMaterial.OpacityTextureEnabled) {
+        // if (this.opacityTexture && RetroMaterial.OpacityTextureEnabled) {
         //   if (!this.opacityTexture.isReadyOrNotBlocking()) {
         //     return false;
         //   } else {
@@ -1010,7 +1010,7 @@ export class HackedMaterial extends PushMaterial {
         // }
 
         // @TODO Simplify after implement cubemaps
-        if (this.reflectionTexture && HackedMaterial.ReflectionTextureEnabled) {
+        if (this.reflectionTexture && RetroMaterial.ReflectionTextureEnabled) {
           if (!this.reflectionTexture.isReadyOrNotBlocking()) {
             return false;
           } else {
@@ -1066,7 +1066,7 @@ export class HackedMaterial extends PushMaterial {
           defines.REFLECTIONMAP_OPPOSITEZ = false;
         }
 
-        // if (this.emissiveTexture && HackedMaterial.EmissiveTextureEnabled) {
+        // if (this.emissiveTexture && RetroMaterial.EmissiveTextureEnabled) {
         //   if (!this.emissiveTexture.isReadyOrNotBlocking()) {
         //     return false;
         //   } else {
@@ -1076,7 +1076,7 @@ export class HackedMaterial extends PushMaterial {
         //   defines.EMISSIVE = false;
         // }
 
-        // if (this.lightmapTexture && HackedMaterial.LightmapTextureEnabled) {
+        // if (this.lightmapTexture && RetroMaterial.LightmapTextureEnabled) {
         //   if (!this.lightmapTexture.isReadyOrNotBlocking()) {
         //     return false;
         //   } else {
@@ -1088,7 +1088,7 @@ export class HackedMaterial extends PushMaterial {
         //   defines.LIGHTMAP = false;
         // }
 
-        // if (this.specularTexture && HackedMaterial.SpecularTextureEnabled) {
+        // if (this.specularTexture && RetroMaterial.SpecularTextureEnabled) {
         //   if (!this.specularTexture.isReadyOrNotBlocking()) {
         //     return false;
         //   } else {
@@ -1099,7 +1099,7 @@ export class HackedMaterial extends PushMaterial {
         //   defines.SPECULAR = false;
         // }
 
-        // if (scene.getEngine().getCaps().standardDerivatives && this.bumpTexture && HackedMaterial.BumpTextureEnabled) {
+        // if (scene.getEngine().getCaps().standardDerivatives && this.bumpTexture && RetroMaterial.BumpTextureEnabled) {
         //   // Bump texture can not be not blocking.
         //   if (!this.bumpTexture.isReady()) {
         //     return false;
@@ -1119,7 +1119,7 @@ export class HackedMaterial extends PushMaterial {
         //   defines.PARALLAXOCCLUSION = false;
         // }
 
-        // if (this.refractionTexture && HackedMaterial.RefractionTextureEnabled) {
+        // if (this.refractionTexture && RetroMaterial.RefractionTextureEnabled) {
         //   if (!this.refractionTexture.isReadyOrNotBlocking()) {
         //     return false;
         //   } else {
@@ -1185,7 +1185,7 @@ export class HackedMaterial extends PushMaterial {
     // }
 
     // if (defines._areFresnelDirty) {
-    //   if (HackedMaterial.FresnelEnabled) {
+    //   if (RetroMaterial.FresnelEnabled) {
     //     // Fresnel
     //     if (
     //       this.diffuseFresnelParameters ||
@@ -1603,7 +1603,7 @@ export class HackedMaterial extends PushMaterial {
   public override bindForSubMesh(world: Matrix, mesh: Mesh, subMesh: SubMesh): void {
     const scene = this.getScene();
 
-    const defines = <HackedMaterialDefines>subMesh.materialDefines;
+    const defines = <RetroMaterialDefines>subMesh.materialDefines;
     if (!defines) {
       return;
     }
@@ -1642,7 +1642,7 @@ export class HackedMaterial extends PushMaterial {
     if (mustRebind) {
       this.bindViewProjection(effect);
       if (!ubo.useUbo || !this.isFrozen || !ubo.isSync || subMesh._drawWrapper._forceRebindOnNextCall) {
-        // if (HackedMaterial.FresnelEnabled && defines.FRESNEL) {
+        // if (RetroMaterial.FresnelEnabled && defines.FRESNEL) {
         //   // Fresnel
         //   // if (this.diffuseFresnelParameters && this.diffuseFresnelParameters.isEnabled) {
         //   //   ubo.updateColor4("diffuseLeftColor", this.diffuseFresnelParameters.leftColor, this.diffuseFresnelParameters.power);
@@ -1679,17 +1679,17 @@ export class HackedMaterial extends PushMaterial {
 
         // Textures
         if (scene.texturesEnabled) {
-          if (this.diffuseTexture && HackedMaterial.DiffuseTextureEnabled) {
+          if (this.diffuseTexture && RetroMaterial.DiffuseTextureEnabled) {
             ubo.updateFloat2("vDiffuseInfos", this.diffuseTexture.coordinatesIndex, this.diffuseTexture.level);
             BindTextureMatrix(this.diffuseTexture, ubo, "diffuse");
           }
 
-          // if (this.ambientTexture && HackedMaterial.AmbientTextureEnabled) {
+          // if (this.ambientTexture && RetroMaterial.AmbientTextureEnabled) {
           //   ubo.updateFloat2("vAmbientInfos", this.ambientTexture.coordinatesIndex, this.ambientTexture.level);
           //   BindTextureMatrix(this.ambientTexture, ubo, "ambient");
           // }
 
-          // if (this.opacityTexture && HackedMaterial.OpacityTextureEnabled) {
+          // if (this.opacityTexture && RetroMaterial.OpacityTextureEnabled) {
           //   ubo.updateFloat2("vOpacityInfos", this.opacityTexture.coordinatesIndex, this.opacityTexture.level);
           //   BindTextureMatrix(this.opacityTexture, ubo, "opacity");
           // }
@@ -1703,7 +1703,7 @@ export class HackedMaterial extends PushMaterial {
           // @TODO @DEBUG
           const ReflectionRoughness = 0;
 
-          if (this.reflectionTexture && HackedMaterial.ReflectionTextureEnabled) {
+          if (this.reflectionTexture && RetroMaterial.ReflectionTextureEnabled) {
             ubo.updateFloat2("vReflectionInfos", this.reflectionTexture.level, ReflectionRoughness);
             ubo.updateMatrix("reflectionMatrix", this.reflectionTexture.getReflectionTextureMatrix());
 
@@ -1717,22 +1717,22 @@ export class HackedMaterial extends PushMaterial {
             ubo.updateFloat2("vReflectionInfos", 0.0, ReflectionRoughness);
           }
 
-          // if (this.emissiveTexture && HackedMaterial.EmissiveTextureEnabled) {
+          // if (this.emissiveTexture && RetroMaterial.EmissiveTextureEnabled) {
           //   ubo.updateFloat2("vEmissiveInfos", this.emissiveTexture.coordinatesIndex, this.emissiveTexture.level);
           //   BindTextureMatrix(this.emissiveTexture, ubo, "emissive");
           // }
 
-          // if (this.lightmapTexture && HackedMaterial.LightmapTextureEnabled) {
+          // if (this.lightmapTexture && RetroMaterial.LightmapTextureEnabled) {
           //   ubo.updateFloat2("vLightmapInfos", this.lightmapTexture.coordinatesIndex, this.lightmapTexture.level);
           //   BindTextureMatrix(this.lightmapTexture, ubo, "lightmap");
           // }
 
-          // if (this.specularTexture && HackedMaterial.SpecularTextureEnabled) {
+          // if (this.specularTexture && RetroMaterial.SpecularTextureEnabled) {
           //   ubo.updateFloat2("vSpecularInfos", this.specularTexture.coordinatesIndex, this.specularTexture.level);
           //   BindTextureMatrix(this.specularTexture, ubo, "specular");
           // }
 
-          // if (this.bumpTexture && scene.getEngine().getCaps().standardDerivatives && HackedMaterial.BumpTextureEnabled) {
+          // if (this.bumpTexture && scene.getEngine().getCaps().standardDerivatives && RetroMaterial.BumpTextureEnabled) {
           //   ubo.updateFloat3("vBumpInfos", this.bumpTexture.coordinatesIndex, 1.0 / this.bumpTexture.level, this.parallaxScaleBias);
           //   BindTextureMatrix(this.bumpTexture, ubo, "bump");
 
@@ -1743,7 +1743,7 @@ export class HackedMaterial extends PushMaterial {
           //   }
           // }
 
-          // if (this.refractionTexture && HackedMaterial.RefractionTextureEnabled) {
+          // if (this.refractionTexture && RetroMaterial.RefractionTextureEnabled) {
           //   let depth = 1.0;
           //   if (!this.refractionTexture.isCube) {
           //     ubo.updateMatrix("refractionMatrix", this.refractionTexture.getReflectionTextureMatrix());
@@ -1770,7 +1770,7 @@ export class HackedMaterial extends PushMaterial {
 
         // ubo.updateColor4("vSpecularColor", this.specularColor, this.specularPower);
 
-        ubo.updateColor3("vEmissiveColor", HackedMaterial.EmissiveTextureEnabled ? this.emissiveColor : Color3.BlackReadOnly);
+        ubo.updateColor3("vEmissiveColor", RetroMaterial.EmissiveTextureEnabled ? this.emissiveColor : Color3.BlackReadOnly);
         ubo.updateColor4("vDiffuseColor", this.diffuseColor, this.alpha);
 
         // scene.ambientColor.multiplyToRef(this.ambientColor, this._globalAmbientColor);
@@ -1779,19 +1779,19 @@ export class HackedMaterial extends PushMaterial {
 
       // Textures
       if (scene.texturesEnabled) {
-        if (this.diffuseTexture && HackedMaterial.DiffuseTextureEnabled) {
+        if (this.diffuseTexture && RetroMaterial.DiffuseTextureEnabled) {
           effect.setTexture("diffuseSampler", this.diffuseTexture);
         }
 
-        // if (this.ambientTexture && HackedMaterial.AmbientTextureEnabled) {
+        // if (this.ambientTexture && RetroMaterial.AmbientTextureEnabled) {
         //   effect.setTexture("ambientSampler", this.ambientTexture);
         // }
 
-        // if (this.opacityTexture && HackedMaterial.OpacityTextureEnabled) {
+        // if (this.opacityTexture && RetroMaterial.OpacityTextureEnabled) {
         //   effect.setTexture("opacitySampler", this.opacityTexture);
         // }
 
-        if (this.reflectionTexture && HackedMaterial.ReflectionTextureEnabled) {
+        if (this.reflectionTexture && RetroMaterial.ReflectionTextureEnabled) {
           if (this.reflectionTexture.isCube) {
             effect.setTexture("reflectionCubeSampler", this.reflectionTexture);
           } else {
@@ -1799,23 +1799,23 @@ export class HackedMaterial extends PushMaterial {
           }
         }
 
-        // if (this.emissiveTexture && HackedMaterial.EmissiveTextureEnabled) {
+        // if (this.emissiveTexture && RetroMaterial.EmissiveTextureEnabled) {
         //   effect.setTexture("emissiveSampler", this.emissiveTexture);
         // }
 
-        // if (this.lightmapTexture && HackedMaterial.LightmapTextureEnabled) {
+        // if (this.lightmapTexture && RetroMaterial.LightmapTextureEnabled) {
         //   effect.setTexture("lightmapSampler", this.lightmapTexture);
         // }
 
-        // if (this.specularTexture && HackedMaterial.SpecularTextureEnabled) {
+        // if (this.specularTexture && RetroMaterial.SpecularTextureEnabled) {
         //   effect.setTexture("specularSampler", this.specularTexture);
         // }
 
-        // if (this.bumpTexture && scene.getEngine().getCaps().standardDerivatives && HackedMaterial.BumpTextureEnabled) {
+        // if (this.bumpTexture && scene.getEngine().getCaps().standardDerivatives && RetroMaterial.BumpTextureEnabled) {
         //   effect.setTexture("bumpSampler", this.bumpTexture);
         // }
 
-        // if (this.refractionTexture && HackedMaterial.RefractionTextureEnabled) {
+        // if (this.refractionTexture && RetroMaterial.RefractionTextureEnabled) {
         //   if (this.refractionTexture.isCube) {
         //     effect.setTexture("refractionCubeSampler", this.refractionTexture);
         //   } else {
@@ -2058,8 +2058,8 @@ export class HackedMaterial extends PushMaterial {
    * @param rootUrl defines the root URL to use to load textures
    * @returns the cloned material
    */
-  public override clone(name: string, cloneTexturesOnlyOnce: boolean = true, rootUrl = ""): HackedMaterial {
-    const result = SerializationHelper.Clone(() => new HackedMaterial(name, this.getScene()), this, { cloneTexturesOnlyOnce });
+  public override clone(name: string, cloneTexturesOnlyOnce: boolean = true, rootUrl = ""): RetroMaterial {
+    const result = SerializationHelper.Clone(() => new RetroMaterial(name, this.getScene()), this, { cloneTexturesOnlyOnce });
 
     result.name = name;
     result.id = name;
@@ -2078,8 +2078,8 @@ export class HackedMaterial extends PushMaterial {
    * @param rootUrl defines the root URL to use to load textures and relative dependencies
    * @returns a new standard material
    */
-  public static override Parse(source: any, scene: Scene, rootUrl: string): HackedMaterial {
-    const material = SerializationHelper.Parse(() => new HackedMaterial(source.name, scene), source, scene, rootUrl);
+  public static override Parse(source: any, scene: Scene, rootUrl: string): RetroMaterial {
+    const material = SerializationHelper.Parse(() => new RetroMaterial(source.name, scene), source, scene, rootUrl);
 
     if (source.stencil) {
       material.stencil.parse(source.stencil, scene, rootUrl);
@@ -2212,8 +2212,8 @@ export class HackedMaterial extends PushMaterial {
   }
 }
 
-// RegisterClass("BABYLON.HackedMaterial", HackedMaterial);
+// RegisterClass("BABYLON.RetroMaterial", RetroMaterial);
 
 // Scene.DefaultMaterialFactory = (scene: Scene) => {
-//   return new HackedMaterial("default material", scene);
+//   return new RetroMaterial("default material", scene);
 // }

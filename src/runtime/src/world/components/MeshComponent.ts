@@ -4,11 +4,10 @@ import { PBRMaterial } from "@babylonjs/core/Materials/PBR/pbrMaterial";
 
 import { MeshComponent as MeshComponentCore } from "@polyzone/core/src/world/components";
 import { debug_modTexture } from "@polyzone/runtime/src";
-import { HackedMaterial } from "@polyzone/runtime/src/HackyMaterial";
+import { RetroMaterial } from "@polyzone/runtime/src/materials/RetroMaterial";
 
 import { GameObject } from "../GameObject";
 import { Material } from "@babylonjs/core/Materials/material";
-import { CubeTexture } from "@babylonjs/core/Materials/Textures/cubeTexture";
 
 /**
  * Loads a mesh for this GameObject
@@ -37,10 +36,10 @@ export class MeshComponent extends MeshComponentCore {
     for (let i = 0; i < asset.materials.length; i++) {
       const oldMaterial = asset.materials[i];
 
-      let newMaterial: HackedMaterial | undefined;
+      let newMaterial: RetroMaterial | undefined;
       if (oldMaterial instanceof StandardMaterial) {
         // @TODO material editor Tool
-        newMaterial = new HackedMaterial(oldMaterial.name, asset.scene);
+        newMaterial = new RetroMaterial(oldMaterial.name, asset.scene);
         newMaterial.diffuseTexture = oldMaterial.diffuseTexture;
 
         newMaterial.transparencyMode = oldMaterial.opacityTexture ? Material.MATERIAL_ALPHABLEND : Material.MATERIAL_OPAQUE;
