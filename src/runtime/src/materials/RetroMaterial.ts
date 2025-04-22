@@ -1,5 +1,5 @@
-import type { Observer } from "@babylonjs/core/Misc/observable";
-import { SmartArray } from "@babylonjs/core/Misc/smartArray";
+// import type { Observer } from "@babylonjs/core/Misc/observable";
+// import { SmartArray } from "@babylonjs/core/Misc/smartArray";
 import type { IAnimatable } from "@babylonjs/core/Animations/animatable.interface";
 
 import type { Nullable } from "@babylonjs/core/types";
@@ -10,14 +10,14 @@ import { VertexBuffer } from "@babylonjs/core/Buffers/buffer";
 import type { SubMesh } from "@babylonjs/core/Meshes/subMesh";
 import type { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import type { Mesh } from "@babylonjs/core/Meshes/mesh";
-import { PrePassConfiguration } from "@babylonjs/core/Materials/prePassConfiguration";
+// import { PrePassConfiguration } from "@babylonjs/core/Materials/prePassConfiguration";
 
 import type { IImageProcessingConfigurationDefines } from "@babylonjs/core/Materials/imageProcessingConfiguration.defines";
-import { ImageProcessingConfiguration } from "@babylonjs/core/Materials/imageProcessingConfiguration";
-import type { ColorCurves } from "@babylonjs/core/Materials/colorCurves";
-import type { FresnelParameters } from "@babylonjs/core/Materials/fresnelParameters";
-import type { ICustomShaderNameResolveOptions } from "@babylonjs/core/Materials/material";
-import { Material } from "@babylonjs/core/Materials/material";
+// import { ImageProcessingConfiguration } from "@babylonjs/core/Materials/imageProcessingConfiguration";
+// import type { ColorCurves } from "@babylonjs/core/Materials/colorCurves";
+// import type { FresnelParameters } from "@babylonjs/core/Materials/fresnelParameters";
+// import type { ICustomShaderNameResolveOptions } from "@babylonjs/core/Materials/material";
+// import { Material } from "@babylonjs/core/Materials/material";
 import { MaterialPluginEvent } from "@babylonjs/core/Materials/materialPluginEvent";
 import { MaterialDefines } from "@babylonjs/core/Materials/materialDefines";
 import { PushMaterial } from "@babylonjs/core/Materials/pushMaterial";
@@ -25,14 +25,14 @@ import { PushMaterial } from "@babylonjs/core/Materials/pushMaterial";
 import type { BaseTexture } from "@babylonjs/core/Materials/Textures/baseTexture";
 import { Texture } from "@babylonjs/core/Materials/Textures/texture";
 import type { CubeTexture } from "@babylonjs/core/Materials/Textures/cubeTexture";
-import type { RenderTargetTexture } from "@babylonjs/core/Materials/Textures/renderTargetTexture";
-import { RegisterClass } from "@babylonjs/core/Misc/typeStore";
+// import type { RenderTargetTexture } from "@babylonjs/core/Materials/Textures/renderTargetTexture";
+// import { RegisterClass } from "@babylonjs/core/Misc/typeStore";
 import { MaterialFlags } from "@babylonjs/core/Materials/materialFlags";
 
 import { Constants } from "@babylonjs/core/Engines/constants";
 import { EffectFallbacks } from "@babylonjs/core/Materials/effectFallbacks";
-import type { Effect, IEffectCreationOptions, IShaderPath } from "@babylonjs/core/Materials/effect";
-import { DetailMapConfiguration } from "@babylonjs/core/Materials/material.detailMapConfiguration";
+import type { /* Effect, */ IEffectCreationOptions, IShaderPath } from "@babylonjs/core/Materials/effect";
+// import { DetailMapConfiguration } from "@babylonjs/core/Materials/material.detailMapConfiguration";
 import { addClipPlaneUniforms, bindClipPlane } from "@babylonjs/core/Materials/clipPlaneMaterialHelper";
 import {
   BindBonesParameters,
@@ -51,15 +51,15 @@ import {
   PrepareDefinesForLights,
   PrepareDefinesForMergedUV,
   PrepareDefinesForMisc,
-  PrepareDefinesForMultiview,
-  PrepareDefinesForOIT,
-  PrepareDefinesForPrePass,
+  // PrepareDefinesForMultiview,
+  // PrepareDefinesForOIT,
+  // PrepareDefinesForPrePass,
   PrepareUniformsAndSamplersList,
 } from "@babylonjs/core/Materials/materialHelper.functions";
-import { SerializationHelper } from "@babylonjs/core/Misc/decorators.serialization";
-import { ShaderLanguage } from "@babylonjs/core/Materials/shaderLanguage";
+// import { SerializationHelper } from "@babylonjs/core/Misc/decorators.serialization";
+// import { ShaderLanguage } from "@babylonjs/core/Materials/shaderLanguage";
 import { MaterialHelperGeometryRendering } from "@babylonjs/core/Materials/materialHelper.geometryrendering";
-import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
+// import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 
 // import { defaultPixelShader } from '@babylonjs/core/Materials/';
 // import "@babylonjs/core/Shaders/ShadersInclude/defaultFragmentDeclaration";
@@ -153,7 +153,7 @@ import MasterFragmentShaderSource from './shaders/master.fragment.fx';
     - Emission color
  */
 
-const onCreatedEffectParameters = { effect: null as unknown as Effect, subMesh: null as unknown as Nullable<SubMesh> };
+// const onCreatedEffectParameters = { effect: null as unknown as Effect, subMesh: null as unknown as Nullable<SubMesh> };
 
 /** @internal */
 export class RetroMaterialDefines extends MaterialDefines implements IImageProcessingConfigurationDefines {
@@ -938,7 +938,7 @@ export class RetroMaterial extends PushMaterial {
     }
 
     const scene = this.getScene();
-    const defines = <RetroMaterialDefines>subMesh.materialDefines;
+    const defines = subMesh.materialDefines as RetroMaterialDefines;
     if (this._isReadyForSubMesh(subMesh)) {
       return true;
     }
@@ -978,7 +978,7 @@ export class RetroMaterial extends PushMaterial {
         // defines.SPECULARDIRECTUV = 0;
         // defines.LIGHTMAPDIRECTUV = 0;
 
-        if (this.diffuseTexture && RetroMaterial.DiffuseTextureEnabled) {
+        if (this.diffuseTexture && MaterialFlags.DiffuseTextureEnabled) {
           if (!this.diffuseTexture.isReadyOrNotBlocking()) {
             return false;
           } else {
@@ -1010,7 +1010,7 @@ export class RetroMaterial extends PushMaterial {
         // }
 
         // @TODO Simplify after implement cubemaps
-        if (this.reflectionTexture && RetroMaterial.ReflectionTextureEnabled) {
+        if (this.reflectionTexture && MaterialFlags.ReflectionTextureEnabled) {
           if (!this.reflectionTexture.isReadyOrNotBlocking()) {
             return false;
           } else {
@@ -1493,7 +1493,7 @@ export class RetroMaterial extends PushMaterial {
           onError: this.onError,
           indexParameters,
           // processFinalCode: csnrOptions.processFinalCode,
-          processFinalCode: (type, code, defines) => {
+          processFinalCode: (type, code, _defines) => {
             console.log(`[${this.name}] (processFinalCode) (type='${type}')`, code);
             return code;
           },
@@ -1506,9 +1506,12 @@ export class RetroMaterial extends PushMaterial {
 
       if (effect) {
         if (this._onEffectCreatedObservable) {
-          onCreatedEffectParameters.effect = effect;
-          onCreatedEffectParameters.subMesh = subMesh;
-          this._onEffectCreatedObservable.notifyObservers(onCreatedEffectParameters);
+          // onCreatedEffectParameters.effect = effect;
+          // onCreatedEffectParameters.subMesh = subMesh;
+          this._onEffectCreatedObservable.notifyObservers({
+            effect,
+            subMesh,
+          });
         }
 
         // Use previous effect while new one is compiling
@@ -1603,7 +1606,7 @@ export class RetroMaterial extends PushMaterial {
   public override bindForSubMesh(world: Matrix, mesh: Mesh, subMesh: SubMesh): void {
     const scene = this.getScene();
 
-    const defines = <RetroMaterialDefines>subMesh.materialDefines;
+    const defines = subMesh.materialDefines as RetroMaterialDefines;
     if (!defines) {
       return;
     }
@@ -1679,7 +1682,7 @@ export class RetroMaterial extends PushMaterial {
 
         // Textures
         if (scene.texturesEnabled) {
-          if (this.diffuseTexture && RetroMaterial.DiffuseTextureEnabled) {
+          if (this.diffuseTexture && MaterialFlags.DiffuseTextureEnabled) {
             ubo.updateFloat2("vDiffuseInfos", this.diffuseTexture.coordinatesIndex, this.diffuseTexture.level);
             BindTextureMatrix(this.diffuseTexture, ubo, "diffuse");
           }
@@ -1703,7 +1706,7 @@ export class RetroMaterial extends PushMaterial {
           // @TODO @DEBUG
           const ReflectionRoughness = 0;
 
-          if (this.reflectionTexture && RetroMaterial.ReflectionTextureEnabled) {
+          if (this.reflectionTexture && MaterialFlags.ReflectionTextureEnabled) {
             ubo.updateFloat2("vReflectionInfos", this.reflectionTexture.level, ReflectionRoughness);
             ubo.updateMatrix("reflectionMatrix", this.reflectionTexture.getReflectionTextureMatrix());
 
@@ -1770,7 +1773,7 @@ export class RetroMaterial extends PushMaterial {
 
         // ubo.updateColor4("vSpecularColor", this.specularColor, this.specularPower);
 
-        ubo.updateColor3("vEmissiveColor", RetroMaterial.EmissiveTextureEnabled ? this.emissiveColor : Color3.BlackReadOnly);
+        ubo.updateColor3("vEmissiveColor", MaterialFlags.EmissiveTextureEnabled ? this.emissiveColor : Color3.BlackReadOnly);
         ubo.updateColor4("vDiffuseColor", this.diffuseColor, this.alpha);
 
         // scene.ambientColor.multiplyToRef(this.ambientColor, this._globalAmbientColor);
@@ -1779,7 +1782,7 @@ export class RetroMaterial extends PushMaterial {
 
       // Textures
       if (scene.texturesEnabled) {
-        if (this.diffuseTexture && RetroMaterial.DiffuseTextureEnabled) {
+        if (this.diffuseTexture && MaterialFlags.DiffuseTextureEnabled) {
           effect.setTexture("diffuseSampler", this.diffuseTexture);
         }
 
@@ -1791,7 +1794,7 @@ export class RetroMaterial extends PushMaterial {
         //   effect.setTexture("opacitySampler", this.opacityTexture);
         // }
 
-        if (this.reflectionTexture && RetroMaterial.ReflectionTextureEnabled) {
+        if (this.reflectionTexture && MaterialFlags.ReflectionTextureEnabled) {
           if (this.reflectionTexture.isCube) {
             effect.setTexture("reflectionCubeSampler", this.reflectionTexture);
           } else {
@@ -2058,18 +2061,18 @@ export class RetroMaterial extends PushMaterial {
    * @param rootUrl defines the root URL to use to load textures
    * @returns the cloned material
    */
-  public override clone(name: string, cloneTexturesOnlyOnce: boolean = true, rootUrl = ""): RetroMaterial {
-    const result = SerializationHelper.Clone(() => new RetroMaterial(name, this.getScene()), this, { cloneTexturesOnlyOnce });
+  // public override clone(name: string, cloneTexturesOnlyOnce: boolean = true, rootUrl = ""): RetroMaterial {
+  //   const result = SerializationHelper.Clone(() => new RetroMaterial(name, this.getScene()), this, { cloneTexturesOnlyOnce });
 
-    result.name = name;
-    result.id = name;
+  //   result.name = name;
+  //   result.id = name;
 
-    this.stencil.copyTo(result.stencil);
+  //   this.stencil.copyTo(result.stencil);
 
-    this._clonePlugins(result, rootUrl);
+  //   this._clonePlugins(result, rootUrl);
 
-    return result;
-  }
+  //   return result;
+  // }
 
   /**
    * Creates a standard material from parsed material data
@@ -2078,138 +2081,138 @@ export class RetroMaterial extends PushMaterial {
    * @param rootUrl defines the root URL to use to load textures and relative dependencies
    * @returns a new standard material
    */
-  public static override Parse(source: any, scene: Scene, rootUrl: string): RetroMaterial {
-    const material = SerializationHelper.Parse(() => new RetroMaterial(source.name, scene), source, scene, rootUrl);
+  // public static override Parse(source: any, scene: Scene, rootUrl: string): RetroMaterial {
+  //   const material = SerializationHelper.Parse(() => new RetroMaterial(source.name, scene), source, scene, rootUrl);
 
-    if (source.stencil) {
-      material.stencil.parse(source.stencil, scene, rootUrl);
-    }
+  //   if (source.stencil) {
+  //     material.stencil.parse(source.stencil, scene, rootUrl);
+  //   }
 
-    Material._ParsePlugins(source, material, scene, rootUrl);
+  //   Material._ParsePlugins(source, material, scene, rootUrl);
 
-    return material;
-  }
+  //   return material;
+  // }
 
   // Flags used to enable or disable a type of texture for all Standard Materials
   /**
    * Are diffuse textures enabled in the application.
    */
-  public static get DiffuseTextureEnabled(): boolean {
-    return MaterialFlags.DiffuseTextureEnabled;
-  }
-  public static set DiffuseTextureEnabled(value: boolean) {
-    MaterialFlags.DiffuseTextureEnabled = value;
-  }
+  // public static get DiffuseTextureEnabled(): boolean {
+  //   return MaterialFlags.DiffuseTextureEnabled;
+  // }
+  // public static set DiffuseTextureEnabled(value: boolean) {
+  //   MaterialFlags.DiffuseTextureEnabled = value;
+  // }
 
-  /**
-   * Are detail textures enabled in the application.
-   */
-  public static get DetailTextureEnabled(): boolean {
-    return MaterialFlags.DetailTextureEnabled;
-  }
-  public static set DetailTextureEnabled(value: boolean) {
-    MaterialFlags.DetailTextureEnabled = value;
-  }
+  // /**
+  //  * Are detail textures enabled in the application.
+  //  */
+  // public static get DetailTextureEnabled(): boolean {
+  //   return MaterialFlags.DetailTextureEnabled;
+  // }
+  // public static set DetailTextureEnabled(value: boolean) {
+  //   MaterialFlags.DetailTextureEnabled = value;
+  // }
 
-  /**
-   * Are ambient textures enabled in the application.
-   */
-  public static get AmbientTextureEnabled(): boolean {
-    return MaterialFlags.AmbientTextureEnabled;
-  }
-  public static set AmbientTextureEnabled(value: boolean) {
-    MaterialFlags.AmbientTextureEnabled = value;
-  }
+  // /**
+  //  * Are ambient textures enabled in the application.
+  //  */
+  // public static get AmbientTextureEnabled(): boolean {
+  //   return MaterialFlags.AmbientTextureEnabled;
+  // }
+  // public static set AmbientTextureEnabled(value: boolean) {
+  //   MaterialFlags.AmbientTextureEnabled = value;
+  // }
 
-  /**
-   * Are opacity textures enabled in the application.
-   */
-  public static get OpacityTextureEnabled(): boolean {
-    return MaterialFlags.OpacityTextureEnabled;
-  }
-  public static set OpacityTextureEnabled(value: boolean) {
-    MaterialFlags.OpacityTextureEnabled = value;
-  }
+  // /**
+  //  * Are opacity textures enabled in the application.
+  //  */
+  // public static get OpacityTextureEnabled(): boolean {
+  //   return MaterialFlags.OpacityTextureEnabled;
+  // }
+  // public static set OpacityTextureEnabled(value: boolean) {
+  //   MaterialFlags.OpacityTextureEnabled = value;
+  // }
 
-  /**
-   * Are reflection textures enabled in the application.
-   */
-  public static get ReflectionTextureEnabled(): boolean {
-    return MaterialFlags.ReflectionTextureEnabled;
-  }
-  public static set ReflectionTextureEnabled(value: boolean) {
-    MaterialFlags.ReflectionTextureEnabled = value;
-  }
+  // /**
+  //  * Are reflection textures enabled in the application.
+  //  */
+  // public static get ReflectionTextureEnabled(): boolean {
+  //   return MaterialFlags.ReflectionTextureEnabled;
+  // }
+  // public static set ReflectionTextureEnabled(value: boolean) {
+  //   MaterialFlags.ReflectionTextureEnabled = value;
+  // }
 
-  /**
-   * Are emissive textures enabled in the application.
-   */
-  public static get EmissiveTextureEnabled(): boolean {
-    return MaterialFlags.EmissiveTextureEnabled;
-  }
-  public static set EmissiveTextureEnabled(value: boolean) {
-    MaterialFlags.EmissiveTextureEnabled = value;
-  }
+  // /**
+  //  * Are emissive textures enabled in the application.
+  //  */
+  // public static get EmissiveTextureEnabled(): boolean {
+  //   return MaterialFlags.EmissiveTextureEnabled;
+  // }
+  // public static set EmissiveTextureEnabled(value: boolean) {
+  //   MaterialFlags.EmissiveTextureEnabled = value;
+  // }
 
-  /**
-   * Are specular textures enabled in the application.
-   */
-  public static get SpecularTextureEnabled(): boolean {
-    return MaterialFlags.SpecularTextureEnabled;
-  }
-  public static set SpecularTextureEnabled(value: boolean) {
-    MaterialFlags.SpecularTextureEnabled = value;
-  }
+  // /**
+  //  * Are specular textures enabled in the application.
+  //  */
+  // public static get SpecularTextureEnabled(): boolean {
+  //   return MaterialFlags.SpecularTextureEnabled;
+  // }
+  // public static set SpecularTextureEnabled(value: boolean) {
+  //   MaterialFlags.SpecularTextureEnabled = value;
+  // }
 
-  /**
-   * Are bump textures enabled in the application.
-   */
-  public static get BumpTextureEnabled(): boolean {
-    return MaterialFlags.BumpTextureEnabled;
-  }
-  public static set BumpTextureEnabled(value: boolean) {
-    MaterialFlags.BumpTextureEnabled = value;
-  }
+  // /**
+  //  * Are bump textures enabled in the application.
+  //  */
+  // public static get BumpTextureEnabled(): boolean {
+  //   return MaterialFlags.BumpTextureEnabled;
+  // }
+  // public static set BumpTextureEnabled(value: boolean) {
+  //   MaterialFlags.BumpTextureEnabled = value;
+  // }
 
-  /**
-   * Are lightmap textures enabled in the application.
-   */
-  public static get LightmapTextureEnabled(): boolean {
-    return MaterialFlags.LightmapTextureEnabled;
-  }
-  public static set LightmapTextureEnabled(value: boolean) {
-    MaterialFlags.LightmapTextureEnabled = value;
-  }
+  // /**
+  //  * Are lightmap textures enabled in the application.
+  //  */
+  // public static get LightmapTextureEnabled(): boolean {
+  //   return MaterialFlags.LightmapTextureEnabled;
+  // }
+  // public static set LightmapTextureEnabled(value: boolean) {
+  //   MaterialFlags.LightmapTextureEnabled = value;
+  // }
 
-  /**
-   * Are refraction textures enabled in the application.
-   */
-  public static get RefractionTextureEnabled(): boolean {
-    return MaterialFlags.RefractionTextureEnabled;
-  }
-  public static set RefractionTextureEnabled(value: boolean) {
-    MaterialFlags.RefractionTextureEnabled = value;
-  }
+  // /**
+  //  * Are refraction textures enabled in the application.
+  //  */
+  // public static get RefractionTextureEnabled(): boolean {
+  //   return MaterialFlags.RefractionTextureEnabled;
+  // }
+  // public static set RefractionTextureEnabled(value: boolean) {
+  //   MaterialFlags.RefractionTextureEnabled = value;
+  // }
 
-  /**
-   * Are color grading textures enabled in the application.
-   */
-  public static get ColorGradingTextureEnabled(): boolean {
-    return MaterialFlags.ColorGradingTextureEnabled;
-  }
-  public static set ColorGradingTextureEnabled(value: boolean) {
-    MaterialFlags.ColorGradingTextureEnabled = value;
-  }
+  // /**
+  //  * Are color grading textures enabled in the application.
+  //  */
+  // public static get ColorGradingTextureEnabled(): boolean {
+  //   return MaterialFlags.ColorGradingTextureEnabled;
+  // }
+  // public static set ColorGradingTextureEnabled(value: boolean) {
+  //   MaterialFlags.ColorGradingTextureEnabled = value;
+  // }
 
-  /**
-   * Are fresnels enabled in the application.
-   */
-  public static get FresnelEnabled(): boolean {
-    return MaterialFlags.FresnelEnabled;
-  }
-  public static set FresnelEnabled(value: boolean) {
-    MaterialFlags.FresnelEnabled = value;
-  }
+  // /**
+  //  * Are fresnels enabled in the application.
+  //  */
+  // public static get FresnelEnabled(): boolean {
+  //   return MaterialFlags.FresnelEnabled;
+  // }
+  // public static set FresnelEnabled(value: boolean) {
+  //   MaterialFlags.FresnelEnabled = value;
+  // }
 }
 
 // RegisterClass("BABYLON.RetroMaterial", RetroMaterial);
