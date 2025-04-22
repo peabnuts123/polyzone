@@ -7,6 +7,8 @@
     "src/editor",
     "src/core",
     "src/runtime",
+    "src/sample-cartridge",
+    "src/web-player",
   ],
   "rust-analyzer.linkedProjects": [
     "src/editor/src/app/Cargo.toml",
