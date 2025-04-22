@@ -2,6 +2,7 @@ import { AssetData, AssetType } from './cartridge';
 import { CoreModules } from './core.g';
 import { VirtualFile } from './filesystem';
 
+// @TODO lol uhhhhhhhhhhhhhhhh
 const SCRIPT_PATH_PREFIX = `scripts/`;
 
 type ModuleGetterFn = (...args: unknown[]) => void;
