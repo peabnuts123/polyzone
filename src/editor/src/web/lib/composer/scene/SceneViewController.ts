@@ -22,6 +22,7 @@ import {
   PointLightComponent as PointLightComponentRuntime,
 } from '@polyzone/runtime/src/world';
 import { toColor3Babylon } from '@polyzone/runtime/src/util';
+import { MeshAsset, AssetCache } from '@polyzone/runtime/src/world/assets';
 
 import { JsoncContainer } from '@lib/util/JsoncContainer';
 import { ProjectController } from '@lib/project/ProjectController';
@@ -48,7 +49,7 @@ export class SceneViewController {
   private readonly babylonScene: BabylonScene;
   private sceneCamera!: FreeCameraBabylon;
   private readonly assetDependencyCache: AssetDependencyCache;
-  private readonly assetCache: Map<string, AssetContainer>;
+  private readonly assetCache: AssetCache;
   private readonly _selectionManager: SelectionManager;
   private readonly babylonToWorldSelectionCache: ComposerSelectionCache;
   private readonly unlistenToFileSystemEvents: () => void;
@@ -57,20 +58,12 @@ export class SceneViewController {
     this._scene = scene;
     this._sceneJson = sceneJson;
     this.projectController = projectController;
-    this.assetCache = new Map();
+    this.assetCache = new AssetCache();
     this.assetDependencyCache = new AssetDependencyCache(this, projectController.filesWatcher);
     this.babylonToWorldSelectionCache = new ComposerSelectionCache();
     this._mutator = new SceneViewMutator(
       this,
       projectController,
-      (sceneViewController) => {
-        const sceneDefinitionJson = sceneViewController.sceneJson.toString();
-        const sceneDefinitionBytes = new TextEncoder().encode(sceneDefinitionJson);
-        return projectController.fileSystem.writeFile(
-          sceneViewController.scene.path,
-          sceneDefinitionBytes,
-        );
-      },
     );
 
     this._canvas = document.createElement('canvas');
@@ -110,8 +103,6 @@ export class SceneViewController {
       stopListeningToSceneFileEvents();
     };
 
-    // @NOTE Class properties MUST have a value explicitly assigned
-    // by this point otherwise mobx won't pick them up.
     makeAutoObservable(this);
   }
 
@@ -174,7 +165,7 @@ export class SceneViewController {
   }
 
   public destroy(): void {
-    this.assetCache.forEach((asset) => asset.dispose());
+    this.assetCache.onDestroy();
     this.assetDependencyCache.onDestroy();
     this.selectionManager.destroy();
     this.babylonScene.onPointerObservable.clear();
@@ -256,11 +247,9 @@ export class SceneViewController {
 
     if (componentData instanceof MeshComponentData) {
       /* Mesh component */
-      let meshAsset: AssetContainer;
+      let meshAsset: MeshAsset | undefined = undefined;
       if (componentData.meshAsset !== undefined) {
-        meshAsset = await this.loadAssetCached(componentData.meshAsset);
-      } else {
-        meshAsset = new AssetContainer(this.babylonScene!);
+        meshAsset = await this.assetCache.loadAsset(componentData.meshAsset, this.babylonScene);
       }
       const meshComponent = newComponent = new MeshComponent(componentData, gameObject, meshAsset);
       // Store reverse reference to new instance for managing instance later (e.g. autoload)
@@ -353,30 +342,8 @@ export class SceneViewController {
     await this.createScene();
   }
 
-  public invalidateAssetCache(assetId: string): void {
-    this.assetCache.delete(assetId);
-  }
-
-  /**
-   * Load an {@link AssetData} through a cache.
-   * @param asset Asset to load.
-   * @returns The new asset, or a reference to the existing asset if it existed in the cache.
-   */
-  public async loadAssetCached(asset: AssetData): Promise<AssetContainer> {
-    const cached = this.assetCache.get(asset.id);
-    if (cached) {
-      return cached;
-    } else {
-      const assetContainer = await LoadAssetContainerAsync(
-        asset.babylonFetchUrl,
-        this.babylonScene,
-        {
-          pluginExtension: asset.fileExtension,
-        },
-      );
-      this.assetCache.set(asset.id, assetContainer);
-      return assetContainer;
-    }
+  public invalidateAssetCache(assetData: AssetData): void {
+    this.assetCache.delete(assetData);
   }
 
   public get canvas(): HTMLCanvasElement {

@@ -1,4 +1,4 @@
-import { makeObservable, observable } from "mobx";
+import { makeObservable } from "mobx";
 import { AnyVector, Vector3 } from "@polyzone/core/src/util";
 
 /**
@@ -17,9 +17,9 @@ export class ObservableVector3 extends Vector3 {
     // @NOTE List of private property names, so that MobX can reference them
     type PrivateProperties = '_x' | '_y' | '_z'; // @TODO Do I need to annotate all the functions? `override` or something?
     makeObservable<ObservableVector3, PrivateProperties>(this, {
-      _x: observable,
-      _y: observable,
-      _z: observable,
+      _x: true,
+      _y: true,
+      _z: true,
     });
   }
 

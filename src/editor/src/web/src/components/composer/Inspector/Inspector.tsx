@@ -11,8 +11,7 @@ import {
   AddGameObjectComponentMutation,
 } from "@lib/mutation/scene/mutations";
 import type { SceneViewController } from "@lib/composer/scene";
-import { VectorInput } from "./VectorInput";
-import { TextInput } from "./TextInput";
+import { VectorInput, TextInput } from "@app/components/common/inputs";
 import { getInspectorFor } from "./GameObjectComponents";
 import { CameraComponentData, DirectionalLightComponentData, IComposerComponentData, MeshComponentData, PointLightComponentData, ScriptComponentData } from "@lib/project/data";
 

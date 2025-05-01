@@ -83,7 +83,7 @@ export class ProblemScanner {
     // Scan project
     const project = this.projectController.projectDefinition;
     for (const projectScanner of ProjectScanners) {
-      projectScanner.scan(project.value, reportProblem, scannerContext);
+      projectScanner.scan(project, reportProblem, scannerContext);
     }
 
     // Scan scenes

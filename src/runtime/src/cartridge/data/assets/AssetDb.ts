@@ -1,83 +1,97 @@
-import { SceneLoader } from '@babylonjs/core/Loading/sceneLoader';
-
-import { ClassReference } from '@polyzone/core/src/util';
-import type { AssetDefinition } from '@polyzone/runtime/src/cartridge/archive';
-import { getFileExtension } from "@polyzone/runtime/src/util";
+import type { AssetDefinition, AssetDefinitionOfType } from '@polyzone/runtime/src/cartridge/archive';
 import type { IFileSystem, VirtualFile } from '@polyzone/runtime/src/filesystem';
+import { AssetType } from '@polyzone/runtime/src/cartridge';
 
-import { createAssetData } from './AssetData';
-import type { AssetData } from './AssetData';
-import { AssetType } from './AssetType';
+import { IAssetData, IAssetDataOfType } from './AssetData';
+import { IMeshAssetData, MeshAssetData } from './MeshAssetData';
+import { IMeshSupplementaryAssetData, MeshSupplementaryAssetData } from './MeshSupplementaryAssetData';
+import { IScriptAssetData, ScriptAssetData } from './ScriptAssetData';
+import { ISoundAssetData, SoundAssetData } from './SoundAssetData';
+import { ITextureAssetData, TextureAssetData } from './TextureAssetData';
+import { CommonAssetDataArgs } from "./BaseAssetData";
 
-// @NOTE Keep in sync with Rust backend
-// See: src/editor/src/app/src/filesystem.rs
-// @TODO Could we get this data from the rust backend
-export const AssetTypeMap: Record<AssetType, string[]> = {
-  [AssetType.Mesh]: ['.obj', '.fbx', '.gltf', '.glb', '.stl'],
-  [AssetType.MeshSupplementary]: ['.mtl'],
-  [AssetType.Script]: ['.ts', '.js'],
-  [AssetType.Sound]: ['.mp3', '.ogg', '.wav'],
-  [AssetType.Texture]: ['.png', '.jpg', '.jpeg', '.bmp', '.basis', '.dds'],
-  [AssetType.Unknown]: [],
-};
 
-export class AssetDb {
-  public readonly assets: AssetData[];
+export interface IAssetDb {
+  get assets(): IAssetData[];
+  get fileSystem(): IFileSystem;
+  getById<TAssetType extends AssetType>(
+    assetId: string,
+    expectedType: TAssetType,
+  ): IAssetDataOfType<TAssetType>;
+  loadAsset(asset: IAssetData): Promise<VirtualFile>;
+}
+
+export class AssetDb implements IAssetDb {
+  public readonly assets: IAssetData[];
   public readonly fileSystem: IFileSystem;
 
-  public constructor(assetDefinitions: AssetDefinition[], fileSystem: IFileSystem) {
+  public constructor(assetDefinitions: AssetDefinition[], fileSystem: IFileSystem, createAssetData: CreateAssetDataFn) {
     this.fileSystem = fileSystem;
+
+    // Load all definitions into equivalent "data" classes
+    // @NOTE We first must load everything in a basic capacity BEFORE
+    // reading all the definition data. This is so that assets can load references to other assets
+    // i.e. all assets have to be loaded in the AssetDb before we can initialise them.
     this.assets = assetDefinitions.map((assetDefinition) => {
       return createAssetData(
-        AssetDb.getAssetType(assetDefinition),
-        {
-          id: assetDefinition.id,
-          path: assetDefinition.path,
-          resolverProtocol: fileSystem.resolverProtocol,
-        },
+        assetDefinition,
+        fileSystem,
       );
+    });
+
+    // Initialise each "data" class, now that all assets are loaded into the db
+    this.assets.forEach((asset, index) => {
+      /* @NOTE Type laundering. We know that the Definition is paired with the Data type,
+       * as it was just created from it.
+       */
+      asset.loadDefinition(assetDefinitions[index] as any, this);
     });
   }
 
-  public getById<TAssetData extends AssetData>(
+  // @TODO I think this should return `undefined` and the caller should handle that
+  public getById<TAssetType extends AssetType>(
     assetId: string,
-    ExpectedType: ClassReference<TAssetData>,
-  ): TAssetData {
+    expectedType: TAssetType,
+  ): IAssetDataOfType<TAssetType> {
     const asset = this.assets.find((asset) => asset.id === assetId);
     if (asset === undefined) {
       throw new Error(`No asset found in AssetDb with Id: ${assetId}`);
     }
 
-    if (!(asset instanceof ExpectedType)) {
-      throw new Error(`Asset has incorrect type. Expected ${ExpectedType.name}. Found: ${asset.type}`);
+    if (asset.type !== expectedType) {
+      throw new Error(`Asset has incorrect type. Expected ${expectedType}. Found: ${asset.type}`);
     }
 
-    return asset;
+    return asset as IAssetDataOfType<TAssetType>;
   }
 
-  public async loadAsset(asset: AssetData): Promise<VirtualFile> {
+  public async loadAsset(asset: IAssetData): Promise<VirtualFile> {
     return this.fileSystem.readFile(asset.path);
   }
+}
 
-  /**
-   * Resolve the type of asset.
-   * @param asset
-   */
-  public static getAssetType(asset: AssetDefinition): AssetType {
-    const fileExtension = getFileExtension(asset.path);
+export type CreateAssetDataFn = <TAssetType extends AssetType>(assetDefinition: AssetDefinitionOfType<TAssetType>, fileSystem: IFileSystem) => IAssetDataOfType<TAssetType>;
 
-    for (const type of Object.values(AssetType)) {
-      if (AssetTypeMap[type].includes(fileExtension)) {
-        return type;
-      }
-    }
+export function createAssetData<TAssetType extends AssetType>(assetDefinition: AssetDefinitionOfType<TAssetType>, fileSystem: IFileSystem): IAssetDataOfType<TAssetType> {
+  const args: CommonAssetDataArgs = {
+    id: assetDefinition.id,
+    path: assetDefinition.path,
+    resolverProtocol: fileSystem.resolverProtocol,
+  };
 
-    // Catch-all warning for future development
-    const babylonPlugin = SceneLoader.GetPluginForExtension(fileExtension);
-    if (babylonPlugin !== undefined) {
-      console.warn(`Asset with extension '${fileExtension}' is being assigned asset type '${AssetType.Unknown}' despite asset having a well-known Babylon loader: ${babylonPlugin.name}`);
-    }
-
-    return AssetType.Unknown;
+  // @TODO Why does TypeScript want everything to be type laundered here?
+  switch (assetDefinition.type) {
+    case AssetType.Mesh:
+      return new MeshAssetData(args) as IMeshAssetData as IAssetDataOfType<TAssetType>;
+    case AssetType.MeshSupplementary:
+      return new MeshSupplementaryAssetData(args) as IMeshSupplementaryAssetData as IAssetDataOfType<TAssetType>;
+    case AssetType.Script:
+      return new ScriptAssetData(args) as IScriptAssetData as IAssetDataOfType<TAssetType>;
+    case AssetType.Sound:
+      return new SoundAssetData(args) as ISoundAssetData as IAssetDataOfType<TAssetType>;
+    case AssetType.Texture:
+      return new TextureAssetData(args) as ITextureAssetData as IAssetDataOfType<TAssetType>;
+    default:
+      throw new Error(`Unimplemented AssetType: ${assetDefinition.type}`);
   }
 }

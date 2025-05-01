@@ -17,7 +17,7 @@ import { exists } from "@tauri-apps/plugin-fs";
 
 export class ProjectController {
   private _isLoadingProject: boolean = false;
-  private _projectDefinition: JsoncContainer<ProjectDefinition> | undefined = undefined;
+  private _projectJson: JsoncContainer<ProjectDefinition> | undefined = undefined;
   private readonly _mutator: ProjectMutator;
   private readonly ApplicationDataController: ApplicationDataController;
   private _project: ProjectData | undefined = undefined;
@@ -29,8 +29,6 @@ export class ProjectController {
     this._mutator = new ProjectMutator(this);
     this.ApplicationDataController = ApplicationDataController;
 
-    // @NOTE Class properties MUST have a value explicitly assigned
-    // by this point otherwise mobx won't pick them up.
     makeAutoObservable(this);
   }
 
@@ -90,7 +88,7 @@ export class ProjectController {
     });
 
     runInAction(() => {
-      this._projectDefinition = projectJson;
+      this._projectJson = projectJson;
       this._project = project;
       this._isLoadingProject = false;
     });
@@ -119,7 +117,7 @@ export class ProjectController {
     });
 
     runInAction(() => {
-      this._projectDefinition = projectJson;
+      this._projectJson = projectJson;
       this._project = project;
     });
 
@@ -152,11 +150,14 @@ export class ProjectController {
     }
     return this._project;
   }
-  public get projectDefinition(): JsoncContainer<ProjectDefinition> {
-    if (this._projectDefinition === undefined) {
+  public get projectJson(): JsoncContainer<ProjectDefinition> {
+    if (this._projectJson === undefined) {
       throw new ProjectNotLoadedError();
     }
-    return this._projectDefinition;
+    return this._projectJson;
+  }
+  public get projectDefinition(): ProjectDefinition {
+    return this.projectJson.value;
   }
 
   public get mutator(): ProjectMutator {

@@ -22,14 +22,12 @@ export class ComposerController {
   private readonly projectController: ProjectController;
 
   public constructor(projectController: ProjectController) {
-    // @NOTE Class properties MUST have a value explicitly assigned
-    // by this point otherwise mobx won't pick them up.
-    makeAutoObservable(this);
-
-    this.projectController = projectController; // @NOTE explicitly not observed by mobx
+    this.projectController = projectController;
 
     // Open 1 blank tab
     this.openNewTab();
+
+    makeAutoObservable(this);
   }
 
   public onEnter(): void {
@@ -83,7 +81,7 @@ export class ComposerController {
   public closeTab(tabId: string): void {
     const tabIndex = this.currentlyOpenTabs.findIndex((tab) => tab.id === tabId);
     if (tabIndex === -1) {
-      throw new Error(`Could not load scene for tab - no tab exists with ID '${tabId}'`);
+      throw new Error(`Could not close tab - no tab exists with ID '${tabId}'`);
     }
 
     // Unload scene

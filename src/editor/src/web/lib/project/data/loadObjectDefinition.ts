@@ -1,12 +1,25 @@
-import { CameraComponentDefinition, ComponentDefinitionType, DirectionalLightComponentDefinition, MeshComponentDefinition, PointLightComponentDefinition, GameObjectDefinition, ScriptComponentDefinition } from "@polyzone/runtime/src/cartridge/archive";
+import { CameraComponentDefinition, ComponentDefinitionType, DirectionalLightComponentDefinition, MeshComponentDefinition, PointLightComponentDefinition, GameObjectDefinition, ScriptComponentDefinition, AssetType } from "@polyzone/runtime/src/cartridge/archive";
 import { isDefined, toColor3Core, toVector3Core } from "@polyzone/runtime/src/util";
+import { LoadObjectDefinitionFn } from "@polyzone/runtime/src/cartridge";
 
 import { AssetDb } from "@lib/project/data/AssetDb";
-import { MeshAssetData, ScriptAssetData } from "@lib/project/data/AssetData";
+import { MeshAssetData, ScriptAssetData } from "@lib/project/data/assets";
 import { CameraComponentData, DirectionalLightComponentData, IComposerComponentData, MeshComponentData, PointLightComponentData, ScriptComponentData } from "./components";
 import { GameObjectData } from "./GameObjectData";
 import { TransformData } from "./TransformData";
 
+
+/**
+ * Copy of @see {@link loadObjectDefinition} with types adhering to `@polyzone/runtime`
+ */
+export const __loadObjectDefinitionForRuntime: LoadObjectDefinitionFn = (objectDefinition, assetDb) => {
+  // @NOTE Runtime type checking so that `loadObjectDefinition` can be cast to `LoadObjectDefinitionFn`
+  if (!(assetDb instanceof AssetDb)) {
+    throw new Error(`Received runtime instance of AssetDb when editor instance is required`);
+  }
+
+  return loadObjectDefinition(objectDefinition, assetDb);
+};
 
 export function loadObjectDefinition(objectDefinition: GameObjectDefinition, assetDb: AssetDb): GameObjectData {
   const components: IComposerComponentData[] = [];
@@ -16,7 +29,7 @@ export function loadObjectDefinition(objectDefinition: GameObjectDefinition, ass
         const meshComponentDefinition = componentDefinition as MeshComponentDefinition;
         let meshAsset: MeshAssetData | undefined = undefined;
         if (isDefined(meshComponentDefinition.meshFileId)) {
-          meshAsset = assetDb.getById(meshComponentDefinition.meshFileId, MeshAssetData);
+          meshAsset = assetDb.getById(meshComponentDefinition.meshFileId, AssetType.Mesh);
         }
         components.push(new MeshComponentData(componentDefinition.id, meshAsset));
         break;
@@ -26,7 +39,7 @@ export function loadObjectDefinition(objectDefinition: GameObjectDefinition, ass
         let scriptAsset: ScriptAssetData | undefined = undefined;
         if (isDefined(scriptComponentDefinition.scriptFileId)) {
           // @TODO Nah dog… these Ids my be invalid lol
-          scriptAsset = assetDb.getById(scriptComponentDefinition.scriptFileId, ScriptAssetData);
+          scriptAsset = assetDb.getById(scriptComponentDefinition.scriptFileId, AssetType.Script);
         }
         components.push(new ScriptComponentData(componentDefinition.id, scriptAsset));
         break;

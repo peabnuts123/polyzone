@@ -38,9 +38,9 @@ class Resolver {
   }
 
   /**
-   * Register an AssetDB that will be used to resolve Urls for a given a URL protocol.
+   * Register a file system that will be used to resolve Urls for a given a URL protocol.
    * @param protocol Url protocol prefix like `runtime://`
-   * @param fileSystem AssetDb for resolving Urls with this protocol
+   * @param fileSystem File system! for resolving Urls with this protocol
    */
   public registerFileSystem(fileSystem: IFileSystem): void {
     if (this.fileSystems.has(fileSystem.resolverProtocol)) {

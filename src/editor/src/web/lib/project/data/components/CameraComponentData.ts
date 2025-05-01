@@ -1,16 +1,24 @@
 import { makeAutoObservable } from "mobx";
 import { v4 as uuid } from 'uuid';
 
-import { CameraComponentDefinition, ComponentDefinition, ComponentDefinitionType } from "@polyzone/runtime/src/cartridge";
+import {
+  type CameraComponentDefinition,
+  type ComponentDefinition,
+  ComponentDefinitionType,
+  CameraComponentData as CameraComponentDataRuntime,
+  type ICameraComponentData,
+} from "@polyzone/runtime/src/cartridge";
 
 import type { IComposerComponentData } from "./IComposerComponentData";
 
-export class CameraComponentData implements IComposerComponentData {
-  public readonly id: string;
+export class CameraComponentData implements IComposerComponentData, ICameraComponentData {
+  private _cameraComponentData: CameraComponentDataRuntime;
 
   public constructor(id: string) {
-    this.id = id;
+    this._cameraComponentData = new CameraComponentDataRuntime(id);
+
     makeAutoObservable(this);
+    makeAutoObservable(this._cameraComponentData);
   }
 
   public toComponentDefinition(): ComponentDefinition {
@@ -24,7 +32,9 @@ export class CameraComponentData implements IComposerComponentData {
     return new CameraComponentData(uuid());
   }
 
-  get componentName(): string {
+  public get componentName(): string {
     return `Camera`;
   }
+
+  public get id(): string { return this._cameraComponentData.id; }
 }

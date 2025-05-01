@@ -2,6 +2,7 @@ import { GameObjectDefinition } from "@polyzone/runtime/src/cartridge";
 
 import { MutationPath, resolvePath, ResolvePathSelector } from "@lib/util/JsoncContainer";
 import { SceneDefinition } from "@lib/project/definition/scene/SceneDefinition";
+import { AssetDefinition, ProjectDefinition } from "@lib/project";
 
 /**
  * Find the path of a GameObject relative to a parent GameObject by recursively searching
@@ -79,9 +80,31 @@ export function resolvePathForSceneObjectMutation<TPathTarget>(gameObjectId: str
   }
 
 
-  const debug_result = mutationPath.concat(relativePath);
-  console.log(`[resolvePathForSceneObjectMutation] Resolved path: ${debug_result.map((x) => typeof (x) === 'number' ? `[${x}]` : `.${x}`).join('')}`);
-  return debug_result;
+  const result = mutationPath.concat(relativePath);
+  console.log(`[resolvePathForSceneObjectMutation] Resolved path: ${pathToString(result)}`);
+  return result;
+}
+
+export function resolvePathForAssetMutation<TPathTarget>(assetId: string, project: ProjectDefinition, pathSelector: ResolvePathSelector<AssetDefinition, TPathTarget>): MutationPath<TPathTarget>;
+export function resolvePathForAssetMutation(assetId: string, project: ProjectDefinition): MutationPath<AssetDefinition>;
+export function resolvePathForAssetMutation<TPathTarget>(assetId: string, project: ProjectDefinition, pathSelector?: ResolvePathSelector<AssetDefinition, TPathTarget>): MutationPath<TPathTarget> {
+  const assetIndex = project.assets.findIndex(((asset) => asset.id === assetId));
+
+  if (assetIndex === -1) {
+    throw new Error(`Could not find any asset in project with id: '${assetId}'`);
+  }
+
+  const assetPath = resolvePath<ProjectDefinition, AssetDefinition>((project) => project.assets[assetIndex]);
+
+  let relativePath: MutationPath<TPathTarget> = [];
+  if (pathSelector !== undefined) {
+    relativePath = resolvePath(pathSelector);
+  }
+
+
+  const result = assetPath.concat(relativePath);
+  console.log(`[resolvePathForAssetMutation] Resolved path: ${pathToString(result)}`);
+  return result;
 }
 
 /**
@@ -95,4 +118,13 @@ export function readPathInScene<TPathTarget>(path: MutationPath<TPathTarget>, sc
     currentValue = currentValue[pathSegment as keyof typeof currentValue];
   }
   return currentValue;
+}
+
+function pathToString(path: (string | number)[]): string {
+  /*
+   * Convert numeric segments into [4]
+   * Convert string segments into .something
+   * e.g. `.foo.bar[4].baz`
+   */
+  return path.map((x) => typeof (x) === 'number' ? `[${x}]` : `.${x}`).join('');
 }

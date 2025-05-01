@@ -1,6 +1,6 @@
 import type { CartridgeArchive } from './CartridgeArchive'; // eslint-disable-line @typescript-eslint/no-unused-vars
 
-import { AssetDefinition } from "./AssetDefinition";
+import { AssetDefinition } from "./assets/AssetDefinition";
 import { SceneDefinition } from "./SceneDefinition";
 
 /**

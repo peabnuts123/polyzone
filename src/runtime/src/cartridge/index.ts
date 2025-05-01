@@ -5,7 +5,7 @@ export * from './data';
 export * from './Cartridge';
 
 import { CartridgeArchive } from './archive/CartridgeArchive';
-import { AssetDb, SceneDb } from './data';
+import { AssetDb, SceneDb, createAssetData } from './data';
 import { Cartridge } from './Cartridge';
 
 // @NOTE This function is not really async.
@@ -55,7 +55,7 @@ export async function loadCartridge(cartridgeArchive: CartridgeArchive): Promise
   // @TODO validate DTO
   const cartridgeManifest = cartridgeArchive.manifest;
 
-  const assetDb = new AssetDb(cartridgeManifest.assets, cartridgeArchive.fileSystem);
+  const assetDb = new AssetDb(cartridgeManifest.assets, cartridgeArchive.fileSystem, createAssetData);
   const sceneDb = new SceneDb(cartridgeManifest.scenes, assetDb);
 
   return new Cartridge(sceneDb, assetDb);

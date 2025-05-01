@@ -98,7 +98,7 @@ export class AssetDependencyCache {
       case ProjectAssetEventType.Delete:
         // Remove asset from sceneViewController cache, so that reinitializing the component
         // will load the new asset
-        this.sceneViewController.invalidateAssetCache(event.asset.id);
+        this.sceneViewController.invalidateAssetCache(event.asset);
 
         const assetDependencies = this.cacheByAssetId.get(event.asset.id) || [];
         await Promise.all(assetDependencies.map((assetDependency) => {

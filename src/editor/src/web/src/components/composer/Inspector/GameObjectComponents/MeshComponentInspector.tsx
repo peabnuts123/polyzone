@@ -4,8 +4,8 @@ import { observer } from "mobx-react-lite";
 
 import type { MeshComponentData } from "@lib/project/data";
 import { SetGameObjectMeshComponentAssetMutation } from "@lib/mutation/scene/mutations";
-import type { MeshAssetData } from "@lib/project/data/AssetData";
-import { createAssetReferenceComponentOfType } from "../AssetReference";
+import type { MeshAssetData } from "@lib/project/data/assets";
+import { createAssetReferenceComponentOfType } from "@app/components/common/inputs/AssetReference";
 import type { InspectorComponent } from "./InspectorComponent";
 import { InspectorComponentBase } from "./InspectorComponentBase";
 

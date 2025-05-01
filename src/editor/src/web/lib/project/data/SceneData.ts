@@ -1,44 +1,30 @@
 import { makeAutoObservable } from "mobx";
 
-import { SceneDataConfiguration } from "@polyzone/runtime/src/cartridge";
-import { toColor3Core } from "@polyzone/runtime/src/util";
+import { ISceneData, SceneDataConfiguration, SceneData as SceneDataRuntime } from "@polyzone/runtime/src/cartridge";
 
-import { AssetDb } from "@lib/project/data/AssetDb";
-import { loadObjectDefinition } from "./loadObjectDefinition";
-import { GameObjectData } from "./GameObjectData";
 import { SceneDefinition, SceneManifest } from "../definition";
+import { __loadObjectDefinitionForRuntime } from "./loadObjectDefinition";
+import { GameObjectData } from "./GameObjectData";
+import { AssetDb } from "./AssetDb";
 
-export class SceneData {
+export class SceneData implements ISceneData {
+  private _sceneData: SceneDataRuntime;
+
   public readonly id: string;
-  public path: string;
   public hash: string;
-  public objects: GameObjectData[];
-  public config: SceneDataConfiguration;
 
   public constructor(sceneDefinition: SceneDefinition, sceneManifest: SceneManifest, assetDb: AssetDb) {
+    this._sceneData = new SceneDataRuntime({
+      path: sceneManifest.path,
+      ...sceneDefinition,
+    }, assetDb, __loadObjectDefinitionForRuntime);
+
     /* Manifest */
     this.id = sceneManifest.id;
-    this.path = sceneManifest.path;
     this.hash = sceneManifest.hash;
 
-    /* Config */
-    this.config = {
-      clearColor: toColor3Core(sceneDefinition.config.clearColor),
-      lighting: {
-        ambient: {
-          intensity: sceneDefinition.config.lighting.ambient.intensity,
-          color: toColor3Core(sceneDefinition.config.lighting.ambient.color),
-        },
-      },
-    };
-
-    /* Game Objects */
-    this.objects = [];
-    for (const objectDefinition of sceneDefinition.objects) {
-      this.objects.push(loadObjectDefinition(objectDefinition, assetDb));
-    }
-
     makeAutoObservable(this);
+    makeAutoObservable(this._sceneData);
   }
 
   /**
@@ -98,4 +84,11 @@ export class SceneData {
       }
     }
   }
+
+  public get path(): string { return this._sceneData.path; }
+  public set path(path: string) { this._sceneData.path = path; }
+  public get objects(): GameObjectData[] { return this._sceneData.objects as GameObjectData[]; }
+  public set objects(objects: GameObjectData[]) { this._sceneData.objects = objects; }
+  public get config(): SceneDataConfiguration { return this._sceneData.config; }
+  public set config(config: SceneDataConfiguration) { this._sceneData.config = config; }
 }

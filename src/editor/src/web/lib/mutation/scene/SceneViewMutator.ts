@@ -5,17 +5,14 @@ import { Mutator } from "../Mutator";
 import { SceneViewMutationArguments } from "./SceneViewMutationArguments";
 
 
-export type WriteSceneToDiskFn = (sceneViewController: SceneViewController) => Promise<void>;
 export class SceneViewMutator extends Mutator<SceneViewMutationArguments> {
   private readonly sceneViewController: SceneViewController;
   private readonly projectController: ProjectController;
-  private readonly writeSceneToDisk: WriteSceneToDiskFn;
 
-  public constructor(sceneViewController: SceneViewController, projectController: ProjectController, writeSceneToDisk: WriteSceneToDiskFn) {
+  public constructor(sceneViewController: SceneViewController, projectController: ProjectController) {
     super();
     this.sceneViewController = sceneViewController;
     this.projectController = projectController;
-    this.writeSceneToDisk = writeSceneToDisk;
   }
 
   protected override getMutationArgs(): SceneViewMutationArguments {
@@ -27,7 +24,7 @@ export class SceneViewMutator extends Mutator<SceneViewMutationArguments> {
 
   protected override async persistChanges(): Promise<void> {
     const { scene, sceneJson } = this.sceneViewController;
-    const { project, projectDefinition, mutator: projectMutator } = this.projectController;
+    const { project, projectJson, projectDefinition, mutator: projectMutator } = this.projectController;
 
     const sceneDefinitionJson = sceneJson.toString();
     const sceneDefinitionBytes = new TextEncoder().encode(sceneDefinitionJson);
@@ -42,8 +39,8 @@ export class SceneViewMutator extends Mutator<SceneViewMutationArguments> {
       existingScene.manifest.hash = newSceneHash;
 
       // Hash must change in project file too
-      const sceneManifestIndex = projectDefinition.value.scenes.findIndex((sceneManifest) => sceneManifest.id === scene.id);
-      projectDefinition.mutate((project) => project.scenes[sceneManifestIndex].hash, newSceneHash);
+      const sceneManifestIndex = projectDefinition.scenes.findIndex((sceneManifest) => sceneManifest.id === scene.id);
+      projectJson.mutate((project) => project.scenes[sceneManifestIndex].hash, newSceneHash);
       await projectMutator.persistChanges();
     }
 

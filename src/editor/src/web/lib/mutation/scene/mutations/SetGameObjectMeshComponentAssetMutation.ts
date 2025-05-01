@@ -3,7 +3,7 @@ import type { MeshComponentDefinition } from "@polyzone/runtime/src/cartridge";
 import { GameObjectData, MeshComponentData } from "@lib/project/data";
 import { MeshComponent } from "@lib/composer/scene";
 import { resolvePathForSceneObjectMutation } from "@lib/mutation/util";
-import type { MeshAssetData } from "@lib/project/data/AssetData";
+import type { MeshAssetData } from "@lib/project/data/assets";
 import { ISceneMutation } from "../ISceneMutation";
 import { SceneViewMutationArguments } from "../SceneViewMutationArguments";
 
@@ -41,7 +41,6 @@ export class SetGameObjectMeshComponentAssetMutation implements ISceneMutation {
       (gameObject) => (gameObject.components[componentIndex] as MeshComponentDefinition).meshFileId,
     );
     SceneViewController.sceneJson.mutate(mutationPath, updatedValue);
-
   }
   undo(_args: SceneViewMutationArguments): void {
     throw new Error("Method not implemented.");

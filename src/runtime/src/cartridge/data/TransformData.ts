@@ -1,6 +1,12 @@
 import type { Vector3 } from '@polyzone/core/src/util';
 
-export class TransformData {
+export interface ITransformData {
+  get position(): Vector3;
+  get rotation(): Vector3;
+  get scale(): Vector3;
+}
+
+export class TransformData implements ITransformData {
   public position: Vector3;
   public rotation: Vector3;
   public scale: Vector3;

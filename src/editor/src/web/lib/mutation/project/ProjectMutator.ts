@@ -18,7 +18,7 @@ export class ProjectMutator extends Mutator<ProjectMutationArguments> {
   }
 
   public override async persistChanges(): Promise<void> {
-    const projectFileJson = this.projectController.projectDefinition.toString();
+    const projectFileJson = this.projectController.projectJson.toString();
     const projectFileBytes = new TextEncoder().encode(projectFileJson);
 
     // Notify backend of modified project file to prevent a duplicate project modified event

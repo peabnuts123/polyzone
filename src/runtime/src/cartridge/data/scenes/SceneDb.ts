@@ -1,13 +1,13 @@
 import type { SceneDefinition } from '../../archive';
-import { AssetDb } from '../assets/AssetDb';
-import { SceneData } from './SceneData';
+import { IAssetDb } from '../assets/AssetDb';
+import { loadObjectDefinition, SceneData } from './SceneData';
 
 export class SceneDb {
   private scenes: SceneData[];
 
-  public constructor(sceneDefinitions: SceneDefinition[], assetDb: AssetDb) {
+  public constructor(sceneDefinitions: SceneDefinition[], assetDb: IAssetDb) {
     this.scenes = sceneDefinitions.map((sceneDefinition) =>
-      new SceneData(sceneDefinition, assetDb),
+      new SceneData(sceneDefinition, assetDb, loadObjectDefinition),
     );
   }
 

@@ -1,8 +1,7 @@
-import type { AssetContainer } from "@babylonjs/core/assetContainer";
 import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 
 import { MeshComponent as MeshComponentRuntime } from "@polyzone/runtime/src/world/components";
-import type { GameObject } from "@polyzone/runtime/src/world";
+import type { GameObject, MeshAsset } from "@polyzone/runtime/src/world";
 
 import { MeshComponentData } from "@lib/project/data/components";
 import type { ISelectableObject } from "./ISelectableObject";
@@ -18,7 +17,7 @@ export class MeshComponent extends MeshComponentRuntime implements ISelectableOb
    * @param data Data needed to construct a GameObjectComponent.
    * @param asset Model assets loaded by Babylon
    */
-  public constructor(data: MeshComponentData, gameObject: GameObject, asset: AssetContainer) {
+  public constructor(data: MeshComponentData, gameObject: GameObject, asset: MeshAsset | undefined) {
     super(data.id, gameObject, asset);
 
     // Build asset dependency cache
@@ -30,7 +29,7 @@ export class MeshComponent extends MeshComponentRuntime implements ISelectableOb
 
     // Build selection cache data
     this._selectionCacheData = [];
-    this.sceneInstances.rootNodes.forEach((node) => {
+    this.sceneInstances?.rootNodes.forEach((node) => {
       // Add self
       if (node instanceof AbstractMesh) {
         this._selectionCacheData.push(node);

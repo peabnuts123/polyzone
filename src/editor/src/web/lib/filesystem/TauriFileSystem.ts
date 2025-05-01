@@ -32,12 +32,12 @@ export class TauriFileSystem extends IFileSystem {
     // @NOTE List of private property names, so that MobX can reference them
     type PrivateProperties = '_writingState' | 'projectRootDir';
     makeObservable<TauriFileSystem, PrivateProperties>(this, {
-      '_writingState': observable,
-      'writingState': computed,
-      'projectRootDir': observable,
-      'getUrlForPath': action,
-      'readFile': action,
-      'writeFile': action,
+      '_writingState': true,
+      'writingState': true,
+      'projectRootDir': true,
+      'getUrlForPath': true,
+      'readFile': true,
+      'writeFile': true,
     });
   }
 

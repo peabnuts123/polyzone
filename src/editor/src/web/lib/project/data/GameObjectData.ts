@@ -5,26 +5,20 @@ import type { GameObject as GameObjectRuntime } from "@polyzone/runtime/src/worl
 
 import type { IComposerComponentData } from "./components";
 import type { TransformData } from "./TransformData";
+import { IGameObjectData, GameObjectData as GameObjectDataRuntime } from "@polyzone/runtime/src/cartridge";
 
-export class GameObjectData {
-  public readonly id: string;
-  public name: string;
-  public transform: TransformData;
-  public components: IComposerComponentData[];
-  public children: GameObjectData[];
+export class GameObjectData implements IGameObjectData {
+  private _gameObjectData: GameObjectDataRuntime;
 
   // @TODO this is a bit cooked TBH. We should probably have a reference to World or SceneBabylon or something.
   //  I think this is only used by mutations
   public sceneInstance: GameObjectRuntime | undefined = undefined;
 
   public constructor(id: string, name: string, transform: TransformData, components: IComposerComponentData[], children: GameObjectData[]) {
-    this.id = id;
-    this.name = name;
-    this.transform = transform;
-    this.components = components;
-    this.children = children;
+    this._gameObjectData = new GameObjectDataRuntime(id,name, transform, components, children);
 
     makeAutoObservable(this);
+    makeAutoObservable(this._gameObjectData);
   }
 
   /**
@@ -118,4 +112,14 @@ export class GameObjectData {
 
     return undefined;
   }
+
+  public get id(): string { return this._gameObjectData.id; }
+  public get name(): string { return this._gameObjectData.name; }
+  public set name(name: string) { this._gameObjectData.name = name; }
+  public get transform(): TransformData { return this._gameObjectData.transform as TransformData; }
+  public set transform(transform: TransformData) { this._gameObjectData.transform = transform; }
+  public get components(): IComposerComponentData[] { return this._gameObjectData.components as IComposerComponentData[]; }
+  public set components(components: IComposerComponentData[]) { this._gameObjectData.components = components; }
+  public get children(): GameObjectData[] { return this._gameObjectData.children as GameObjectData[]; }
+  public set children(children: GameObjectData[]) { this._gameObjectData.children = children; }
 }

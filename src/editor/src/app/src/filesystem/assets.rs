@@ -12,12 +12,22 @@ use super::{get_file_hash, FsWatcherState};
 use crate::filesystem::project::read_project_definition;
 
 
-/// List of all file extensions that are supported asset types - Should be kept in-sync with the frontend business logic
-/// @TODO Send these to the frontend for a single source of truth
-const SUPPORTED_ASSET_FILE_TYPES: [&str; 17] = [
-    "obj", "fbx", "gltf", "glb", "stl", "mtl", "ts", "js", "mp3", "ogg", "wav", "png", "jpg",
-    "jpeg", "bmp", "basis", "dds",
-];
+#[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Hash, Clone)]
+#[serde(rename_all = "camelCase")]
+pub enum AssetType {
+    Mesh,
+    MeshSupplementary,
+    Script,
+    Sound,
+    Texture,
+}
+
+// List of all file extensions that are supported asset types
+const SUPPORTED_MESH_ASSET_FILE_EXTENSIONS: [&str; 5] = [ "obj", "fbx", "gltf", "glb", "stl" ];
+const SUPPORTED_MESH_SUPPLEMENTARY_ASSET_FILE_EXTENSIONS: [&str; 1] = [ "mtl" ];
+const SUPPORTED_SCRIPT_ASSET_FILE_EXTENSIONS: [&str; 2] = [ "ts", "js" ];
+const SUPPORTED_SOUND_ASSET_FILE_EXTENSIONS: [&str; 3] = [ "mp3", "ogg", "wav" ];
+const SUPPORTED_TEXTURE_ASSET_FILE_EXTENSIONS: [&str; 6] = [ "png", "jpg", "jpeg", "bmp", "basis", "dds" ];
 
 // Types
 /// An asset file on disk
@@ -41,7 +51,13 @@ pub struct AssetDefinition {
 pub enum AssetFsEvent {
     /// A new (previously-unknown) asset has been added
     #[serde(rename_all = "camelCase")]
-    Create { asset_id: Uuid, path: PathBuf, hash: String },
+    Create {
+        asset_id: Uuid,
+        path: PathBuf,
+        hash: String,
+        #[serde(rename = "type")]
+        asset_type: AssetType,
+    },
     /// A previously-known asset has been removed
     #[serde(rename_all = "camelCase")]
     Delete { asset_id: Uuid },
@@ -143,11 +159,18 @@ pub async fn perform_asset_reconciliation(state: Arc<FsWatcherState>) {
 
     // Any remaining new asset files are Create events
     for new_asset_file in new_asset_files {
-        fs_events.push(AssetFsEvent::Create {
-            asset_id: Uuid::new_v4(),
-            path: new_asset_file.path.clone(),
-            hash: new_asset_file.hash.clone(),
-        });
+        let new_asset_file_type = get_asset_type(&new_asset_file.path);
+        if let Some(new_asset_file_type) = new_asset_file_type {
+            fs_events.push(AssetFsEvent::Create {
+                asset_id: Uuid::new_v4(),
+                path: new_asset_file.path.clone(),
+                hash: new_asset_file.hash.clone(),
+                asset_type: new_asset_file_type,
+            });
+        } else {
+            log::warn!("[assets] (perform_asset_reconciliation) New asset file does not have supported file extension. Ignoring: {:?}", new_asset_file.path);
+        }
+
     }
 
     log::debug!(
@@ -166,8 +189,8 @@ async fn on_asset_fs_event(events: Vec<AssetFsEvent>, state: Arc<FsWatcherState>
     // Apply modifications to asset list in memory
     for event in events.iter() {
         match event {
-            AssetFsEvent::Create { asset_id: _, path, hash: _ } => {
-                log::debug!("[on_asset_fs_event] New asset: {:?}", path);
+            AssetFsEvent::Create { asset_id: _, path, hash: _, asset_type } => {
+                log::debug!("[on_asset_fs_event] New {:?} asset: {:?}", asset_type, path);
             }
             AssetFsEvent::Delete { asset_id } => {
                 log::debug!("[on_asset_fs_event] Asset deleted: {:?}", asset_id);
@@ -250,14 +273,30 @@ async fn get_all_asset_files(project_root: &PathBuf, ignore_filter: &IgnoreFilte
     asset_files
 }
 
-/// Test whether a path has a supported asset file extension
-pub fn is_supported_asset_type(path: &PathBuf) -> bool {
+pub fn get_asset_type(path: &PathBuf) -> Option<AssetType> {
     let extension = path.extension();
     match extension {
         Some(extension) => {
             let extension = extension.to_str().unwrap();
-            SUPPORTED_ASSET_FILE_TYPES.contains(&extension)
+            if SUPPORTED_MESH_ASSET_FILE_EXTENSIONS.contains(&extension) {
+                Some(AssetType::Mesh)
+            } else if SUPPORTED_MESH_SUPPLEMENTARY_ASSET_FILE_EXTENSIONS.contains(&extension) {
+                Some(AssetType::MeshSupplementary)
+            } else if SUPPORTED_SCRIPT_ASSET_FILE_EXTENSIONS.contains(&extension) {
+                Some(AssetType::Script)
+            } else if SUPPORTED_SOUND_ASSET_FILE_EXTENSIONS.contains(&extension) {
+                Some(AssetType::Sound)
+            } else if SUPPORTED_TEXTURE_ASSET_FILE_EXTENSIONS.contains(&extension) {
+                Some(AssetType::Texture)
+            } else {
+                None
+            }
         }
-        None => false,
+        None => None,
     }
+}
+
+/// Test whether a path has a supported asset file extension
+pub fn is_supported_asset_type(path: &PathBuf) -> bool {
+    get_asset_type(path).is_some()
 }

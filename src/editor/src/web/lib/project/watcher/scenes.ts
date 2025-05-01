@@ -168,9 +168,9 @@ export class ProjectScenesWatcher {
       const newSceneData = sceneDb.add(newSceneManifest, newSceneJson);
 
       // 2. Update JSON
-      const jsonIndex = this.projectController.projectDefinition.value.scenes.length;
+      const jsonIndex = this.projectController.projectDefinition.scenes.length;
       const jsonPath = resolvePath((project: ProjectDefinition) => project.scenes[jsonIndex]);
-      this.projectController.projectDefinition.mutate(jsonPath, newSceneManifest, { isArrayInsertion: true });
+      this.projectController.projectJson.mutate(jsonPath, newSceneManifest, { isArrayInsertion: true });
 
       return {
         type: ProjectSceneEventType.Create,
@@ -191,10 +191,10 @@ export class ProjectScenesWatcher {
       sceneDb.remove(sceneId);
 
       // 2. Update JSON
-      const jsonIndex = this.projectController.projectDefinition.value.scenes.findIndex((scene) => scene.id === sceneId);
+      const jsonIndex = this.projectController.projectDefinition.scenes.findIndex((scene) => scene.id === sceneId);
       if (jsonIndex === -1) throw new Error(`Cannot apply 'Delete' event: No scene found in ProjectDefinition with id: ${sceneId}`);
       const jsonPath = resolvePath((project: ProjectDefinition) => project.scenes[jsonIndex]);
-      this.projectController.projectDefinition.delete(jsonPath);
+      this.projectController.projectJson.delete(jsonPath);
 
       return {
         type: ProjectSceneEventType.Delete,
@@ -227,10 +227,10 @@ export class ProjectScenesWatcher {
       scene.data.hash = newHash;
 
       // 2. Update JSON
-      const jsonIndex = this.projectController.projectDefinition.value.scenes.findIndex((scene) => scene.id === sceneId);
+      const jsonIndex = this.projectController.projectDefinition.scenes.findIndex((scene) => scene.id === sceneId);
       if (jsonIndex === -1) throw new Error(`Cannot apply 'Modify' event: No scene found in ProjectDefinition with id: ${sceneId}`);
       const jsonPath = resolvePath((project: ProjectDefinition) => project.scenes[jsonIndex].hash);
-      this.projectController.projectDefinition.mutate(jsonPath, newHash);
+      this.projectController.projectJson.mutate(jsonPath, newHash);
 
       return {
         type: ProjectSceneEventType.Modify,
@@ -258,10 +258,10 @@ export class ProjectScenesWatcher {
       scene.manifest.path = newPath;
 
       // 2. Update JSON
-      const jsonIndex = this.projectController.projectDefinition.value.scenes.findIndex((scene) => scene.id === sceneId);
+      const jsonIndex = this.projectController.projectDefinition.scenes.findIndex((scene) => scene.id === sceneId);
       if (jsonIndex === -1) throw new Error(`Cannot apply 'Rename' event: No scene found in ProjectDefinition with id: ${sceneId}`);
       const jsonPath = resolvePath((project: ProjectDefinition) => project.scenes[jsonIndex].path);
-      this.projectController.projectDefinition.mutate(jsonPath, newPath);
+      this.projectController.projectJson.mutate(jsonPath, newPath);
 
       return {
         type: ProjectSceneEventType.Rename,

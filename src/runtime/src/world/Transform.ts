@@ -5,7 +5,7 @@ import type { Scene as BabylonScene } from '@babylonjs/core/scene';
 import { Vector3 } from '@polyzone/core/src/util/Vector3';
 import { Transform as TransformCore } from '@polyzone/core/src/world';
 
-import type { TransformData } from '../cartridge';
+import type { ITransformData } from '../cartridge';
 import { toVector3Babylon, WrappedVector3Babylon } from '../util';
 import type { GameObject } from './GameObject';
 
@@ -30,7 +30,7 @@ export class Transform extends TransformCore {
   private readonly _scale: WrappedVector3Babylon;
   private readonly _localScale: WrappedVector3Babylon;
 
-  public constructor(name: string, scene: BabylonScene, parent: Transform | undefined, transform: TransformData) {
+  public constructor(name: string, scene: BabylonScene, parent: Transform | undefined, transform: ITransformData) {
     super();
     /* Construct new babylon transform (which this type wraps) */
     this.node = new TransformNode(name, scene);

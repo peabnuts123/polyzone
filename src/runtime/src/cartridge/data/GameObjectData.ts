@@ -1,19 +1,27 @@
 
-import type { ComponentData } from './components';
-import { TransformData } from './TransformData';
+import type { IComponentData } from './components';
+import { ITransformData } from './TransformData';
+
+export interface IGameObjectData {
+  get id(): string;
+  get name(): string;
+  get transform(): ITransformData;
+  get components(): IComponentData[];
+  get children(): GameObjectData[];
+}
 
 /**
  * Data for a GameObject i.e. a GameObject loaded from the raw cartridge file
  * but not yet loaded into the game.
  */
-export class GameObjectData {
+export class GameObjectData implements IGameObjectData {
   public readonly id: string;
-  public readonly name: string;
-  public readonly transform: TransformData;
-  public readonly components: ComponentData[];
-  public readonly children: GameObjectData[];
+  public name: string;
+  public transform: ITransformData;
+  public components: IComponentData[];
+  public children: IGameObjectData[];
 
-  public constructor(id: string, name: string, transform: TransformData, components: ComponentData[], children: GameObjectData[]) {
+  public constructor(id: string, name: string, transform: ITransformData, components: IComponentData[], children: IGameObjectData[]) {
     this.id = id;
     this.name = name;
     this.transform = transform;

@@ -2,7 +2,6 @@
 // import { SmartArray } from "@babylonjs/core/Misc/smartArray";
 import type { IAnimatable } from "@babylonjs/core/Animations/animatable.interface";
 
-import type { Nullable } from "@babylonjs/core/types";
 import { Scene } from "@babylonjs/core/scene";
 import type { Matrix } from "@babylonjs/core/Maths/math.vector";
 import { Color3 } from "@babylonjs/core/Maths/math.color";
@@ -10,6 +9,7 @@ import { VertexBuffer } from "@babylonjs/core/Buffers/buffer";
 import type { SubMesh } from "@babylonjs/core/Meshes/subMesh";
 import type { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import type { Mesh } from "@babylonjs/core/Meshes/mesh";
+import { Material } from "@babylonjs/core/Materials/material";
 // import { PrePassConfiguration } from "@babylonjs/core/Materials/prePassConfiguration";
 
 import type { IImageProcessingConfigurationDefines } from "@babylonjs/core/Materials/imageProcessingConfiguration.defines";
@@ -24,7 +24,7 @@ import { PushMaterial } from "@babylonjs/core/Materials/pushMaterial";
 
 import type { BaseTexture } from "@babylonjs/core/Materials/Textures/baseTexture";
 import { Texture } from "@babylonjs/core/Materials/Textures/texture";
-import type { CubeTexture } from "@babylonjs/core/Materials/Textures/cubeTexture";
+import { CubeTexture } from "@babylonjs/core/Materials/Textures/cubeTexture";
 // import type { RenderTargetTexture } from "@babylonjs/core/Materials/Textures/renderTargetTexture";
 // import { RegisterClass } from "@babylonjs/core/Misc/typeStore";
 import { MaterialFlags } from "@babylonjs/core/Materials/materialFlags";
@@ -69,6 +69,8 @@ import "@babylonjs/core/Shaders/ShadersInclude/uvAttributeDeclaration";
 // import "@babylonjs/core/Shaders/ShadersInclude/prePassDeclaration";
 // import "@babylonjs/core/Shaders/ShadersInclude/oitDeclaration";
 // import "@babylonjs/core/Shaders/ShadersInclude/mainUVVaryingDeclaration";
+
+/* @TODO LITERALLY WTF LOL */
 import "@babylonjs/core/Shaders/ShadersInclude/prePassVertexDeclaration";
 import "@babylonjs/core/Shaders/ShadersInclude/helperFunctions";
 import "@babylonjs/core/Shaders/ShadersInclude/mainUVVaryingDeclaration";
@@ -111,6 +113,21 @@ import "@babylonjs/core/Shaders/ShadersInclude/logDepthFragment";
 import "@babylonjs/core/Shaders/ShadersInclude/oitFragment";
 import "@babylonjs/core/Shaders/ShadersInclude/bonesDeclaration";
 import "@babylonjs/core/Shaders/ShadersInclude/bakedVertexAnimationDeclaration";
+import "@babylonjs/core/Shaders/ShadersInclude/instancesDeclaration";
+import "@babylonjs/core/Shaders/ShadersInclude/clipPlaneVertexDeclaration";
+import "@babylonjs/core/Shaders/ShadersInclude/fogVertexDeclaration";
+import "@babylonjs/core/Shaders/ShadersInclude/instancesVertex";
+import "@babylonjs/core/Shaders/ShadersInclude/bonesVertex";
+import "@babylonjs/core/Shaders/ShadersInclude/bakedVertexAnimation";
+import "@babylonjs/core/Shaders/ShadersInclude/clipPlaneVertex";
+import "@babylonjs/core/Shaders/ShadersInclude/fogVertex";
+import "@babylonjs/core/Shaders/ShadersInclude/vertexColorMixing";
+import "@babylonjs/core/Shaders/ShadersInclude/clipPlaneFragmentDeclaration";
+import "@babylonjs/core/Shaders/ShadersInclude/fogFragmentDeclaration";
+import "@babylonjs/core/Shaders/ShadersInclude/clipPlaneFragment";
+import "@babylonjs/core/Shaders/ShadersInclude/fogFragment";
+
+
 
 
 
@@ -364,6 +381,11 @@ export class RetroMaterialDefines extends MaterialDefines implements IImageProce
   }
 }
 
+const RetroMaterialDefaults = {
+  diffuseColor: Color3.White(),
+  emissiveColor: Color3.Black(),
+};
+
 
 export class RetroMaterial extends PushMaterial {
   /**
@@ -381,30 +403,31 @@ export class RetroMaterial extends PushMaterial {
    */
   private static MaxSimultaneousLights: number = 4;
 
+
   /**
    * The color of the material lit by the environmental background lighting.
    * @see https://doc.babylonjs.com/features/featuresDeepDive/materials/using/materials_introduction#ambient-color-example
    */
-  public ambientColor = new Color3(0, 0, 0);
-  /**
-   * The basic texture of the material as viewed under a light.
-   */
-  public diffuseTexture: Nullable<BaseTexture> = null;
+  // @TODO remove?
+  private ambientColor = new Color3(0, 0, 0);
   /**
    * The basic color of the material as viewed under a light.
    */
-  public diffuseColor = new Color3(1, 1, 1);
+  public diffuseColor: Color3 | undefined = undefined;
+  /**
+   * The basic texture of the material as viewed under a light.
+   */
+  public diffuseTexture: BaseTexture | undefined = undefined;
   /**
    * Define the texture used to display the reflection.
    * @see https://doc.babylonjs.com/features/featuresDeepDive/materials/using/reflectionTexture#how-to-obtain-reflections-and-refractions
    */
-  public reflectionTexture: Nullable<CubeTexture> = null;
-
+  public reflectionTexture: CubeTexture | undefined = undefined;
   /**
    * Define the color of the material as if self lit.
    * This will be mixed in the final result even in the absence of light.
    */
-  public emissiveColor = new Color3(0, 0, 0);
+  public emissionColor: Color3 | undefined = undefined;
 
   /**
    * Does lights from the scene impacts this material.
@@ -1064,7 +1087,7 @@ export class RetroMaterial extends PushMaterial {
                 break;
             }
 
-            defines.USE_LOCAL_REFLECTIONMAP_CUBIC = (<any>this.reflectionTexture).boundingBoxSize ? true : false;
+            defines.USE_LOCAL_REFLECTIONMAP_CUBIC = this.reflectionTexture instanceof CubeTexture && this.reflectionTexture.boundingBoxSize ? true : false;
           }
         } else {
           defines.REFLECTION = false;
@@ -1153,7 +1176,7 @@ export class RetroMaterial extends PushMaterial {
 
       // defines.ALPHAFROMDIFFUSE = this._shouldUseAlphaFromDiffuseTexture();
       // @TODO how does transparency work?
-      defines.ALPHAFROMDIFFUSE = true;
+      defines.ALPHAFROMDIFFUSE = this.diffuseTexture?.hasAlpha || false;
 
       // defines.EMISSIVEASILLUMINATION = this.useEmissiveAsIllumination; // @TODO is true
       defines.EMISSIVEASILLUMINATION = true; // @TODO how does emmission work?
@@ -1499,7 +1522,7 @@ export class RetroMaterial extends PushMaterial {
           indexParameters,
           // processFinalCode: csnrOptions.processFinalCode,
           processFinalCode: (type, code, _defines) => {
-            console.log(`[${this.name}] (processFinalCode) (type='${type}')`, code);
+            // console.log(`[${this.name}] (processFinalCode) (type='${type}')`, code);
             return code;
           },
           multiTarget: defines.PREPASS,
@@ -1715,7 +1738,7 @@ export class RetroMaterial extends PushMaterial {
             ubo.updateFloat2("vReflectionInfos", this.reflectionTexture.level, ReflectionRoughness);
             ubo.updateMatrix("reflectionMatrix", this.reflectionTexture.getReflectionTextureMatrix());
 
-            if (this.reflectionTexture.boundingBoxSize) {
+            if (this.reflectionTexture instanceof CubeTexture && this.reflectionTexture.boundingBoxSize) {
               ubo.updateVector3("vReflectionPosition", this.reflectionTexture.boundingBoxPosition);
               ubo.updateVector3("vReflectionSize", this.reflectionTexture.boundingBoxSize);
             }
@@ -1776,8 +1799,8 @@ export class RetroMaterial extends PushMaterial {
 
         // ubo.updateColor4("vSpecularColor", this.specularColor, this.specularPower);
 
-        ubo.updateColor3("vEmissiveColor", MaterialFlags.EmissiveTextureEnabled ? this.emissiveColor : Color3.BlackReadOnly);
-        ubo.updateColor4("vDiffuseColor", this.diffuseColor, this.alpha);
+        ubo.updateColor3("vEmissiveColor", MaterialFlags.EmissiveTextureEnabled && this.emissionColor ? this.emissionColor : RetroMaterialDefaults.emissiveColor);
+        ubo.updateColor4("vDiffuseColor", this.diffuseColor || RetroMaterialDefaults.diffuseColor, this.alpha);
 
         // scene.ambientColor.multiplyToRef(this.ambientColor, this._globalAmbientColor);
         ubo.updateColor3("vAmbientColor", this.ambientColor);
@@ -1798,11 +1821,11 @@ export class RetroMaterial extends PushMaterial {
         // }
 
         if (this.reflectionTexture && MaterialFlags.ReflectionTextureEnabled) {
-          if (this.reflectionTexture.isCube) {
-            effect.setTexture("reflectionCubeSampler", this.reflectionTexture);
-          } else {
-            effect.setTexture("reflection2DSampler", this.reflectionTexture);
-          }
+          // if (this.reflectionTexture.isCube) {
+          effect.setTexture("reflectionCubeSampler", this.reflectionTexture);
+          // } else {
+          //   effect.setTexture("reflection2DSampler", this.reflectionTexture);
+          // }
         }
 
         // if (this.emissiveTexture && RetroMaterial.EmissiveTextureEnabled) {
@@ -1889,6 +1912,14 @@ export class RetroMaterial extends PushMaterial {
 
     this._afterBind(mesh, this._activeEffect, subMesh);
     ubo.update();
+  }
+
+  public override get transparencyMode(): number {
+    if (this.diffuseTexture?.hasAlpha) {
+      return Material.MATERIAL_ALPHABLEND;
+    } else {
+      return Material.MATERIAL_OPAQUE;
+    }
   }
 
   /**

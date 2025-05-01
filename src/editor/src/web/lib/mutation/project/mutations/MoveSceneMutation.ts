@@ -28,9 +28,9 @@ export class MoveSceneMutation implements IProjectMutation {
     scene.manifest.path = this.newPath;
 
     // 2. Update JSON
-    const jsonIndex = ProjectController.projectDefinition.value.scenes.findIndex((sceneManifest) => sceneManifest.id === scene.data.id);
+    const jsonIndex = ProjectController.projectDefinition.scenes.findIndex((sceneManifest) => sceneManifest.id === scene.data.id);
     const jsonPath = resolvePath((project: ProjectDefinition) => project.scenes[jsonIndex].path);
-    ProjectController.projectDefinition.mutate(jsonPath, this.newPath);
+    ProjectController.projectJson.mutate(jsonPath, this.newPath);
 
     // 3. Move asset on disk
     void ProjectController.fileSystem.moveFile(

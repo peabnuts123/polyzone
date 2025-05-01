@@ -1,4 +1,5 @@
 export * from './components';
+export * from './assets';
 export * from './AssetData';
 export * from './GameObjectData';
 export * from './loadObjectDefinition';

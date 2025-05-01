@@ -1,4 +1,4 @@
-import { AssetData, AssetType } from './cartridge';
+import { IAssetData, AssetType } from './cartridge';
 import { CoreModules } from './core.g';
 import { VirtualFile } from './filesystem';
 
@@ -47,7 +47,7 @@ export class ScriptLoader {
    * Load a script module from a {@link VirtualFile} into the cache.
    * @param scriptFile The script file to load.
    */
-  public loadModule(scriptAsset: AssetData, file: VirtualFile): void {
+  public loadModule(scriptAsset: IAssetData, file: VirtualFile): void {
     if (scriptAsset.type !== AssetType.Script) {
       throw new Error(`Cannot load non-script asset as module: ${scriptAsset}`);
     }
@@ -81,7 +81,7 @@ export class ScriptLoader {
     @TODO this could just be cached and async, removing the need
     to pre-load all the modules
    */
-  public getModule(scriptAsset: AssetData): Module {
+  public getModule(scriptAsset: IAssetData): Module {
     if (scriptAsset.type !== AssetType.Script) {
       throw new Error(`Cannot get module for non-script file: ${scriptAsset}`);
     }

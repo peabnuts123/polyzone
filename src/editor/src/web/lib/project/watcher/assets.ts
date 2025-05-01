@@ -2,12 +2,14 @@ import { runInAction } from "mobx";
 import { UnwatchFn } from "@tauri-apps/plugin-fs";
 import { listen } from "@tauri-apps/api/event";
 
+import { AssetType } from "@polyzone/runtime/src/cartridge";
+
 import { TauriEvents } from "@lib/util/TauriEvents";
 import { resolvePath } from "@lib/util/JsoncContainer";
 import { AssetDefinition, ProjectDefinition } from "../definition";
 import { ProjectController } from "../ProjectController";
-import { AssetData, createAssetData } from "../data/AssetData";
-import { AssetDb } from "../data/AssetDb";
+import { AssetData } from "../data/AssetData";
+import { createAssetData } from "../data/AssetDb";
 
 
 // EVENTS - INCOMING
@@ -18,6 +20,7 @@ export interface RawAssetCreatedEvent {
     assetId: string;
     path: string;
     hash: string;
+    type: AssetType;
   },
 }
 /** Event from the backend specifying an asset has been deleted. */
@@ -144,7 +147,7 @@ export class ProjectAssetsWatcher {
   }
 
   private applyCreate({ create: event }: RawAssetCreatedEvent): ProjectAssetCreatedEvent {
-    const { assetId, path, hash } = event;
+    const { assetId, path, hash, type } = event;
     const assetDb = this.projectController.project.assets;
 
     // 1. Update data
@@ -153,22 +156,18 @@ export class ProjectAssetsWatcher {
       id: assetId,
       path,
       hash,
+      type,
     };
     const newAsset = createAssetData(
-      AssetDb.getAssetType(newAssetDefinition),
-      {
-        id: newAssetDefinition.id,
-        path: newAssetDefinition.path,
-        hash: newAssetDefinition.hash,
-        resolverProtocol: assetDb.fileSystem.resolverProtocol,
-      },
+      newAssetDefinition,
+      assetDb.fileSystem,
     );
     assetDb.add(newAsset);
 
     // 2. Update JSON
-    const newObjectIndex = this.projectController.projectDefinition.value.assets.length;
+    const newObjectIndex = this.projectController.projectDefinition.assets.length;
     const jsonPath = resolvePath((project: ProjectDefinition) => project.assets[newObjectIndex]);
-    this.projectController.projectDefinition.mutate(jsonPath, newAssetDefinition, { isArrayInsertion: true });
+    this.projectController.projectJson.mutate(jsonPath, newAssetDefinition, { isArrayInsertion: true });
 
     return {
       type: ProjectAssetEventType.Create,
@@ -187,10 +186,10 @@ export class ProjectAssetsWatcher {
     assetDb.remove(assetId);
 
     // 2. Update JSON
-    const jsonIndex = this.projectController.projectDefinition.value.assets.findIndex((asset) => asset.id === assetId);
+    const jsonIndex = this.projectController.projectDefinition.assets.findIndex((asset) => asset.id === assetId);
     if (jsonIndex === -1) throw new Error(`Cannot apply 'Delete' event: No asset found in ProjectDefinition with id: ${assetId}`);
     const jsonPath = resolvePath((project: ProjectDefinition) => project.assets[jsonIndex]);
-    this.projectController.projectDefinition.delete(jsonPath);
+    this.projectController.projectJson.delete(jsonPath);
 
     return {
       type: ProjectAssetEventType.Delete,
@@ -210,10 +209,10 @@ export class ProjectAssetsWatcher {
     asset.hash = newHash;
 
     // 2. Update JSON
-    const jsonIndex = this.projectController.projectDefinition.value.assets.findIndex((asset) => asset.id === assetId);
+    const jsonIndex = this.projectController.projectDefinition.assets.findIndex((asset) => asset.id === assetId);
     if (jsonIndex === -1) throw new Error(`Cannot apply 'Modify' event: No asset found in ProjectDefinition with id: ${assetId}`);
     const jsonPath = resolvePath((project: ProjectDefinition) => project.assets[jsonIndex].hash);
-    this.projectController.projectDefinition.mutate(jsonPath, newHash);
+    this.projectController.projectJson.mutate(jsonPath, newHash);
 
     return {
       type: ProjectAssetEventType.Modify,
@@ -234,10 +233,10 @@ export class ProjectAssetsWatcher {
     asset.path = newPath;
 
     // 2. Update JSON
-    const jsonIndex = this.projectController.projectDefinition.value.assets.findIndex((asset) => asset.id === assetId);
+    const jsonIndex = this.projectController.projectDefinition.assets.findIndex((asset) => asset.id === assetId);
     if (jsonIndex === -1) throw new Error(`Cannot apply 'Rename' event: No asset found in ProjectDefinition with id: ${assetId}`);
     const jsonPath = resolvePath((project: ProjectDefinition) => project.assets[jsonIndex].path);
-    this.projectController.projectDefinition.mutate(jsonPath, newPath);
+    this.projectController.projectJson.mutate(jsonPath, newPath);
 
     return {
       type: ProjectAssetEventType.Rename,

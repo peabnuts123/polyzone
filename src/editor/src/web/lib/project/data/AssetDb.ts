@@ -1,17 +1,29 @@
-import { SceneLoader } from '@babylonjs/core/Loading/sceneLoader';
-
-import { ClassReference } from '@polyzone/core/src/util';
-import { getFileExtension } from "@polyzone/runtime/src/util";
-import type { IFileSystem, VirtualFile } from '@polyzone/runtime/src/filesystem';
-import { AssetType, AssetTypeMap } from '@polyzone/runtime/src/cartridge/data';
-
-import { AssetData, createAssetData } from './AssetData';
 import { makeAutoObservable } from 'mobx';
-import { AssetDefinition } from '../definition';
+
+import type { IFileSystem, VirtualFile } from '@polyzone/runtime/src/filesystem';
+import {
+  AssetType,
+  AssetDb as AssetDbRuntime,
+  IAssetDb,
+  CreateAssetDataFn,
+  AssetDefinitionOfType as AssetDefinitionOfTypeRuntime,
+} from '@polyzone/runtime/src/cartridge';
+
+import { AssetDefinition, AssetDefinitionOfType } from '../definition';
+import { AssetData, AssetDataOfType } from './AssetData';
+import { CommonAssetDataArgs } from './BaseAssetData';
+import {
+  MeshAssetData,
+  MeshSupplementaryAssetData,
+  ScriptAssetData,
+  SoundAssetData,
+  TextureAssetData,
+} from './assets';
 
 
 export type AssetDbVirtualNode = AssetDbVirtualFile | AssetDbVirtualDirectory;
 
+// @TODO Should these move into `AssetList`?
 export interface AssetDbVirtualNodeBase {
   id: string;
   name: string;
@@ -26,46 +38,17 @@ export interface AssetDbVirtualDirectory extends AssetDbVirtualNodeBase {
   type: 'directory';
 }
 
-export class AssetDb {
-  private readonly assets: AssetData[];
-  public readonly fileSystem: IFileSystem;
+export class AssetDb implements IAssetDb {
+  private _assetDb: AssetDbRuntime;
 
   public constructor(assetDefinitions: AssetDefinition[], fileSystem: IFileSystem) {
-    this.fileSystem = fileSystem;
-    this.assets = assetDefinitions.map((assetDefinition) => {
-      return createAssetData(
-        AssetDb.getAssetType(assetDefinition),
-        {
-          id: assetDefinition.id,
-          path: assetDefinition.path,
-          hash: assetDefinition.hash,
-          resolverProtocol: fileSystem.resolverProtocol,
-        },
-      );
-    });
-
+    this._assetDb = new AssetDbRuntime(assetDefinitions, fileSystem, __createAssetDataForRuntime);
     makeAutoObservable(this);
+    makeAutoObservable(this._assetDb);
   }
 
-  public getAll(): AssetData[] {
-    return this.assets;
-  }
-
-  // @TODO I think this should return `undefined` and the caller should handle that
-  public getById<TAssetData extends AssetData>(
-    assetId: string,
-    ExpectedType: ClassReference<TAssetData>,
-  ): TAssetData {
-    const asset = this.assets.find((asset) => asset.id === assetId);
-    if (asset === undefined) {
-      throw new Error(`No asset found in AssetDb with Id: ${assetId}`);
-    }
-
-    if (!(asset instanceof ExpectedType)) {
-      throw new Error(`Asset has incorrect type. Expected ${ExpectedType.name}. Found: ${asset.type}`);
-    }
-
-    return asset;
+  public getAllOfType<TAssetType extends AssetType>(type: TAssetType): AssetDataOfType<TAssetType>[] {
+    return this.assets.filter((asset): asset is AssetDataOfType<TAssetType> => asset.type === type);
   }
 
   public findById(assetId: string): AssetData | undefined {
@@ -85,29 +68,58 @@ export class AssetDb {
     this.assets.splice(assetIndex, 1);
   }
 
-  public async loadAsset(asset: AssetData): Promise<VirtualFile> {
-    return this.fileSystem.readFile(asset.path);
+  public getAll(): AssetData[] {
+    return this.assets;
   }
 
-  /**
-   * Resolve the type of asset.
-   * @param asset
-   */
-  public static getAssetType(asset: AssetDefinition): AssetType {
-    const fileExtension = getFileExtension(asset.path);
-
-    for (const type of Object.values(AssetType)) {
-      if (AssetTypeMap[type].includes(fileExtension)) {
-        return type;
-      }
-    }
-
-    // Catch-all warning for future development
-    const babylonPlugin = SceneLoader.GetPluginForExtension(fileExtension);
-    if (babylonPlugin !== undefined) {
-      console.warn(`Asset with extension '${fileExtension}' is being assigned asset type '${AssetType.Unknown}' despite asset having a well-known Babylon loader: ${babylonPlugin.name}`);
-    }
-
-    return AssetType.Unknown;
+  // @TODO I think this should return `undefined` and the caller should handle that
+  public getById<TAssetType extends AssetType>(assetId: string, expectedType: TAssetType): AssetDataOfType<TAssetType> {
+    return this._assetDb.getById(assetId, expectedType) as AssetDataOfType<TAssetType>;
   }
+  public loadAsset(asset: AssetData): Promise<VirtualFile> {
+    return this._assetDb.loadAsset(asset);
+  }
+
+  public get assets(): AssetData[] { return this._assetDb.assets as AssetData[]; }
+  public get fileSystem(): IFileSystem { return this._assetDb.fileSystem; }
 }
+
+/**
+ * Copy of @see {@link createAssetData} with types adhering to `@polyzone/runtime`
+ */
+export const __createAssetDataForRuntime: CreateAssetDataFn = <TAssetType extends AssetType>(assetDefinition: AssetDefinitionOfTypeRuntime<TAssetType>, fileSystem: IFileSystem) => {
+  function isEditorAssetDefinition(assetDefinition: AssetDefinitionOfTypeRuntime<TAssetType>): assetDefinition is AssetDefinitionOfType<TAssetType> {
+    return 'hash' in assetDefinition;
+  }
+
+  if (!isEditorAssetDefinition(assetDefinition)) {
+    throw new Error(`Expected editor asset definition but received runtime asset definition`);
+  }
+
+  return createAssetData(assetDefinition, fileSystem);
+};
+
+export function createAssetData<TAssetType extends AssetType>(assetDefinition: AssetDefinitionOfType<TAssetType>, fileSystem: IFileSystem): AssetDataOfType<TAssetType> {
+  const args: CommonAssetDataArgs = {
+    id: assetDefinition.id,
+    path: assetDefinition.path,
+    hash: assetDefinition.hash,
+    resolverProtocol: fileSystem.resolverProtocol,
+  };
+
+  // @TODO Why does TypeScript want everything to be type laundered here?
+  switch (assetDefinition.type) {
+    case AssetType.Mesh:
+      return new MeshAssetData(args) as AssetDataOfType<TAssetType>;
+    case AssetType.MeshSupplementary:
+      return new MeshSupplementaryAssetData(args) as AssetDataOfType<TAssetType>;
+    case AssetType.Script:
+      return new ScriptAssetData(args) as AssetDataOfType<TAssetType>;
+    case AssetType.Sound:
+      return new SoundAssetData(args) as AssetDataOfType<TAssetType>;
+    case AssetType.Texture:
+      return new TextureAssetData(args) as AssetDataOfType<TAssetType>;
+    default:
+      throw new Error(`Unimplemented AssetType: ${assetDefinition.type}`);
+  }
+};

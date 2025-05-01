@@ -43,10 +43,10 @@ export class CreateNewSceneMutation implements IProjectMutation {
         scene.manifest.hash = newSceneHash;
       }
 
-      const sceneIndex = ProjectController.projectDefinition.value.scenes.findIndex((scene) => scene.id === newSceneManifest.id);
-      if (ProjectController.projectDefinition.value.scenes[sceneIndex].hash !== newSceneHash) {
+      const sceneIndex = ProjectController.projectDefinition.scenes.findIndex((scene) => scene.id === newSceneManifest.id);
+      if (ProjectController.projectDefinition.scenes[sceneIndex].hash !== newSceneHash) {
         const jsonPath = resolvePath((project: ProjectDefinition) => project.scenes[sceneIndex].hash);
-        ProjectController.projectDefinition.mutate(jsonPath, newSceneHash);
+        ProjectController.projectJson.mutate(jsonPath, newSceneHash);
         // @NOTE re-invoke persistChanges() after editing project file a second time
         return ProjectController.mutator.persistChanges();
       }
@@ -57,7 +57,7 @@ export class CreateNewSceneMutation implements IProjectMutation {
 
     // 2. Update JSON
     const jsonPath = resolvePath((project: ProjectDefinition) => project.scenes[ProjectController.project.scenes.length]);
-    ProjectController.projectDefinition.mutate(jsonPath, newSceneManifest, { isArrayInsertion: true });
+    ProjectController.projectJson.mutate(jsonPath, newSceneManifest, { isArrayInsertion: true });
 
     // 3. Create new asset on disk
     void ProjectController.fileSystem.writeFile(

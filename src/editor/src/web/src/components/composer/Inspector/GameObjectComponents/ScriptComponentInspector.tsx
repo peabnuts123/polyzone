@@ -4,8 +4,8 @@ import { AssetType } from '@polyzone/runtime/src/cartridge';
 
 import type { ScriptComponentData } from "@lib/project/data";
 import { SetGameObjectScriptComponentAssetMutation } from '@lib/mutation/scene/mutations';
-import type { ScriptAssetData } from '@lib/project/data/AssetData';
-import { createAssetReferenceComponentOfType } from '../AssetReference';
+import type { ScriptAssetData } from '@lib/project/data/assets';
+import { createAssetReferenceComponentOfType } from "@app/components/common/inputs/AssetReference";
 import type { InspectorComponent } from "./InspectorComponent";
 import { InspectorComponentBase } from "./InspectorComponentBase";
 

@@ -1,6 +1,4 @@
-import { AssetContainer } from "@babylonjs/core/assetContainer";
 import type { Scene as BabylonScene } from "@babylonjs/core/scene";
-import { LoadAssetContainerAsync } from "@babylonjs/core/Loading/sceneLoader";
 import { Color3 } from "@babylonjs/core/Maths/math.color";
 import { FreeCamera } from "@babylonjs/core/Cameras/freeCamera";
 import { Vector3 as Vector3Babylon } from "@babylonjs/core/Maths/math.vector";
@@ -22,7 +20,6 @@ import {
   PointLightComponentData,
   DirectionalLightComponentData,
   AssetType,
-  AssetData,
 } from './cartridge';
 import {
   MeshComponent,
@@ -35,6 +32,8 @@ import {
 } from './world';
 import Modules from './modules';
 import { toColor3Babylon } from "./util";
+import { AssetCache } from "./world/assets/AssetCache";
+import { MeshAsset } from "./world/assets/MeshAsset";
 
 /**
  * Top-level system containing the entire game and all content
@@ -44,14 +43,14 @@ export class Game {
   private cartridge: Cartridge | undefined;
   private babylonScene: BabylonScene;
   private worldState: WorldState;
-  private assetCache: Map<AssetData, AssetContainer>;
+  private assetCache: AssetCache;
   private scriptLoader: ScriptLoader;
   private ambientLight: HemisphericLight | undefined;
 
   constructor(babylonScene: BabylonScene) {
     this.babylonScene = babylonScene;
     this.worldState = {};
-    this.assetCache = new Map();
+    this.assetCache = new AssetCache();
     this.scriptLoader = new ScriptLoader();
 
     Modules.onInit();
@@ -62,6 +61,7 @@ export class Game {
   }
 
   public dispose(): void {
+    this.assetCache.onDestroy();
     Modules.dispose();
   }
 
@@ -156,11 +156,9 @@ export class Game {
       // Load well-known inbuilt component types
       if (componentData instanceof MeshComponentData) {
         /* Mesh component */
-        let meshAsset: AssetContainer;
+        let meshAsset: MeshAsset | undefined = undefined;
         if (componentData.meshAsset !== undefined) {
-          meshAsset = await this.loadAssetCached(componentData.meshAsset);
-        } else {
-          meshAsset = new AssetContainer(this.babylonScene!);
+          meshAsset = await this.assetCache.loadAsset(componentData.meshAsset, this.babylonScene);
         }
         gameObject.addComponent(new MeshComponent(componentData.id, gameObject, meshAsset));
       } else if (componentData instanceof ScriptComponentData) {
@@ -169,6 +167,11 @@ export class Game {
         // Obviously only do this if the script component has a script asset assigned to it
         // otherwise, do nothing.
         if (componentData.scriptAsset) {
+          // Script "asset" itself which may contain metadata about the asset rather than the script data itself
+          // @TODO Where can this go? What can reference it? It currently doesn't have any data, so, ignore for now.
+          // I guess the code here will reference it?
+          // const scriptAsset = await this.assetCache.loadAsset(componentData.scriptAsset, this.babylonScene);
+
           const scriptModule = this.scriptLoader.getModule(componentData.scriptAsset);
           if (
             scriptModule === undefined ||
@@ -180,7 +183,7 @@ export class Game {
           }
 
           // Ensure script is of correct type
-          const CustomScriptComponent = scriptModule.default as typeof ScriptComponent;
+          const CustomScriptComponent = scriptModule.default as new (...args: ConstructorParameters<typeof ScriptComponent>) => ScriptComponent;
           if (
             !(
               (CustomScriptComponent instanceof Object) &&
@@ -218,21 +221,5 @@ export class Game {
     }
 
     return gameObject;
-  }
-
-  /**
-   * Load an {@link AssetData} through a cache.
-   * @param asset Asset to load.
-   * @returns The new asset, or a reference to the existing asset if it existed in the cache.
-   */
-  private async loadAssetCached(asset: AssetData): Promise<AssetContainer> {
-    const cached = this.assetCache.get(asset);
-    if (cached) {
-      return cached;
-    } else {
-      const assetContainer = await LoadAssetContainerAsync(asset.babylonFetchUrl, this.babylonScene, { pluginExtension: asset.fileExtension });
-      this.assetCache.set(asset, assetContainer);
-      return assetContainer;
-    }
   }
 }

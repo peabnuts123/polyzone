@@ -2,7 +2,7 @@ import type { ScriptComponentDefinition } from "@polyzone/runtime/src/cartridge"
 
 import { GameObjectData, ScriptComponentData } from "@lib/project/data";
 import { resolvePathForSceneObjectMutation } from "@lib/mutation/util";
-import type { ScriptAssetData } from "@lib/project/data/AssetData";
+import type { ScriptAssetData } from "@lib/project/data/assets";
 import { ISceneMutation } from "../ISceneMutation";
 import { SceneViewMutationArguments } from "../SceneViewMutationArguments";
 

@@ -1,8 +1,9 @@
 import { makeAutoObservable } from "mobx";
 import type { Vector3 } from '@polyzone/core/src/util';
+import { ITransformData } from "@polyzone/runtime/src/cartridge";
 import { ObservableVector3 } from "@lib/util/vector";
 
-export class TransformData {
+export class TransformData implements ITransformData {
   // @NOTE Opaquely wrap vectors in `ObservableVector3` so that mobx can observe changes to them
   private _position: ObservableVector3;
   private _rotation: ObservableVector3;

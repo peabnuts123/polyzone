@@ -1,5 +1,5 @@
 import { SceneDb } from "./data/scenes";
-import { AssetDb } from "./data/assets";
+import { IAssetDb } from "./data/assets";
 
 /**
  * A loaded game Cartridge, containing all the data for the entire game.
@@ -7,9 +7,9 @@ import { AssetDb } from "./data/assets";
 export class Cartridge {
   // @TODO game manifest (e.g. game title)
   public readonly sceneDb: SceneDb;
-  public readonly assetDb: AssetDb;
+  public readonly assetDb: IAssetDb;
 
-  public constructor(sceneDb: SceneDb, assetDb: AssetDb) {
+  public constructor(sceneDb: SceneDb, assetDb: IAssetDb) {
     this.sceneDb = sceneDb;
     this.assetDb = assetDb;
   }
