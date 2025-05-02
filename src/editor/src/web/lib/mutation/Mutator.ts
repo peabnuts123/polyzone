@@ -1,15 +1,15 @@
 import { runInAction } from "mobx";
-import { GameObjectData } from "@lib/project/data";
 import { isContinuousMutation } from "./IContinuousMutation";
 import { IMutation } from "./IMutation";
 import { IContinuousMutation } from "./IContinuousMutation";
 
+type MutationTarget = any;
 type Constructor<T> = new (...args: any[]) => T;
 type AnyContinuousMutation<TMutationArgs> = IContinuousMutation<TMutationArgs, any>;
 
 class CurrentDebounceState<TMutationArgs> {
   public readonly typeCtor: Constructor<AnyContinuousMutation<TMutationArgs>>;
-  public readonly mutationTarget: GameObjectData;
+  public readonly mutationTarget: MutationTarget;
   public readonly mutation: AnyContinuousMutation<TMutationArgs>;
   /**
    * The function that is called after the debounce expires.
@@ -21,7 +21,7 @@ class CurrentDebounceState<TMutationArgs> {
 
   public constructor(
     typeCtor: Constructor<AnyContinuousMutation<TMutationArgs>>,
-    mutationTarget: GameObjectData,
+    mutationTarget: MutationTarget,
     mutation: AnyContinuousMutation<TMutationArgs>,
     onDebounceExpire: () => void,
   ) {
@@ -39,7 +39,7 @@ class CurrentDebounceState<TMutationArgs> {
 
   public isSameDebounceAction(
     typeCtor: Constructor<AnyContinuousMutation<TMutationArgs>>,
-    mutationTarget: GameObjectData,
+    mutationTarget: MutationTarget,
   ): boolean {
     return this.typeCtor === typeCtor && this.mutationTarget === mutationTarget;
   }
@@ -165,14 +165,14 @@ export abstract class Mutator<TMutationArgs> {
    * If this function is called for a different target, or with a different mutation type, the previous debounced mutation (if any)
    * will be immediately applied.
    * @param typeCtor Reference to type/class of the this mutation, for uniquely identifying different mutation operations
-   * @param mutationTarget The game object being mutated, for uniquely identifying different mutation operations
+   * @param mutationTarget The object being mutated, for uniquely identifying different mutation operations
    * @param createMutation A function that creates a new instance of the mutation
    * @param getUpdateArgs A function that creates an object containing the updateArgs for calling `update()` on the Mutation
    * @param timeoutMs The debounce window length, in milliseconds. Defaults to 500ms.
    */
   public debounceContinuous<TMutation extends AnyContinuousMutation<TMutationArgs>>(
     typeCtor: Constructor<TMutation>,
-    mutationTarget: GameObjectData,
+    mutationTarget: MutationTarget,
     createMutation: () => TMutation,
     getUpdateArgs: () => TMutation extends IContinuousMutation<TMutationArgs, infer TUpdateArgs> ? TUpdateArgs : never,
     timeoutMs: number = 500,

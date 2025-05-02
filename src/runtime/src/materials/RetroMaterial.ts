@@ -381,13 +381,15 @@ export class RetroMaterialDefines extends MaterialDefines implements IImageProce
   }
 }
 
-const RetroMaterialDefaults = {
-  diffuseColor: Color3.White(),
-  emissiveColor: Color3.Black(),
-};
+
 
 
 export class RetroMaterial extends PushMaterial {
+  public static readonly Defaults = {
+    diffuseColor: Color3.White(),
+    emissiveColor: Color3.Black(),
+  };
+
   /**
    * Force all the standard materials to compile to glsl even on WebGPU engines.
    * False by default. This is mostly meant for backward compatibility.
@@ -1799,8 +1801,8 @@ export class RetroMaterial extends PushMaterial {
 
         // ubo.updateColor4("vSpecularColor", this.specularColor, this.specularPower);
 
-        ubo.updateColor3("vEmissiveColor", MaterialFlags.EmissiveTextureEnabled && this.emissionColor ? this.emissionColor : RetroMaterialDefaults.emissiveColor);
-        ubo.updateColor4("vDiffuseColor", this.diffuseColor || RetroMaterialDefaults.diffuseColor, this.alpha);
+        ubo.updateColor3("vEmissiveColor", MaterialFlags.EmissiveTextureEnabled && this.emissionColor ? this.emissionColor : RetroMaterial.Defaults.emissiveColor);
+        ubo.updateColor4("vDiffuseColor", this.diffuseColor || RetroMaterial.Defaults.diffuseColor, this.alpha);
 
         // scene.ambientColor.multiplyToRef(this.ambientColor, this._globalAmbientColor);
         ubo.updateColor3("vAmbientColor", this.ambientColor);

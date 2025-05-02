@@ -24,7 +24,9 @@ export interface MeshAssetMaterialOverrideReflectionSeparateDefinition {
   nzTextureAssetId: string;
 }
 
+export type MeshAssetMaterialOverrideReflectionType = MeshAssetMaterialOverrideReflectionDefinition['type'];
 export type MeshAssetMaterialOverrideReflectionDefinition = MeshAssetMaterialOverrideReflectionBoxNetDefinition | MeshAssetMaterialOverrideReflection3x2Definition | MeshAssetMaterialOverrideReflection6x1Definition | MeshAssetMaterialOverrideReflectionSeparateDefinition;
+export type MeshAssetMaterialOverrideReflectionDefinitionOfType<T extends MeshAssetMaterialOverrideReflectionType> = Extract<MeshAssetMaterialOverrideReflectionDefinition, { type: T }>;
 
 export interface MeshAssetMaterialOverrideDefinition {
   // materialAssetId?: string;

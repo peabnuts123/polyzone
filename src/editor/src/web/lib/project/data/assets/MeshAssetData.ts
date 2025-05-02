@@ -20,11 +20,25 @@ import { AssetDb } from "../AssetDb";
 export class MeshAssetMaterialOverrideData implements IMeshAssetMaterialOverrideData {
   private _meshAssetMaterialOverrideData: MeshAssetMaterialOverrideDataRuntime;
 
+  public diffuseColorEnabled: boolean = false;
+  public diffuseTextureEnabled: boolean = false;
+  public emissionColorEnabled: boolean = false;
+  public reflectionEnabled: boolean = false;
+
   public constructor(meshAssetMaterialOverrideDataRuntime: MeshAssetMaterialOverrideDataRuntime) {
     this._meshAssetMaterialOverrideData = meshAssetMaterialOverrideDataRuntime;
     makeAutoObservable(this);
     makeAutoObservable(this._meshAssetMaterialOverrideData);
   }
+
+  public isEmpty(): boolean {
+    return this.isDiffuseColorEmpty() && this.isDiffuseTextureEmpty() && this.isEmissionColorEmpty() && this.isReflectionEmpty();
+  }
+
+  public isDiffuseColorEmpty(): boolean { return this.diffuseColorEnabled === false || this.diffuseColor === undefined; }
+  public isDiffuseTextureEmpty(): boolean { return this.diffuseTextureEnabled === false || this.diffuseTexture === undefined; }
+  public isEmissionColorEmpty(): boolean { return this.emissionColorEnabled === false || this.emissionColor === undefined; }
+  public isReflectionEmpty(): boolean { return this.reflectionEnabled === false || this.reflection === undefined; }
 
   public static createNew(): MeshAssetMaterialOverrideData {
     return new MeshAssetMaterialOverrideData(
@@ -60,10 +74,13 @@ export class MeshAssetData extends BaseAssetData<AssetType.Mesh> implements IMes
       getOverridesForMaterial: true,
       setMaterialOverride: true,
       materialOverrides: true,
+      areAllOverridesEmpty: true,
+      isMaterialOverrideEmpty: true,
     });
-    makeObservable(this._meshAssetData, {
+    makeObservable<MeshAssetDataRuntime, '_materialOverrides'>(this._meshAssetData, {
       getOverridesForMaterial: true,
       materialOverrides: true,
+      _materialOverrides: true,
     });
   }
 
@@ -73,7 +90,8 @@ export class MeshAssetData extends BaseAssetData<AssetType.Mesh> implements IMes
     // Convert overrides to observable versions
     // @NOTE Leaky abstraction :/
     for (const materialNameKey in this.materialOverrides) {
-      this.materialOverrides[materialNameKey] = new MeshAssetMaterialOverrideData(this.materialOverrides[materialNameKey] as MeshAssetMaterialOverrideDataRuntime);
+      // @NOTE Type laundering :/
+      this.materialOverrides[materialNameKey] = new MeshAssetMaterialOverrideData(this.materialOverrides[materialNameKey] as IMeshAssetMaterialOverrideData as MeshAssetMaterialOverrideDataRuntime);
     }
   }
 
@@ -86,11 +104,28 @@ export class MeshAssetData extends BaseAssetData<AssetType.Mesh> implements IMes
     mutator(materialOverrideData);
   }
 
+  public areAllOverridesEmpty(): boolean {
+    for (const materialName in this.materialOverrides) {
+      const overrideData = this.materialOverrides[materialName];
+      if (!overrideData.isEmpty()) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  public isMaterialOverrideEmpty(materialName: string): boolean {
+    const overrideData = this.getOverridesForMaterial(materialName);
+    if (overrideData === undefined) return true;
+    else return overrideData.isEmpty();
+  }
+
   public getOverridesForMaterial(materialName: string): MeshAssetMaterialOverrideData | undefined {
     return this._meshAssetData.getOverridesForMaterial(materialName) as MeshAssetMaterialOverrideData | undefined;
   }
 
-  public get materialOverrides(): Record<string, IMeshAssetMaterialOverrideData> {
-    return this._meshAssetData.materialOverrides;
+  public get materialOverrides(): Record<string, MeshAssetMaterialOverrideData> {
+    return this._meshAssetData.materialOverrides as Record<string, MeshAssetMaterialOverrideData>;
   }
 }

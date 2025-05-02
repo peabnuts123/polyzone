@@ -5,9 +5,8 @@ import { IContinuousModelMaterialMutation } from "../IContinuousModelMaterialMut
 import { IModelMaterialMutation } from "../IModelMaterialMutation";
 import { ModelMaterialMutationArguments } from "../ModelMaterialMutationArguments";
 import { AssetType } from "@polyzone/runtime/src/cartridge";
-import { toColor3Babylon, toColor3Definition } from "@polyzone/runtime/src/util";
-import { resolvePathForAssetMutation } from "@lib/mutation/util";
-import { MeshAssetDefinition } from "@lib/project";
+import { toColor3Babylon } from "@polyzone/runtime/src/util";
+import { reconcileMaterialOverrideData } from "./util/reconcile-overrides";
 
 
 export interface SetModelMaterialOverrideDiffuseColorMutationUpdateArgs {
@@ -61,27 +60,21 @@ export class SetModelMaterialOverrideDiffuseColorMutation implements IModelMater
     const meshAssetData = ProjectController.project.assets.getById(this.modelAssetId, AssetType.Mesh);
     const material = ModelMaterialEditorController.getMaterialByName(this.materialName);
 
+    const diffuseColor = this.diffuseColor;
+    if (diffuseColor === undefined) {
+      throw new Error(`Can't set diffuse color override to undefined - did you call \`update()\`?`);
+    }
+
     // 1. Update data
     meshAssetData.setMaterialOverride(this.materialName, (overrides) => {
-      overrides.diffuseColor = this.diffuseColor;
+      overrides.diffuseColor = diffuseColor;
     });
 
     // 2. Update Babylon state
-    material.diffuseColor = this.diffuseColor ? toColor3Babylon(this.diffuseColor) : undefined;
+    material.diffuseColor = toColor3Babylon(diffuseColor);
 
     // 3. Update JSONC
-    const mutationPath = resolvePathForAssetMutation(
-      this.modelAssetId,
-      ProjectController.projectDefinition,
-      (meshAsset) => (meshAsset as MeshAssetDefinition).materialOverrides![this.materialName].diffuseColor,
-    );
-
-    // @TODO better handle setting the override to null (i.e. remove properties)
-    if (this.diffuseColor) {
-      ProjectController.projectJson.mutate(mutationPath, toColor3Definition(this.diffuseColor));
-    } else {
-      ProjectController.projectJson.delete(mutationPath);
-    }
+    reconcileMaterialOverrideData(meshAssetData, ProjectController);
   }
 
   public undo(_args: ModelMaterialMutationArguments): void {

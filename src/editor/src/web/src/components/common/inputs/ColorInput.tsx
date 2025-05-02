@@ -2,28 +2,56 @@ import { observer } from "mobx-react-lite";
 import { KeyboardEventHandler, useEffect, useMemo, useRef, useState, type FunctionComponent } from "react";
 import { ColorResult, getContrastingColor, rgbaToHex } from '@uiw/color-convert';
 import Sketch from '@uiw/react-color-sketch';
+import cn from 'classnames';
 
 import { Color3 } from "@polyzone/core/src/util";
 
-interface Props {
+interface CommonProps {
   label: string;
   color: Color3;
+  /**
+   * Container that this input lives in.
+   * The color picker is expected to fit within this container.
+   */
+  containerRef?: React.RefObject<HTMLElement | null>;
+}
+
+interface SimpleProps extends CommonProps {
   onChange?: (newValue: Color3) => void;
 }
 
-export const ColorInput: FunctionComponent<Props> = observer(({ label, color, onChange }) => {
+interface TogglableProps extends CommonProps {
+  togglable: true;
+  enabled: boolean;
+  onColorChange?: (newValue: Color3) => void;
+  onEnabledChange?: (newValue: boolean) => void;
+}
+
+export type Props = SimpleProps | TogglableProps;
+
+export const ColorInput: FunctionComponent<Props> = observer((props) => {
+  const { label, color, containerRef } = props;
+
+  const isTogglable = 'togglable' in props;
+
   // Prop defaults
-  onChange ??= () => { };
+  const onColorChange = (isTogglable ? props.onColorChange : props.onChange) || (() => { });
+  const onEnabledChange = (isTogglable ? props.onEnabledChange : () => { }) || (() => { });
 
   // Refs
   const divRef = useRef<HTMLDivElement>(null);
+  const pickerRef = useRef<HTMLDivElement>(null);
 
   // State
   const [isColorPickerVisible, setIsColorPickerVisible] = useState<boolean>(false);
+  const [hasPickerCalculatedItsPositionYet, setHasPickerCalculatedItsPositionYet] = useState<boolean>(false);
+  const [showColorPickerBelow, setShowColorPickerBelow] = useState<boolean>(false);
 
   // Computed state
   const colorHex = rgbaToHex({ r: color.r, g: color.g, b: color.b, a: 255 });
   const textColor = getContrastingColor(colorHex);
+  const isEnabled = isTogglable ? props.enabled : true;
+  const showColorPickerAbove = !showColorPickerBelow;
 
   // Memoized state
   const initialColor = useMemo(() => colorHex, [isColorPickerVisible]);
@@ -36,6 +64,8 @@ export const ColorInput: FunctionComponent<Props> = observer(({ label, color, on
     const onFocus = (e: FocusEvent): void => {
       const isTargetChildOfThisControl = divRef.current!.contains(e.target as Node);
       setIsColorPickerVisible(isTargetChildOfThisControl);
+      setShowColorPickerBelow(false);
+      setHasPickerCalculatedItsPositionYet(false);
     };
 
     document.addEventListener('focusin', onFocus);
@@ -43,6 +73,22 @@ export const ColorInput: FunctionComponent<Props> = observer(({ label, color, on
       document.removeEventListener('focusin', onFocus);
     };
   }, []);
+
+  useEffect(() => {
+    // Situation:
+    // - Container ref is specified
+    // - Color picker has just popped up
+
+    // Calculate the popup direction (i.e. show above / below the control)
+    if (containerRef?.current && isColorPickerVisible && pickerRef.current) {
+      const pickerRects = pickerRef.current.getClientRects();
+      const containerRects = containerRef.current.getClientRects();
+
+      // @NOTE Assumption: Picker has currently rendered (invisibly) ABOVE the control
+      setShowColorPickerBelow(pickerRects[0].y <= containerRects[0].y);
+      setHasPickerCalculatedItsPositionYet(true);
+    }
+  }, [isColorPickerVisible]);
 
   // Functions
   /**
@@ -62,31 +108,54 @@ export const ColorInput: FunctionComponent<Props> = observer(({ label, color, on
     setIsColorPickerVisible(false);
   };
 
-  const onColorChange = ({ rgb }: ColorResult): void => {
+  const onColorPickerChange = ({ rgb }: ColorResult): void => {
     const result = new Color3(rgb.r, rgb.g, rgb.b);
-    onChange(result);
+    onColorChange(result);
   };
 
   return (
-    <div ref={divRef}>
-      <label className="font-bold">{label}</label>
-      <div className="relative" onKeyDown={onKeyPress}>
+    <div data-debug-name="ColorInput">
+      <div>
+        <label className="font-bold flex flex-row items-center">
+          {isTogglable && (
+            <input
+              type="checkbox"
+              className="mr-2 w-4 h-4"
+              checked={isEnabled}
+              onChange={(e) => onEnabledChange(e.target.checked)}
+            />
+          )}
+          {label}
+        </label>
+      </div>
+      <div className="relative" onKeyDown={onKeyPress} ref={divRef}>
         <input
           type="text"
-          className="w-full p-2"
+          className={cn(
+            "w-full p-2",
+            { 'opacity-30': !isEnabled },
+          )}
           style={{ backgroundColor: colorHex, color: textColor }}
           value={colorHex}
           readOnly={true}
+          disabled={!isEnabled}
         />
 
         {isColorPickerVisible && (
           <Sketch
             /* @NOTE Bloody hell, react-color has all these hard-coded inline styles that have to be overridden */
-            className="color-picker absolute bottom-full !w-full z-20 !rounded-none !shadow-none border border-[blue]"
+            className={cn(
+              "color-picker absolute !w-full z-20 !rounded-none !shadow-none border border-[blue]",
+              {
+                'bottom-full': showColorPickerAbove,
+                'opacity-0': !hasPickerCalculatedItsPositionYet,
+              },
+            )}
+            ref={pickerRef}
             color={initialColor}
             disableAlpha={true}
             presetColors={false}
-            onChange={onColorChange}
+            onChange={onColorPickerChange}
           />
         )}
 

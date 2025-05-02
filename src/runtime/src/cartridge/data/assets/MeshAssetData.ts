@@ -2,7 +2,7 @@ import { Color3 } from "@polyzone/core/src";
 
 import { toColor3Core } from '@polyzone/runtime/src/util/color';
 
-import { AssetType, MeshAssetDefinition, MeshAssetMaterialOverrideDefinition } from "../../archive/assets";
+import { AssetType, MeshAssetDefinition, MeshAssetMaterialOverrideDefinition, MeshAssetMaterialOverrideReflectionType } from "../../archive/assets";
 import { BaseAssetData, IBaseAssetData } from "./BaseAssetData";
 import { IAssetDb } from "./AssetDb";
 import { ITextureAssetData } from "./TextureAssetData";
@@ -31,6 +31,7 @@ export interface MeshAssetMaterialOverrideReflectionSeparateData {
 }
 
 export type MeshAssetMaterialOverrideReflectionData = MeshAssetMaterialOverrideReflectionBoxNetData | MeshAssetMaterialOverrideReflection3x2Data | MeshAssetMaterialOverrideReflection6x1Data | MeshAssetMaterialOverrideReflectionSeparateData;
+export type MeshAssetMaterialOverrideReflectionDataOfType<T extends MeshAssetMaterialOverrideReflectionType> = Extract<MeshAssetMaterialOverrideReflectionData, { type: T }>;
 
 export interface IMeshAssetMaterialOverrideData {
   get diffuseColor(): Color3 | undefined;
