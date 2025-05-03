@@ -10,6 +10,8 @@ export interface NumberInputProps {
   label?: string;
   displayLabelAsSubProperty?: boolean;
   incrementInterval?: number;
+  minValue?: number;
+  maxValue?: number;
   onChange?: (newValue: number) => void;
   className?: string;
 }
@@ -20,7 +22,7 @@ function roundValue(value: number): number {
   return Math.round(value * 1e10) / 1e10;
 }
 
-export const NumberInput: FunctionComponent<NumberInputProps> = ({ label, value, incrementInterval, onChange, displayLabelAsSubProperty, className }) => {
+export const NumberInput: FunctionComponent<NumberInputProps> = ({ label, value, incrementInterval, minValue, maxValue, onChange, displayLabelAsSubProperty, className }) => {
   // Prop defaults
   onChange ??= () => { };
   incrementInterval ??= 1;
@@ -54,7 +56,10 @@ export const NumberInput: FunctionComponent<NumberInputProps> = ({ label, value,
         const delta = mousePosition.subtract(dragStartPosition).multiplySelf(DragSensitivity / 100);
         // @TODO can we build a UX that lets you drag up OR right?
         const size = delta.x;
-        onChange(roundValue(originalPreDragValue + size));
+        const newValue = sanitizeNewValue(originalPreDragValue + size);
+        if (newValue !== value) {
+          onChange(newValue);
+        }
       }
     };
     const onMouseUp = (): void => {
@@ -74,13 +79,30 @@ export const NumberInput: FunctionComponent<NumberInputProps> = ({ label, value,
   }, [isDragging]);
 
   // Functions
+  const sanitizeNewValue = (newValue: number): number => {
+    newValue = roundValue(newValue);
+    if (minValue !== undefined && newValue < minValue) {
+      newValue = minValue;
+    }
+
+    if (maxValue !== undefined && newValue > maxValue) {
+      newValue = maxValue;
+    }
+
+    return newValue;
+  };
   const onInputChange: ChangeEventHandler<HTMLInputElement> = (e) => {
     const inputText = e.target.value;
     setInputText(inputText);
+
     // @TODO parse simple expressions like 1+1 or whatever.
-    const newValue = Number(inputText);
+    let newValue = Number(inputText);
+
     if (!isNaN(newValue)) {
-      onChange(roundValue(newValue));
+      newValue = sanitizeNewValue(newValue);
+      if (newValue !== value) {
+        onChange(newValue);
+      }
     } else {
       console.warn(`[NumberInput] (onInputChange) Could not parse number: ${e.target.value}`);
     }
@@ -119,14 +141,18 @@ export const NumberInput: FunctionComponent<NumberInputProps> = ({ label, value,
 
   // @TODO Hold shift or something to do bigger increments
   const incrementValue = (): void => {
-    const newValue = roundValue(value + incrementInterval);
-    onChange(newValue);
+    const newValue = sanitizeNewValue(value + incrementInterval);
+    if (newValue !== value) {
+      onChange(newValue);
+    }
     setInputText(`${newValue}`);
   };
 
   const decrementValue = (): void => {
-    const newValue = roundValue(value - incrementInterval);
-    onChange(newValue);
+    const newValue = sanitizeNewValue(value - incrementInterval);
+    if (newValue !== value) {
+      onChange(newValue);
+    }
     setInputText(`${newValue}`);
   };
 

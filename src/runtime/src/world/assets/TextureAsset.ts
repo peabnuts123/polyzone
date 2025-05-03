@@ -17,6 +17,7 @@ import { debug_modTexture } from '@polyzone/runtime';
 
 import { LoadedAssetBase } from './LoadedAssetBase';
 import type { AssetCache } from './AssetCache';
+import { RetroMaterial } from "../../materials/RetroMaterial";
 
 
 export class TextureAsset extends LoadedAssetBase<AssetType.Texture> {
@@ -159,6 +160,7 @@ export abstract class ReflectionLoading {
       Engine.TEXTURETYPE_UNSIGNED_BYTE,
     );
 
+    result.level = data.strength ?? RetroMaterial.Defaults.reflectionStrength;
     debug_modTexture(result);
 
     return result;
@@ -203,6 +205,7 @@ export abstract class ReflectionLoading {
       Engine.TEXTURETYPE_UNSIGNED_BYTE,
     );
 
+    result.level = data.strength ?? RetroMaterial.Defaults.reflectionStrength;
     debug_modTexture(result);
 
     return result;
@@ -245,6 +248,7 @@ export abstract class ReflectionLoading {
       Engine.TEXTURETYPE_UNSIGNED_BYTE,
     );
 
+    result.level = data.strength ?? RetroMaterial.Defaults.reflectionStrength;
     debug_modTexture(result);
 
     return result;
@@ -286,6 +290,7 @@ export abstract class ReflectionLoading {
       Engine.TEXTURETYPE_UNSIGNED_BYTE,
     );
 
+    result.level = data.strength ?? RetroMaterial.Defaults.reflectionStrength;
     debug_modTexture(result);
 
     return result;

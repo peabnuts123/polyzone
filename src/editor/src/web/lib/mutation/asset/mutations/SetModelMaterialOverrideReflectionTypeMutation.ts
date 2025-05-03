@@ -3,7 +3,6 @@ import { ModelMaterialMutationArguments } from "../ModelMaterialMutationArgument
 import { AssetType, ITextureAssetData, MeshAssetMaterialOverrideReflectionType } from "@polyzone/runtime/src/cartridge";
 import { reconcileMaterialOverrideData } from "./util/reconcile-overrides";
 import { ReflectionLoading } from "@polyzone/runtime/src/world";
-import { TextureAssetData } from "@lib/project/data/assets";
 
 export class SetModelMaterialOverrideReflectionTypeMutation implements IModelMaterialMutation {
   // Mutation parameters
@@ -45,6 +44,7 @@ export class SetModelMaterialOverrideReflectionTypeMutation implements IModelMat
           } else {
             // Copy any existing data from previous config
             let firstTexture: ITextureAssetData | undefined;
+            const strength = overrides.reflection.strength;
             switch (overrides.reflection.type) {
               case "box-net":
                 firstTexture = overrides.reflection.texture;
@@ -64,24 +64,28 @@ export class SetModelMaterialOverrideReflectionTypeMutation implements IModelMat
               case "box-net":
                 overrides.reflection = {
                   type: this.reflectionType,
+                  strength,
                   texture: firstTexture,
                 };
                 break;
               case "3x2":
                 overrides.reflection = {
                   type: this.reflectionType,
+                  strength,
                   texture: firstTexture,
                 };
                 break;
               case "6x1":
                 overrides.reflection = {
                   type: this.reflectionType,
+                  strength,
                   texture: firstTexture,
                 };
                 break;
               case "separate":
                 overrides.reflection = {
                   type: this.reflectionType,
+                  strength,
                   pxTexture: firstTexture,
                 };
                 break;

@@ -9,4 +9,5 @@ export * from './SetModelMaterialOverrideReflection6x1TextureMutation';
 export * from './SetModelMaterialOverrideReflectionBoxNetTextureMutation';
 export * from './SetModelMaterialOverrideReflectionEnabledMutation';
 export * from './SetModelMaterialOverrideReflectionSeparateTextureMutation';
+export * from './SetModelMaterialOverrideReflectionStrengthMutation';
 export * from './SetModelMaterialOverrideReflectionTypeMutation';

@@ -17,7 +17,6 @@ export class SetModelMaterialOverrideDiffuseColorMutation implements IModelMater
   // Mutation parameters
   private readonly modelAssetId: string;
   private readonly materialName: string;
-  private diffuseColor: Color3 | undefined;
 
   // State
   private _hasBeenApplied: boolean = false;
@@ -47,31 +46,16 @@ export class SetModelMaterialOverrideDiffuseColorMutation implements IModelMater
     const meshAssetData = ProjectController.project.assets.getById(this.modelAssetId, AssetType.Mesh);
     const material = ModelMaterialEditorController.getMaterialByName(this.materialName);
 
-    this.diffuseColor = diffuseColor;
     // - 1. Data
     meshAssetData.setMaterialOverride(this.materialName, (overrides) => {
-      overrides.diffuseColor = this.diffuseColor;
+      overrides.diffuseColor = diffuseColor;
     });
     // - 2. Babylon state
     material.overrides.diffuseColor = toColor3Babylon(diffuseColor);
   }
 
-  public apply({ ProjectController, ModelMaterialEditorController }: ModelMaterialMutationArguments): void {
+  public apply({ ProjectController }: ModelMaterialMutationArguments): void {
     const meshAssetData = ProjectController.project.assets.getById(this.modelAssetId, AssetType.Mesh);
-    const material = ModelMaterialEditorController.getMaterialByName(this.materialName);
-
-    const diffuseColor = this.diffuseColor;
-    if (diffuseColor === undefined) {
-      throw new Error(`Can't set diffuse color override to undefined - did you call \`update()\`?`);
-    }
-
-    // 1. Update data
-    meshAssetData.setMaterialOverride(this.materialName, (overrides) => {
-      overrides.diffuseColor = diffuseColor;
-    });
-
-    // 2. Update Babylon state
-    material.overrides.diffuseColor = toColor3Babylon(diffuseColor);
 
     // 3. Update JSONC
     reconcileMaterialOverrideData(meshAssetData, ProjectController);

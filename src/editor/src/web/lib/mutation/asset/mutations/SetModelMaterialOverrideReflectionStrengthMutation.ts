@@ -1,19 +1,14 @@
-
-import { Color3 } from "@polyzone/core/src/util";
-import { Color3 as Color3Babylon } from '@babylonjs/core/Maths/math.color';
-import { IContinuousModelMaterialMutation } from "../IContinuousModelMaterialMutation";
+import { AssetType } from "@polyzone/runtime/src/cartridge";
 import { IModelMaterialMutation } from "../IModelMaterialMutation";
 import { ModelMaterialMutationArguments } from "../ModelMaterialMutationArguments";
-import { AssetType } from "@polyzone/runtime/src/cartridge";
-import { toColor3Babylon } from "@polyzone/runtime/src/util";
 import { reconcileMaterialOverrideData } from "./util/reconcile-overrides";
+import { IContinuousModelMaterialMutation } from "../IContinuousModelMaterialMutation";
 
-
-export interface SetModelMaterialOverrideEmissionColorMutationUpdateArgs {
-  emissionColor: Color3;
+export interface SetModelMaterialOverrideReflectionStrengthMutationUpdateArgs {
+  reflectionStrength: number;
 }
 
-export class SetModelMaterialOverrideEmissionColorMutation implements IModelMaterialMutation, IContinuousModelMaterialMutation<SetModelMaterialOverrideEmissionColorMutationUpdateArgs> {
+export class SetModelMaterialOverrideReflectionStrengthMutation implements IModelMaterialMutation, IContinuousModelMaterialMutation<SetModelMaterialOverrideReflectionStrengthMutationUpdateArgs> {
   // Mutation parameters
   private readonly modelAssetId: string;
   private readonly materialName: string;
@@ -22,36 +17,38 @@ export class SetModelMaterialOverrideEmissionColorMutation implements IModelMate
   private _hasBeenApplied: boolean = false;
 
   // Undo state
-  private dataEmissionColor: Color3 | undefined = undefined;
-  private sceneEmissionColor: Color3Babylon | undefined = undefined;
+  private oldReflectionStrength: number | undefined;
 
   public constructor(modelAssetId: string, materialName: string) {
     this.modelAssetId = modelAssetId;
     this.materialName = materialName;
   }
 
-  public begin({ ProjectController, ModelMaterialEditorController }: ModelMaterialMutationArguments): void {
-    // Data
+  public begin({ ProjectController }: ModelMaterialMutationArguments): void {
     const meshAssetData = ProjectController.project.assets.getById(this.modelAssetId, AssetType.Mesh);
     const materialOverridesData = meshAssetData.getOverridesForMaterial(this.materialName);
-    // Scene
-    const material = ModelMaterialEditorController.getMaterialByName(this.materialName);
 
-    // - Store undo values
-    this.dataEmissionColor = materialOverridesData?.emissionColor;
-    this.sceneEmissionColor = material.overrides.emissionColor;
+    if (materialOverridesData?.reflection?.type === undefined) {
+      throw new Error(`Cannot set reflection strength for material override - the material doesn't have a reflection override yet`);
+    }
+
+    // 0. Store undo data
+    this.oldReflectionStrength = materialOverridesData?.reflection?.strength;
   }
 
-  public update({ ProjectController, ModelMaterialEditorController }: ModelMaterialMutationArguments, { emissionColor }: SetModelMaterialOverrideEmissionColorMutationUpdateArgs): void {
+  public update({ ProjectController, ModelMaterialEditorController }: ModelMaterialMutationArguments, { reflectionStrength }: SetModelMaterialOverrideReflectionStrengthMutationUpdateArgs): void {
     const meshAssetData = ProjectController.project.assets.getById(this.modelAssetId, AssetType.Mesh);
     const material = ModelMaterialEditorController.getMaterialByName(this.materialName);
 
-    // - 1. Data
+    // 1. Update data
     meshAssetData.setMaterialOverride(this.materialName, (overrides) => {
-      overrides.emissionColor = emissionColor;
+      overrides.reflection!.strength = reflectionStrength;
     });
-    // - 2. Babylon state
-    material.overrides.emissionColor = toColor3Babylon(emissionColor);
+
+    // 2. Update Babylon state
+    if (material.overrides.reflectionTexture) {
+      material.overrides.reflectionTexture.level = reflectionStrength;
+    }
   }
 
   public apply({ ProjectController }: ModelMaterialMutationArguments): void {
@@ -68,7 +65,7 @@ export class SetModelMaterialOverrideEmissionColorMutation implements IModelMate
   }
 
   public get description(): string {
-    return `Set material emission color override`;
+    return `Set material reflection strength override`;
   }
 
   public get hasBeenApplied(): boolean { return this._hasBeenApplied; }

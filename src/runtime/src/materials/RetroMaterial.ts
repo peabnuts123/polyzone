@@ -421,6 +421,7 @@ export class RetroMaterialOverrides {
 
 export class RetroMaterial extends PushMaterial {
   public static readonly Defaults = {
+    reflectionStrength: 0.5,
     diffuseColor: Color3.White(),
     emissiveColor: Color3.Black(),
   };

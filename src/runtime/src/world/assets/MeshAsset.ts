@@ -108,11 +108,6 @@ export class MeshAsset extends LoadedAssetBase<AssetType.Mesh> {
             default:
               throw new Error(`Unimplemented reflection type '${(materialOverrideData.reflection as { 'type': string }).type}'`);
           }
-
-          // @TODO Reflection texture level
-          if (newMaterial.overrides.reflectionTexture) {
-            newMaterial.overrides.reflectionTexture.level = 0.2;
-          }
         }
       }
 

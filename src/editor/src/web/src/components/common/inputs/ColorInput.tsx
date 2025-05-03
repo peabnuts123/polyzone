@@ -87,9 +87,10 @@ export const ColorInput: FunctionComponent<ColorInputProps> = observer((props) =
 
       // @NOTE Assumption: Picker has currently rendered (invisibly) ABOVE the control
       setShowColorPickerBelow(pickerRects[0].y <= containerRects[0].y);
-    } else {
-      setHasPickerCalculatedItsPositionYet(true);
     }
+
+    // Either way, show the color picker
+    setHasPickerCalculatedItsPositionYet(true);
   }, [isColorPickerVisible]);
 
   // Functions

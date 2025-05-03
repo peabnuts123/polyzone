@@ -6,8 +6,8 @@ import { toColor3Core } from "@polyzone/runtime/src/util";
 
 import { ModelMaterialEditorController } from "@lib/material-editor/model/ModelMaterialEditorController";
 import { MeshAssetMaterialOverrideData, TextureAssetData } from "@lib/project/data";
-import { ReflectionSeparateTexture, SetModelMaterialOverrideDiffuseColorEnabledMutation, SetModelMaterialOverrideDiffuseColorMutation, SetModelMaterialOverrideDiffuseTextureEnabledMutation, SetModelMaterialOverrideDiffuseTextureMutation, SetModelMaterialOverrideEmissionColorEnabledMutation, SetModelMaterialOverrideEmissionColorMutation, SetModelMaterialOverrideReflection3x2TextureMutation, SetModelMaterialOverrideReflection6x1TextureMutation, SetModelMaterialOverrideReflectionBoxNetTextureMutation, SetModelMaterialOverrideReflectionEnabledMutation, SetModelMaterialOverrideReflectionSeparateTextureMutation, SetModelMaterialOverrideReflectionTypeMutation } from "@lib/mutation/asset/mutations";
-import { ColorInput, createAssetReferenceComponentOfType } from "../common/inputs";
+import { ReflectionSeparateTexture, SetModelMaterialOverrideDiffuseColorEnabledMutation, SetModelMaterialOverrideDiffuseColorMutation, SetModelMaterialOverrideDiffuseTextureEnabledMutation, SetModelMaterialOverrideDiffuseTextureMutation, SetModelMaterialOverrideEmissionColorEnabledMutation, SetModelMaterialOverrideEmissionColorMutation, SetModelMaterialOverrideReflection3x2TextureMutation, SetModelMaterialOverrideReflection6x1TextureMutation, SetModelMaterialOverrideReflectionBoxNetTextureMutation, SetModelMaterialOverrideReflectionEnabledMutation, SetModelMaterialOverrideReflectionSeparateTextureMutation, SetModelMaterialOverrideReflectionStrengthMutation, SetModelMaterialOverrideReflectionTypeMutation } from "@lib/mutation/asset/mutations";
+import { ColorInput, createAssetReferenceComponentOfType, NumberInput } from "../common/inputs";
 import { AssetType, MeshAssetMaterialOverrideReflectionType } from "@polyzone/runtime/src/cartridge/archive";
 
 const TextureAssetReference = createAssetReferenceComponentOfType<AssetType.Texture>();
@@ -153,6 +153,56 @@ export const ReflectionInput: FunctionComponent<ReflectionInputProps> = observer
     controller.mutator.apply(new SetModelMaterialOverrideReflectionTypeMutation(controller.model.id, selectedMaterialName, reflectionType));
   };
 
+  const ReflectionStrength = observer(() => {
+    const currentReflectionStrength = currentReflection?.strength ?? RetroMaterial.Defaults.reflectionStrength;
+
+    return (
+      <div className="mb-3">
+        <label className="font-bold flex flex-row items-center">
+          Strength
+        </label>
+
+        <div className="flex flex-row">
+          <NumberInput
+            className="shrink-0 w-[80px] mr-2"
+            value={currentReflectionStrength}
+            displayLabelAsSubProperty={true}
+            incrementInterval={0.1}
+            minValue={0}
+            maxValue={1}
+            onChange={(newValue) => {
+              controller.mutator.debounceContinuous(
+                SetModelMaterialOverrideReflectionStrengthMutation,
+                controller.model,
+                () => new SetModelMaterialOverrideReflectionStrengthMutation(controller.model.id, selectedMaterialName),
+                () => ({ reflectionStrength: newValue }),
+              );
+            }}
+          />
+
+          <input
+            type="range"
+            className="grow"
+            min={0}
+            max={1}
+            step={0.01}
+            value={currentReflectionStrength}
+            disabled={!currentReflectionEnabled}
+            onChange={(e) => {
+              const newValue = Number(e.target.value);
+              controller.mutator.debounceContinuous(
+                SetModelMaterialOverrideReflectionStrengthMutation,
+                controller.model,
+                () => new SetModelMaterialOverrideReflectionStrengthMutation(controller.model.id, selectedMaterialName),
+                () => ({ reflectionStrength: newValue }),
+              );
+            }}
+          />
+        </div>
+      </div>
+    );
+  });
+
   return (
     <div className="mb-3">
       <div>
@@ -187,113 +237,127 @@ export const ReflectionInput: FunctionComponent<ReflectionInputProps> = observer
           <option value={'separate' satisfies MeshAssetMaterialOverrideReflectionType}>Separate</option>
         </select>
 
-        {currentReflection?.type === 'box-net' ? (
-          <>
-            {/* Box-net reflection texture */}
-            <TextureAssetReference
-              label="Texture"
-              enabled={currentReflectionEnabled}
-              asset={currentReflection.texture as TextureAssetData}
-              assetType={AssetType.Texture}
-              onAssetChange={(newValue) => {
-                controller.mutator.apply(new SetModelMaterialOverrideReflectionBoxNetTextureMutation(controller.model.id, selectedMaterialName, newValue?.id));
-              }}
-            />
-          </>
-        ) : currentReflection?.type === '6x1' ? (
-          <>
-            {/* 6x1 reflection texture */}
-            <TextureAssetReference
-              label="Texture"
-              enabled={currentReflectionEnabled}
-              asset={currentReflection.texture as TextureAssetData}
-              assetType={AssetType.Texture}
-              onAssetChange={(newValue) => {
-                controller.mutator.apply(new SetModelMaterialOverrideReflection6x1TextureMutation(controller.model.id, selectedMaterialName, newValue?.id));
-              }}
-            />
-          </>
-        ) : currentReflection?.type === '3x2' ? (
-          <>
-            {/* 3x2 reflection texture */}
-            <TextureAssetReference
-              label="Texture"
-              enabled={currentReflectionEnabled}
-              asset={currentReflection.texture as TextureAssetData}
-              assetType={AssetType.Texture}
-              onAssetChange={(newValue) => {
-                controller.mutator.apply(new SetModelMaterialOverrideReflection3x2TextureMutation(controller.model.id, selectedMaterialName, newValue?.id));
-              }}
-            />
-          </>
-        ) : currentReflection?.type === 'separate' ? (
-          <>
-            {/* Positive X reflection texture */}
-            <TextureAssetReference
-              label="Texture (+x)"
-              enabled={currentReflectionEnabled}
-              asset={currentReflection.pxTexture as TextureAssetData}
-              assetType={AssetType.Texture}
-              onAssetChange={(newValue) => {
-                controller.mutator.apply(new SetModelMaterialOverrideReflectionSeparateTextureMutation(controller.model.id, selectedMaterialName, newValue?.id, ReflectionSeparateTexture.positiveX));
-              }}
-            />
-            {/* Negative X reflection texture */}
-            <TextureAssetReference
-              label="Texture (-x)"
-              enabled={currentReflectionEnabled}
-              asset={currentReflection.nxTexture as TextureAssetData}
-              assetType={AssetType.Texture}
-              onAssetChange={(newValue) => {
-                controller.mutator.apply(new SetModelMaterialOverrideReflectionSeparateTextureMutation(controller.model.id, selectedMaterialName, newValue?.id, ReflectionSeparateTexture.negativeX));
-              }}
-            />
-            {/* Positive Y reflection texture */}
-            <TextureAssetReference
-              label="Texture (+y)"
-              enabled={currentReflectionEnabled}
-              asset={currentReflection.pyTexture as TextureAssetData}
-              assetType={AssetType.Texture}
-              onAssetChange={(newValue) => {
-                controller.mutator.apply(new SetModelMaterialOverrideReflectionSeparateTextureMutation(controller.model.id, selectedMaterialName, newValue?.id, ReflectionSeparateTexture.positiveY));
-              }}
-            />
-            {/* Negative Y reflection texture */}
-            <TextureAssetReference
-              label="Texture (-y)"
-              enabled={currentReflectionEnabled}
-              asset={currentReflection.nyTexture as TextureAssetData}
-              assetType={AssetType.Texture}
-              onAssetChange={(newValue) => {
-                controller.mutator.apply(new SetModelMaterialOverrideReflectionSeparateTextureMutation(controller.model.id, selectedMaterialName, newValue?.id, ReflectionSeparateTexture.negativeY));
-              }}
-            />
-            {/* Positive Z reflection texture */}
-            <TextureAssetReference
-              label="Texture (+z)"
-              enabled={currentReflectionEnabled}
-              asset={currentReflection.pzTexture as TextureAssetData}
-              assetType={AssetType.Texture}
-              onAssetChange={(newValue) => {
-                controller.mutator.apply(new SetModelMaterialOverrideReflectionSeparateTextureMutation(controller.model.id, selectedMaterialName, newValue?.id, ReflectionSeparateTexture.positiveZ));
-              }}
-            />
-            {/* Negative Z reflection texture */}
-            <TextureAssetReference
-              label="Texture (-z)"
-              enabled={currentReflectionEnabled}
-              asset={currentReflection.nzTexture as TextureAssetData}
-              assetType={AssetType.Texture}
-              onAssetChange={(newValue) => {
-                controller.mutator.apply(new SetModelMaterialOverrideReflectionSeparateTextureMutation(controller.model.id, selectedMaterialName, newValue?.id, ReflectionSeparateTexture.negativeZ));
-              }}
-            />
-          </>
-        ) : currentReflection === undefined ? (
-          <>{/* Empty */}</>
-        ) : (
-          <div>Unknown reflection override type: &apos;{(currentReflection as { type: any })?.type}&apos;</div>
-        )}
+        <div className="pl-3">
+          {currentReflection?.type === 'box-net' ? (
+            <>
+              {/* Box-net reflection texture */}
+              <TextureAssetReference
+                label="Texture"
+                className="mb-2"
+                enabled={currentReflectionEnabled}
+                asset={currentReflection.texture as TextureAssetData}
+                assetType={AssetType.Texture}
+                onAssetChange={(newValue) => {
+                  controller.mutator.apply(new SetModelMaterialOverrideReflectionBoxNetTextureMutation(controller.model.id, selectedMaterialName, newValue?.id));
+                }}
+              />
+              {/* Reflection strength */}
+              <ReflectionStrength />
+            </>
+          ) : currentReflection?.type === '6x1' ? (
+            <>
+              {/* 6x1 reflection texture */}
+              <TextureAssetReference
+                label="Texture"
+                className="mb-2"
+                enabled={currentReflectionEnabled}
+                asset={currentReflection.texture as TextureAssetData}
+                assetType={AssetType.Texture}
+                onAssetChange={(newValue) => {
+                  controller.mutator.apply(new SetModelMaterialOverrideReflection6x1TextureMutation(controller.model.id, selectedMaterialName, newValue?.id));
+                }}
+              />
+              {/* Reflection strength */}
+              <ReflectionStrength />
+            </>
+          ) : currentReflection?.type === '3x2' ? (
+            <>
+              {/* 3x2 reflection texture */}
+              <TextureAssetReference
+                label="Texture"
+                className="mb-2"
+                enabled={currentReflectionEnabled}
+                asset={currentReflection.texture as TextureAssetData}
+                assetType={AssetType.Texture}
+                onAssetChange={(newValue) => {
+                  controller.mutator.apply(new SetModelMaterialOverrideReflection3x2TextureMutation(controller.model.id, selectedMaterialName, newValue?.id));
+                }}
+              />
+              {/* Reflection strength */}
+              <ReflectionStrength />
+            </>
+          ) : currentReflection?.type === 'separate' ? (
+            <>
+              {/* Positive X reflection texture */}
+              <TextureAssetReference
+                label="Texture (+x)"
+                enabled={currentReflectionEnabled}
+                asset={currentReflection.pxTexture as TextureAssetData}
+                assetType={AssetType.Texture}
+                onAssetChange={(newValue) => {
+                  controller.mutator.apply(new SetModelMaterialOverrideReflectionSeparateTextureMutation(controller.model.id, selectedMaterialName, newValue?.id, ReflectionSeparateTexture.positiveX));
+                }}
+              />
+              {/* Negative X reflection texture */}
+              <TextureAssetReference
+                label="Texture (-x)"
+                enabled={currentReflectionEnabled}
+                asset={currentReflection.nxTexture as TextureAssetData}
+                assetType={AssetType.Texture}
+                onAssetChange={(newValue) => {
+                  controller.mutator.apply(new SetModelMaterialOverrideReflectionSeparateTextureMutation(controller.model.id, selectedMaterialName, newValue?.id, ReflectionSeparateTexture.negativeX));
+                }}
+              />
+              {/* Positive Y reflection texture */}
+              <TextureAssetReference
+                label="Texture (+y)"
+                enabled={currentReflectionEnabled}
+                asset={currentReflection.pyTexture as TextureAssetData}
+                assetType={AssetType.Texture}
+                onAssetChange={(newValue) => {
+                  controller.mutator.apply(new SetModelMaterialOverrideReflectionSeparateTextureMutation(controller.model.id, selectedMaterialName, newValue?.id, ReflectionSeparateTexture.positiveY));
+                }}
+              />
+              {/* Negative Y reflection texture */}
+              <TextureAssetReference
+                label="Texture (-y)"
+                enabled={currentReflectionEnabled}
+                asset={currentReflection.nyTexture as TextureAssetData}
+                assetType={AssetType.Texture}
+                onAssetChange={(newValue) => {
+                  controller.mutator.apply(new SetModelMaterialOverrideReflectionSeparateTextureMutation(controller.model.id, selectedMaterialName, newValue?.id, ReflectionSeparateTexture.negativeY));
+                }}
+              />
+              {/* Positive Z reflection texture */}
+              <TextureAssetReference
+                label="Texture (+z)"
+                enabled={currentReflectionEnabled}
+                asset={currentReflection.pzTexture as TextureAssetData}
+                assetType={AssetType.Texture}
+                onAssetChange={(newValue) => {
+                  controller.mutator.apply(new SetModelMaterialOverrideReflectionSeparateTextureMutation(controller.model.id, selectedMaterialName, newValue?.id, ReflectionSeparateTexture.positiveZ));
+                }}
+              />
+              {/* Negative Z reflection texture */}
+              <TextureAssetReference
+                label="Texture (-z)"
+                className="mb-2"
+                enabled={currentReflectionEnabled}
+                asset={currentReflection.nzTexture as TextureAssetData}
+                assetType={AssetType.Texture}
+                onAssetChange={(newValue) => {
+                  controller.mutator.apply(new SetModelMaterialOverrideReflectionSeparateTextureMutation(controller.model.id, selectedMaterialName, newValue?.id, ReflectionSeparateTexture.negativeZ));
+                }}
+              />
+              {/* Reflection strength */}
+              <ReflectionStrength />
+            </>
+          ) : currentReflection === undefined ? (
+            <>{/* Empty */}</>
+          ) : (
+            <div>Unknown reflection override type: &apos;{(currentReflection as { type: any })?.type}&apos;</div>
+          )}
+        </div>
       </div>
     </div >
   );

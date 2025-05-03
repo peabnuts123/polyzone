@@ -9,19 +9,23 @@ import { ITextureAssetData } from "./TextureAssetData";
 
 export interface MeshAssetMaterialOverrideReflectionBoxNetData {
   type: 'box-net',
+  strength?: number;
   texture?: ITextureAssetData;
 }
 export interface MeshAssetMaterialOverrideReflection3x2Data {
   type: '3x2',
+  strength?: number;
   texture?: ITextureAssetData;
 }
 export interface MeshAssetMaterialOverrideReflection6x1Data {
   type: '6x1',
+  strength?: number;
   texture?: ITextureAssetData;
 }
 
 export interface MeshAssetMaterialOverrideReflectionSeparateData {
   type: 'separate',
+  strength?: number;
   pxTexture?: ITextureAssetData;
   nxTexture?: ITextureAssetData;
   pyTexture?: ITextureAssetData;
@@ -64,24 +68,28 @@ export class MeshAssetMaterialOverrideData implements IMeshAssetMaterialOverride
         case "box-net":
           self.reflection = {
             type: definition.reflection.type,
+            strength: definition.reflection.strength,
             texture: definition.reflection.textureAssetId ? assetDb.getById(definition.reflection.textureAssetId, AssetType.Texture) : undefined,
           };
           break;
         case "3x2":
           self.reflection = {
             type: definition.reflection.type,
+            strength: definition.reflection.strength,
             texture: definition.reflection.textureAssetId ? assetDb.getById(definition.reflection.textureAssetId, AssetType.Texture) : undefined,
           };
           break;
         case "6x1":
           self.reflection = {
             type: definition.reflection.type,
+            strength: definition.reflection.strength,
             texture: definition.reflection.textureAssetId ? assetDb.getById(definition.reflection.textureAssetId, AssetType.Texture) : undefined,
           };
           break;
         case "separate":
           self.reflection = {
             type: definition.reflection.type,
+            strength: definition.reflection.strength,
             pxTexture: definition.reflection.pxTextureAssetId ? assetDb.getById(definition.reflection.pxTextureAssetId, AssetType.Texture) : undefined,
             nxTexture: definition.reflection.nxTextureAssetId ? assetDb.getById(definition.reflection.nxTextureAssetId, AssetType.Texture) : undefined,
             pyTexture: definition.reflection.pyTextureAssetId ? assetDb.getById(definition.reflection.pyTextureAssetId, AssetType.Texture) : undefined,
