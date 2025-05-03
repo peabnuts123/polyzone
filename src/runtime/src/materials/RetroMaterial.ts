@@ -381,7 +381,42 @@ export class RetroMaterialDefines extends MaterialDefines implements IImageProce
   }
 }
 
+export class RetroMaterialOverrides {
+  private material: Material;
 
+  public constructor(material: Material) {
+    this.material = material;
+  }
+
+  /**
+   * The basic color of the material as viewed under a light.
+   */
+  public diffuseColor: Color3 | undefined = undefined;
+  /**
+   * The basic texture of the material as viewed under a light.
+   */
+  private _diffuseTexture: BaseTexture | undefined = undefined;
+  public get diffuseTexture(): BaseTexture | undefined { return this._diffuseTexture; }
+  public set diffuseTexture(value: BaseTexture | undefined) {
+    this._diffuseTexture = value;
+    this.material.markAsDirty(Material.TextureDirtyFlag);
+  }
+  /**
+   * Define the texture used to display the reflection.
+   * @see https://doc.babylonjs.com/features/featuresDeepDive/materials/using/reflectionTexture#how-to-obtain-reflections-and-refractions
+   */
+  private _reflectionTexture: CubeTexture | undefined = undefined;
+  public get reflectionTexture(): CubeTexture | undefined { return this._reflectionTexture; }
+  public set reflectionTexture(value: CubeTexture | undefined) {
+    this._reflectionTexture = value;
+    this.material.markAsDirty(Material.TextureDirtyFlag);
+  }
+  /**
+   * Define the color of the material as if self lit.
+   * This will be mixed in the final result even in the absence of light.
+   */
+  public emissionColor: Color3 | undefined = undefined;
+}
 
 
 export class RetroMaterial extends PushMaterial {
@@ -412,30 +447,63 @@ export class RetroMaterial extends PushMaterial {
    */
   // @TODO remove?
   private ambientColor = new Color3(0, 0, 0);
+
   /**
    * The basic color of the material as viewed under a light.
    */
-  public diffuseColor: Color3 | undefined = undefined;
+  public _diffuseColor: Color3 | undefined = undefined;
+  public get diffuseColor(): Color3 | undefined {
+    if (this.overrides.diffuseColor) return this.overrides.diffuseColor;
+    else return this._diffuseColor;
+  }
+  public set diffuseColor(value: Color3 | undefined) {
+    this._diffuseColor = value;
+  }
   /**
    * The basic texture of the material as viewed under a light.
    */
-  public diffuseTexture: BaseTexture | undefined = undefined;
+  private _diffuseTexture: BaseTexture | undefined = undefined;
+  public get diffuseTexture(): BaseTexture | undefined {
+    if (this.overrides.diffuseTexture) return this.overrides.diffuseTexture;
+    else return this._diffuseTexture;
+  }
+  public set diffuseTexture(value: BaseTexture | undefined) {
+    this._diffuseTexture = value;
+    this.markAsDirty(Material.TextureDirtyFlag);
+  }
   /**
    * Define the texture used to display the reflection.
    * @see https://doc.babylonjs.com/features/featuresDeepDive/materials/using/reflectionTexture#how-to-obtain-reflections-and-refractions
    */
-  public reflectionTexture: CubeTexture | undefined = undefined;
+  private _reflectionTexture: CubeTexture | undefined = undefined;
+  public get reflectionTexture(): CubeTexture | undefined {
+    if (this.overrides.reflectionTexture) return this.overrides.reflectionTexture;
+    else return this._reflectionTexture;
+  }
+  public set reflectionTexture(value: CubeTexture | undefined) {
+    this._reflectionTexture = value;
+    this.markAsDirty(Material.TextureDirtyFlag);
+  }
   /**
    * Define the color of the material as if self lit.
    * This will be mixed in the final result even in the absence of light.
    */
-  public emissionColor: Color3 | undefined = undefined;
+  private _emissionColor: Color3 | undefined = undefined;
+  public get emissionColor(): Color3 | undefined {
+    if (this.overrides.emissionColor) return this.overrides.emissionColor;
+    else return this._emissionColor;
+  }
+  public set emissionColor(value: Color3 | undefined) {
+    this._emissionColor = value;
+  }
 
   /**
    * Does lights from the scene impacts this material.
    * It can be a nice trick for performance to disable lighting on a fully emissive material.
    */
   public disableLighting: boolean = false;
+
+  public readonly overrides = new RetroMaterialOverrides(this);
 
   // /**
   //  * AKA Occlusion Texture in other nomenclature, it helps adding baked shadows into your material.
@@ -1181,9 +1249,9 @@ export class RetroMaterial extends PushMaterial {
       defines.ALPHAFROMDIFFUSE = this.diffuseTexture?.hasAlpha || false;
 
       // defines.EMISSIVEASILLUMINATION = this.useEmissiveAsIllumination; // @TODO is true
+      /* @TODO Yay or nay? for these two settings */
       defines.EMISSIVEASILLUMINATION = true; // @TODO how does emmission work?
-
-      // defines.LINKEMISSIVEWITHDIFFUSE = this.linkEmissiveWithDiffuse; // @TODO what does this do in code?
+      // defines.LINKEMISSIVEWITHDIFFUSE = false; // @TODO what does this do in code?
 
       // defines.SPECULAROVERALPHA = this.useSpecularOverAlpha;
 

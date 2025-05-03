@@ -12,11 +12,11 @@ import "@babylonjs/loaders/glTF";
 
 import { Vector3 } from '@polyzone/core/src/util/Vector3';
 import { AssetType, TransformData } from '@polyzone/runtime/src/cartridge';
-import { AssetCache, GameObject, MeshComponent, Transform } from '@polyzone/runtime/src/world';
+import { AssetCache, GameObject, LoadedAssetOfType, MeshComponent, Transform } from '@polyzone/runtime/src/world';
 import { RetroMaterial } from '@polyzone/runtime/src/materials/RetroMaterial';
 
 import { ProjectController } from '@lib/project/ProjectController';
-import { MeshAssetData } from '@lib/project/data';
+import { AssetDataOfType, MeshAssetData } from '@lib/project/data';
 import { ProjectFileEventType } from '@lib/project/watcher/project';
 import { ProjectAssetEventType } from '@lib/project/watcher/assets';
 import { ModelMaterialMutator } from '@lib/mutation/asset/ModelMaterialMutator';
@@ -31,7 +31,7 @@ export class ModelMaterialEditorController {
   private readonly engine: Engine;
   private readonly babylonScene: BabylonScene;
   private sceneCamera!: ArcRotateCamera;
-  private readonly assetCache: AssetCache;
+  private readonly _assetCache: AssetCache;
   private readonly unlistenToFileSystemEvents: () => void;
 
   private previewGameObject: GameObject | undefined;
@@ -42,7 +42,7 @@ export class ModelMaterialEditorController {
   public constructor(model: MeshAssetData, projectController: ProjectController) {
     this._model = model;
     this.projectController = projectController;
-    this.assetCache = new AssetCache();
+    this._assetCache = new AssetCache();
     this._mutator = new ModelMaterialMutator(
       this,
       projectController,
@@ -92,6 +92,18 @@ export class ModelMaterialEditorController {
     camera.attachControl(this.canvas, true);
     camera.minZ = 0.1;
 
+    /* Scene clear color */
+    this.babylonScene.clearColor = Color3Babylon.Black().toColor4();
+
+    /* Set up global ambient lighting */
+    const ambientLight = new HemisphericLightBabylon("__ambient", new Vector3Babylon(0, 0, 0), this.babylonScene);
+    ambientLight.intensity = 0.3;
+    const sun = new DirectionalLightBabylon("sun", new Vector3Babylon(0, -1, 1), this.babylonScene);
+    sun.diffuse = Color3Babylon.White();
+    ambientLight.diffuse = Color3Babylon.White();
+    ambientLight.groundColor = Color3Babylon.White();
+    ambientLight.specular = Color3Babylon.Black();
+
     /* @NOTE WASD */
     camera.keysUp.push(87);
     camera.keysLeft.push(65);
@@ -133,18 +145,6 @@ export class ModelMaterialEditorController {
   }
 
   private async createScene(): Promise<void> {
-    /* Scene clear color */
-    this.babylonScene.clearColor = Color3Babylon.Black().toColor4();
-
-    /* Set up global ambient lighting */
-    const ambientLight = new HemisphericLightBabylon("__ambient", new Vector3Babylon(0, 0, 0), this.babylonScene);
-    ambientLight.intensity = 0.3;
-    const sun = new DirectionalLightBabylon("sun", new Vector3Babylon(0, -1, 1), this.babylonScene);
-    sun.diffuse = Color3Babylon.White();
-    ambientLight.diffuse = Color3Babylon.White();
-    ambientLight.groundColor = Color3Babylon.White();
-    ambientLight.specular = Color3Babylon.Black();
-
     /* Construct a game object to host the mesh for previewing */
     // @TODO Third copy of this logic... re-use from SceneViewController / Game.ts ?
     const gameObjectName = '__preview';
@@ -178,16 +178,10 @@ export class ModelMaterialEditorController {
     });
   }
 
-  private async reloadSceneData(model: MeshAssetData): Promise<void> {
+  public async reloadSceneData(model: MeshAssetData): Promise<void> {
     // Clear out the scene
     this.previewGameObject?.destroy();
-
-    const rootNodes = [...this.babylonScene.rootNodes];
-    for (const sceneObject of rootNodes) {
-      if (sceneObject !== this.sceneCamera) {
-        sceneObject.dispose(false, true);
-      }
-    }
+    this.assetCache.clear();
 
     // Update data
     this._model = model;
@@ -201,6 +195,10 @@ export class ModelMaterialEditorController {
       throw new Error(`Cannot get material, no material exists on ModelMaterialEditorController with name '${materialName}'`);
     }
     return material;
+  }
+
+  public async loadAssetThroughCache<TAssetType extends AssetType>(assetData: AssetDataOfType<TAssetType>): Promise<LoadedAssetOfType<TAssetType>> {
+    return this.assetCache.loadAsset(assetData, this.babylonScene);
   }
 
   public selectMaterial(materialName: string): void {
@@ -225,5 +223,13 @@ export class ModelMaterialEditorController {
 
   public get selectedMaterialName(): string | undefined {
     return this._selectedMaterialName;
+  }
+
+  public get assetCache(): AssetCache {
+    return this._assetCache;
+  }
+
+  public get scene(): BabylonScene {
+    return this.babylonScene;
   }
 }

@@ -27,22 +27,35 @@ export class AssetCache {
     // @NOTE Why does TypeScript want everything to be type laundered here?
     const cached = this.cache.get(asset);
     if (cached) {
+      console.log(`[AssetCache] (loadAsset) Asset already loaded, returning cached asset: ${asset.path}`);
       return cached as LoadedAssetOfType<TAssetType>;
     } else {
+      console.log(`[AssetCache] (loadAsset) Loading new asset: ${asset.path}`);
+      let assetPromise: Promise<LoadedAssetOfType<TAssetType>>;
       switch (asset.type) {
         case AssetType.Mesh:
-          return MeshAsset.fromAssetData(asset as IMeshAssetData, scene, this) as Promise<LoadedAssetOfType<TAssetType>>;
+          assetPromise = MeshAsset.fromAssetData(asset as IMeshAssetData, scene, this) as Promise<LoadedAssetOfType<TAssetType>>;
+          break;
         case AssetType.MeshSupplementary:
-          return MeshSupplementaryAsset.fromAssetData(asset as IMeshSupplementaryAssetData, scene, this) as Promise<LoadedAssetOfType<TAssetType>>;
+          assetPromise = MeshSupplementaryAsset.fromAssetData(asset as IMeshSupplementaryAssetData, scene, this) as Promise<LoadedAssetOfType<TAssetType>>;
+          break;
         case AssetType.Script:
-          return ScriptAsset.fromAssetData(asset as IScriptAssetData, scene, this) as Promise<LoadedAssetOfType<TAssetType>>;
+          assetPromise = ScriptAsset.fromAssetData(asset as IScriptAssetData, scene, this) as Promise<LoadedAssetOfType<TAssetType>>;
+          break;
         case AssetType.Sound:
-          return SoundAsset.fromAssetData(asset as ISoundAssetData, scene, this) as Promise<LoadedAssetOfType<TAssetType>>;
+          assetPromise = SoundAsset.fromAssetData(asset as ISoundAssetData, scene, this) as Promise<LoadedAssetOfType<TAssetType>>;
+          break;
         case AssetType.Texture:
-          return TextureAsset.fromAssetData(asset as ITextureAssetData, scene, this) as Promise<LoadedAssetOfType<TAssetType>>;
+          assetPromise = TextureAsset.fromAssetData(asset as ITextureAssetData, scene, this) as Promise<LoadedAssetOfType<TAssetType>>;
+          break;
         default:
           throw new Error(`Unimplemented AssetType: ${asset.type}`);
       }
+
+      const result = await assetPromise;
+      this.cache.set(asset, result);
+
+      return result;
     }
   }
 

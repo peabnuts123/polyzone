@@ -3,7 +3,6 @@ import { Scene as BabylonScene } from "@babylonjs/core/scene";
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
 import { AssetContainer } from '@babylonjs/core/assetContainer';
 import { PBRMaterial } from '@babylonjs/core/Materials/PBR/pbrMaterial';
-import { Texture as TextureBabylon } from '@babylonjs/core/Materials/Textures/texture';
 
 import { AssetType, IMeshAssetData, MeshAssetMaterialOverrideReflection3x2Data, MeshAssetMaterialOverrideReflection6x1Data, MeshAssetMaterialOverrideReflectionBoxNetData, MeshAssetMaterialOverrideReflectionSeparateData } from '@polyzone/runtime/src/cartridge';
 import { debug_modTexture } from "@polyzone/runtime/src";
@@ -13,8 +12,8 @@ import { LoadedAssetBase } from './LoadedAssetBase';
 import type { AssetCache } from './AssetCache';
 import { toColor3Babylon } from '../../util';
 import { CubeTexture } from '@babylonjs/core/Materials/Textures/cubeTexture';
-import { RawCubeTexture } from '@babylonjs/core/Materials/Textures/rawCubeTexture';
-import { Engine } from '@babylonjs/core/Engines/engine';
+import { ReflectionLoading } from './TextureAsset';
+
 
 export class MeshAsset extends LoadedAssetBase<AssetType.Mesh> {
   public get type(): AssetType.Mesh { return AssetType.Mesh; }
@@ -72,45 +71,48 @@ export class MeshAsset extends LoadedAssetBase<AssetType.Mesh> {
       if (materialOverrideData !== undefined) {
         /* Diffuse color */
         if (materialOverrideData.diffuseColor !== undefined) {
-          newMaterial.diffuseColor = toColor3Babylon(materialOverrideData.diffuseColor);
+          newMaterial.overrides.diffuseColor = toColor3Babylon(materialOverrideData.diffuseColor);
         }
 
         /* Diffuse texture */
         if (materialOverrideData.diffuseTexture !== undefined) {
           const textureAsset = await assetCache.loadAsset(materialOverrideData.diffuseTexture, scene);
-          newMaterial.diffuseTexture = textureAsset.texture;
+          newMaterial.overrides.diffuseTexture = textureAsset.texture;
         }
 
         /* Emission color */
         if (materialOverrideData.emissionColor !== undefined) {
-          newMaterial.emissionColor = toColor3Babylon(materialOverrideData.emissionColor);
+          newMaterial.overrides.emissionColor = toColor3Babylon(materialOverrideData.emissionColor);
         }
 
         /* Reflection */
         if (materialOverrideData.reflection !== undefined) {
-          console.log(`Original reflection level: ${newMaterial.reflectionTexture?.level}`);
+          /* @NOTE Reflection loading mechanisms might return `undefined` if data is empty */
           switch (materialOverrideData.reflection.type) {
             case 'box-net': {
-              newMaterial.reflectionTexture = await ReflectionLoading.loadBoxNet(materialOverrideData.reflection, assetCache, scene);
+              newMaterial.overrides.reflectionTexture = await ReflectionLoading.loadBoxNet(materialOverrideData.reflection, assetCache, scene);
               break;
             }
             case '3x2': {
-              newMaterial.reflectionTexture = await ReflectionLoading.load3x2(materialOverrideData.reflection, assetCache, scene);
+              newMaterial.overrides.reflectionTexture = await ReflectionLoading.load3x2(materialOverrideData.reflection, assetCache, scene);
               break;
             }
             case '6x1': {
-              newMaterial.reflectionTexture = await ReflectionLoading.load6x1(materialOverrideData.reflection, assetCache, scene);
+              newMaterial.overrides.reflectionTexture = await ReflectionLoading.load6x1(materialOverrideData.reflection, assetCache, scene);
               break;
             }
             case 'separate': {
-              newMaterial.reflectionTexture = await ReflectionLoading.loadSeparate(materialOverrideData.reflection, assetCache, scene);
+              newMaterial.overrides.reflectionTexture = await ReflectionLoading.loadSeparate(materialOverrideData.reflection, assetCache, scene);
               break;
             }
             default:
               throw new Error(`Unimplemented reflection type '${(materialOverrideData.reflection as { 'type': string }).type}'`);
           }
-          newMaterial.reflectionTexture.level = 0.2;
-          console.log(`New reflection level: ${newMaterial.reflectionTexture.level}`);
+
+          // @TODO Reflection texture level
+          if (newMaterial.overrides.reflectionTexture) {
+            newMaterial.overrides.reflectionTexture.level = 0.2;
+          }
         }
       }
 
@@ -138,189 +140,4 @@ export class MeshAsset extends LoadedAssetBase<AssetType.Mesh> {
   }
 
   public get assetContainer(): AssetContainer { return this._assetContainer; }
-}
-
-
-export abstract class ReflectionLoading {
-  /**
-   * Read a specific block of raw image data from the canvas.
-   * The canvas is expected to be 4 cells wide and 3 cells tall.
-   * @param ctx 2D HTML canvas rendering context
-   * @param cellX X coordinate of the cell to read
-   * @param cellY Y coordinate of the cell to read
-   * @param cellSize Size (in pixels) of each cell (assumed to be square)
-   */
-  private static readCanvasCell(ctx: CanvasRenderingContext2D, cellX: number, cellY: number, cellSize: number): Uint8ClampedArray {
-    const imageData = ctx.getImageData(cellX * cellSize, cellY * cellSize, cellSize, cellSize);
-    return imageData.data;
-  }
-
-  private static async loadTextureToCanvas(texture: TextureBabylon): Promise<[HTMLCanvasElement, CanvasRenderingContext2D]> {
-    // Read data from texture so we don't have to fetch it again (which would be MUCH easier)
-    const cachedTextureSize = texture.getSize();
-    const dataBuffer = await ReflectionLoading.readTextureData(texture);
-
-    // Create HTML canvas
-    const canvas = document.createElement('canvas');
-    canvas.width = cachedTextureSize.width;
-    canvas.height = cachedTextureSize.height;
-
-    // Write texture data to canvas
-    const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
-    const imageData = ctx.createImageData(canvas.width, canvas.height);
-    imageData.data.set(dataBuffer);
-    ctx.putImageData(imageData, 0, 0);
-
-    return [canvas, ctx];
-  }
-
-  private static async readTextureData(texture: TextureBabylon): Promise<Uint8Array> {
-    const cachedTextureSize = texture.getSize();
-    const dataBuffer = new Uint8Array(cachedTextureSize.width * cachedTextureSize.height * 4/* @NOTE RGBA encoding */);
-    await texture.readPixels(undefined, undefined, dataBuffer);
-    return dataBuffer;
-  }
-
-
-  /**
-   * Load texture from "box-net" layout.
-   * ```
-   *     0    1    2    3
-   *   ┌────┬────┬────┬────┐
-   * 0 │    │ +y │    │    │
-   *   ├────┼────┼────┼────┤
-   * 1 │ -x │ +z │ +x │ -z │
-   *   ├────┼────┼────┼────┤
-   * 2 │    │ -y │    │    │
-   *   └────┴────┴────┴────┘
-   * ```
-   */
-  public static async loadBoxNet(data: MeshAssetMaterialOverrideReflectionBoxNetData, assetCache: AssetCache, scene: BabylonScene): Promise<CubeTexture> {
-    // Load texture through cache
-    const cachedTextureAsset = await assetCache.loadAsset(data.texture, scene);
-
-    // Read texture into HTML canvas
-    const [canvas, ctx] = await ReflectionLoading.loadTextureToCanvas(cachedTextureAsset.texture);
-
-    // Read specific chunks of image data into array of `Uint8ClampedArray`
-    const cellSize = canvas.width / 4;
-    const textures = [
-      ReflectionLoading.readCanvasCell(ctx, 2, 1, cellSize), // +x
-      ReflectionLoading.readCanvasCell(ctx, 0, 1, cellSize), // -x
-      ReflectionLoading.readCanvasCell(ctx, 1, 0, cellSize), // +y
-      ReflectionLoading.readCanvasCell(ctx, 1, 2, cellSize), // -y
-      ReflectionLoading.readCanvasCell(ctx, 1, 1, cellSize), // +z
-      ReflectionLoading.readCanvasCell(ctx, 3, 1, cellSize), // -z
-    ];
-
-    return new RawCubeTexture(
-      scene,
-      textures,
-      cellSize,
-      Engine.TEXTUREFORMAT_RGBA,
-      Engine.TEXTURETYPE_UNSIGNED_BYTE,
-    );
-  }
-
-  /**
-   * Load texture from "3x2" layout.
-   * ```
-   *     0    1    2
-   *   ┌────┬────┬────┐
-   * 0 │ +x │ +y │ +z │
-   *   ├────┼────┼────┤
-   * 1 │ -x │ -y │ -z │
-   *   └────┴────┴────┘
-   * ```
-   */
-  public static async load3x2(data: MeshAssetMaterialOverrideReflection3x2Data, assetCache: AssetCache, scene: BabylonScene): Promise<CubeTexture> {
-    // Load texture through cache
-    const cachedTextureAsset = await assetCache.loadAsset(data.texture, scene);
-
-    // Read texture into HTML canvas
-    const [canvas, ctx] = await ReflectionLoading.loadTextureToCanvas(cachedTextureAsset.texture);
-
-    // Read specific chunks of image data into array of `Uint8ClampedArray`
-    const cellSize = canvas.width / 4;
-    const textures = [
-      ReflectionLoading.readCanvasCell(ctx, 0, 0, cellSize), // +x
-      ReflectionLoading.readCanvasCell(ctx, 0, 1, cellSize), // -x
-      ReflectionLoading.readCanvasCell(ctx, 1, 0, cellSize), // +y
-      ReflectionLoading.readCanvasCell(ctx, 1, 1, cellSize), // -y
-      ReflectionLoading.readCanvasCell(ctx, 2, 0, cellSize), // +z
-      ReflectionLoading.readCanvasCell(ctx, 2, 1, cellSize), // -z
-    ];
-
-    return new RawCubeTexture(
-      scene,
-      textures,
-      cellSize,
-      Engine.TEXTUREFORMAT_RGBA,
-      Engine.TEXTURETYPE_UNSIGNED_BYTE,
-    );
-  }
-
-  /**
-   * Load texture from "6x1" layout.
-   * ```
-   *     0    1    2    3    4    5
-   *   ┌────┬────┬────┬────┬────┬────┐
-   * 0 │ +x │ -x │ +y │ -y │ +z │ -z │
-   *   └────┴────┴────┴────┴────┴────┘
-   * ```
-   */
-  public static async load6x1(data: MeshAssetMaterialOverrideReflection6x1Data, assetCache: AssetCache, scene: BabylonScene): Promise<CubeTexture> {
-    // Load texture through cache
-    const cachedTextureAsset = await assetCache.loadAsset(data.texture, scene);
-
-    // Read texture into HTML canvas
-    const [canvas, ctx] = await ReflectionLoading.loadTextureToCanvas(cachedTextureAsset.texture);
-
-    // Read specific chunks of image data into array of `Uint8ClampedArray`
-    const cellSize = canvas.width / 4;
-    const textures = [
-      ReflectionLoading.readCanvasCell(ctx, 0, 0, cellSize), // +x
-      ReflectionLoading.readCanvasCell(ctx, 1, 0, cellSize), // -x
-      ReflectionLoading.readCanvasCell(ctx, 2, 0, cellSize), // +y
-      ReflectionLoading.readCanvasCell(ctx, 3, 0, cellSize), // -y
-      ReflectionLoading.readCanvasCell(ctx, 4, 0, cellSize), // +z
-      ReflectionLoading.readCanvasCell(ctx, 5, 0, cellSize), // -z
-    ];
-
-    return new RawCubeTexture(
-      scene,
-      textures,
-      cellSize,
-      Engine.TEXTUREFORMAT_RGBA,
-      Engine.TEXTURETYPE_UNSIGNED_BYTE,
-    );
-  }
-
-  public static async loadSeparate(data: MeshAssetMaterialOverrideReflectionSeparateData, assetCache: AssetCache, scene: BabylonScene): Promise<CubeTexture> {
-    // Load texture assets through cache
-    const pxTextureAsset = await assetCache.loadAsset(data.pxTexture, scene);
-    const nxTextureAsset = await assetCache.loadAsset(data.nxTexture, scene);
-    const pyTextureAsset = await assetCache.loadAsset(data.pyTexture, scene);
-    const nyTextureAsset = await assetCache.loadAsset(data.nyTexture, scene);
-    const pzTextureAsset = await assetCache.loadAsset(data.pzTexture, scene);
-    const nzTextureAsset = await assetCache.loadAsset(data.nzTexture, scene);
-
-    // Read textures into raw buffers (doesn't seem to be an easy way to assemble a CubeTexture from 6 Texture assets)
-    const textures = await Promise.all([
-      ReflectionLoading.readTextureData(pxTextureAsset.texture),
-      ReflectionLoading.readTextureData(nxTextureAsset.texture),
-      ReflectionLoading.readTextureData(pyTextureAsset.texture),
-      ReflectionLoading.readTextureData(nyTextureAsset.texture),
-      ReflectionLoading.readTextureData(pzTextureAsset.texture),
-      ReflectionLoading.readTextureData(nzTextureAsset.texture),
-    ]);
-
-    return new RawCubeTexture(
-      scene,
-      textures,
-      pxTextureAsset.texture.getSize().width,
-      Engine.TEXTUREFORMAT_RGBA,
-      Engine.TEXTURETYPE_UNSIGNED_BYTE,
-    );
-  }
 }

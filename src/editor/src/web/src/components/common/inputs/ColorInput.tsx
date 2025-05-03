@@ -14,6 +14,7 @@ interface CommonProps {
    * The color picker is expected to fit within this container.
    */
   containerRef?: React.RefObject<HTMLElement | null>;
+  className?: string;
 }
 
 interface SimpleProps extends CommonProps {
@@ -27,16 +28,16 @@ interface TogglableProps extends CommonProps {
   onEnabledChange?: (newValue: boolean) => void;
 }
 
-export type Props = SimpleProps | TogglableProps;
+export type ColorInputProps = SimpleProps | TogglableProps;
 
-export const ColorInput: FunctionComponent<Props> = observer((props) => {
-  const { label, color, containerRef } = props;
+export const ColorInput: FunctionComponent<ColorInputProps> = observer((props) => {
+  const { label, color, containerRef, className } = props;
 
   const isTogglable = 'togglable' in props;
 
   // Prop defaults
   const onColorChange = (isTogglable ? props.onColorChange : props.onChange) || (() => { });
-  const onEnabledChange = (isTogglable ? props.onEnabledChange : () => { }) || (() => { });
+  const onEnabledChange = (isTogglable && props.onEnabledChange ? props.onEnabledChange : () => { });
 
   // Refs
   const divRef = useRef<HTMLDivElement>(null);
@@ -86,6 +87,7 @@ export const ColorInput: FunctionComponent<Props> = observer((props) => {
 
       // @NOTE Assumption: Picker has currently rendered (invisibly) ABOVE the control
       setShowColorPickerBelow(pickerRects[0].y <= containerRects[0].y);
+    } else {
       setHasPickerCalculatedItsPositionYet(true);
     }
   }, [isColorPickerVisible]);
@@ -114,7 +116,7 @@ export const ColorInput: FunctionComponent<Props> = observer((props) => {
   };
 
   return (
-    <div data-debug-name="ColorInput">
+    <div className={className}>
       <div>
         <label className="font-bold flex flex-row items-center">
           {isTogglable && (
@@ -131,10 +133,7 @@ export const ColorInput: FunctionComponent<Props> = observer((props) => {
       <div className="relative" onKeyDown={onKeyPress} ref={divRef}>
         <input
           type="text"
-          className={cn(
-            "w-full p-2",
-            { 'opacity-30': !isEnabled },
-          )}
+          className="w-full p-2 disabled:opacity-30"
           style={{ backgroundColor: colorHex, color: textColor }}
           value={colorHex}
           readOnly={true}

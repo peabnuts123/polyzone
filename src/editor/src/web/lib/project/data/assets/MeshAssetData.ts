@@ -20,13 +20,19 @@ import { AssetDb } from "../AssetDb";
 export class MeshAssetMaterialOverrideData implements IMeshAssetMaterialOverrideData {
   private _meshAssetMaterialOverrideData: MeshAssetMaterialOverrideDataRuntime;
 
-  public diffuseColorEnabled: boolean = false;
-  public diffuseTextureEnabled: boolean = false;
-  public emissionColorEnabled: boolean = false;
-  public reflectionEnabled: boolean = false;
+  public diffuseColorEnabled: boolean;
+  public diffuseTextureEnabled: boolean;
+  public emissionColorEnabled: boolean;
+  public reflectionEnabled: boolean;
 
   public constructor(meshAssetMaterialOverrideDataRuntime: MeshAssetMaterialOverrideDataRuntime) {
     this._meshAssetMaterialOverrideData = meshAssetMaterialOverrideDataRuntime;
+
+    this.diffuseColorEnabled = meshAssetMaterialOverrideDataRuntime.diffuseColor !== undefined;
+    this.diffuseTextureEnabled = meshAssetMaterialOverrideDataRuntime.diffuseTexture !== undefined;
+    this.emissionColorEnabled = meshAssetMaterialOverrideDataRuntime.emissionColor !== undefined;
+    this.reflectionEnabled = meshAssetMaterialOverrideDataRuntime.reflection !== undefined;
+
     makeAutoObservable(this);
     makeAutoObservable(this._meshAssetMaterialOverrideData);
   }

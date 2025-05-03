@@ -9,22 +9,22 @@ import { toColor3Babylon } from "@polyzone/runtime/src/util";
 import { reconcileMaterialOverrideData } from "./util/reconcile-overrides";
 
 
-export interface SetModelMaterialOverrideDiffuseColorMutationUpdateArgs {
-  diffuseColor: Color3;
+export interface SetModelMaterialOverrideEmissionColorMutationUpdateArgs {
+  emissionColor: Color3;
 }
 
-export class SetModelMaterialOverrideDiffuseColorMutation implements IModelMaterialMutation, IContinuousModelMaterialMutation<SetModelMaterialOverrideDiffuseColorMutationUpdateArgs> {
+export class SetModelMaterialOverrideEmissionColorMutation implements IModelMaterialMutation, IContinuousModelMaterialMutation<SetModelMaterialOverrideEmissionColorMutationUpdateArgs> {
   // Mutation parameters
   private readonly modelAssetId: string;
   private readonly materialName: string;
-  private diffuseColor: Color3 | undefined;
+  private emissionColor: Color3 | undefined;
 
   // State
   private _hasBeenApplied: boolean = false;
 
   // Undo state
-  private dataDiffuseColor: Color3 | undefined = undefined;
-  private sceneDiffuseColor: Color3Babylon | undefined = undefined;
+  private dataEmissionColor: Color3 | undefined = undefined;
+  private sceneEmissionColor: Color3Babylon | undefined = undefined;
 
   public constructor(modelAssetId: string, materialName: string) {
     this.modelAssetId = modelAssetId;
@@ -39,39 +39,39 @@ export class SetModelMaterialOverrideDiffuseColorMutation implements IModelMater
     const material = ModelMaterialEditorController.getMaterialByName(this.materialName);
 
     // - Store undo values
-    this.dataDiffuseColor = materialOverridesData?.diffuseColor;
-    this.sceneDiffuseColor = material.overrides.diffuseColor;
+    this.dataEmissionColor = materialOverridesData?.emissionColor;
+    this.sceneEmissionColor = material.overrides.emissionColor;
   }
 
-  public update({ ProjectController, ModelMaterialEditorController }: ModelMaterialMutationArguments, { diffuseColor }: SetModelMaterialOverrideDiffuseColorMutationUpdateArgs): void {
+  public update({ ProjectController, ModelMaterialEditorController }: ModelMaterialMutationArguments, { emissionColor }: SetModelMaterialOverrideEmissionColorMutationUpdateArgs): void {
     const meshAssetData = ProjectController.project.assets.getById(this.modelAssetId, AssetType.Mesh);
     const material = ModelMaterialEditorController.getMaterialByName(this.materialName);
 
-    this.diffuseColor = diffuseColor;
+    this.emissionColor = emissionColor;
     // - 1. Data
     meshAssetData.setMaterialOverride(this.materialName, (overrides) => {
-      overrides.diffuseColor = this.diffuseColor;
+      overrides.emissionColor = this.emissionColor;
     });
     // - 2. Babylon state
-    material.overrides.diffuseColor = toColor3Babylon(diffuseColor);
+    material.overrides.emissionColor = toColor3Babylon(emissionColor);
   }
 
   public apply({ ProjectController, ModelMaterialEditorController }: ModelMaterialMutationArguments): void {
     const meshAssetData = ProjectController.project.assets.getById(this.modelAssetId, AssetType.Mesh);
     const material = ModelMaterialEditorController.getMaterialByName(this.materialName);
 
-    const diffuseColor = this.diffuseColor;
-    if (diffuseColor === undefined) {
-      throw new Error(`Can't set diffuse color override to undefined - did you call \`update()\`?`);
+    const emissionColor = this.emissionColor;
+    if (emissionColor === undefined) {
+      throw new Error(`Can't set emission color override to undefined - did you call \`update()\`?`);
     }
 
     // 1. Update data
     meshAssetData.setMaterialOverride(this.materialName, (overrides) => {
-      overrides.diffuseColor = diffuseColor;
+      overrides.emissionColor = emissionColor;
     });
 
     // 2. Update Babylon state
-    material.overrides.diffuseColor = toColor3Babylon(diffuseColor);
+    material.overrides.emissionColor = toColor3Babylon(emissionColor);
 
     // 3. Update JSONC
     reconcileMaterialOverrideData(meshAssetData, ProjectController);
@@ -84,7 +84,7 @@ export class SetModelMaterialOverrideDiffuseColorMutation implements IModelMater
   }
 
   public get description(): string {
-    return `Set material diffuse color override`;
+    return `Set material emission color override`;
   }
 
   public get hasBeenApplied(): boolean { return this._hasBeenApplied; }

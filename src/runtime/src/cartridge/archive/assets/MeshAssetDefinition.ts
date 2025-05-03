@@ -4,24 +4,24 @@ import { AssetType } from "./AssetType";
 
 export interface MeshAssetMaterialOverrideReflectionBoxNetDefinition {
   type: 'box-net',
-  textureAssetId: string;
+  textureAssetId?: string;
 }
 export interface MeshAssetMaterialOverrideReflection3x2Definition {
   type: '3x2',
-  textureAssetId: string;
+  textureAssetId?: string;
 }
 export interface MeshAssetMaterialOverrideReflection6x1Definition {
   type: '6x1',
-  textureAssetId: string;
+  textureAssetId?: string;
 }
 export interface MeshAssetMaterialOverrideReflectionSeparateDefinition {
   type: 'separate',
-  pxTextureAssetId: string;
-  nxTextureAssetId: string;
-  pyTextureAssetId: string;
-  nyTextureAssetId: string;
-  pzTextureAssetId: string;
-  nzTextureAssetId: string;
+  pxTextureAssetId?: string;
+  nxTextureAssetId?: string;
+  pyTextureAssetId?: string;
+  nyTextureAssetId?: string;
+  pzTextureAssetId?: string;
+  nzTextureAssetId?: string;
 }
 
 export type MeshAssetMaterialOverrideReflectionType = MeshAssetMaterialOverrideReflectionDefinition['type'];

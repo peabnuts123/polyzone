@@ -9,25 +9,25 @@ import { ITextureAssetData } from "./TextureAssetData";
 
 export interface MeshAssetMaterialOverrideReflectionBoxNetData {
   type: 'box-net',
-  texture: ITextureAssetData;
+  texture?: ITextureAssetData;
 }
 export interface MeshAssetMaterialOverrideReflection3x2Data {
   type: '3x2',
-  texture: ITextureAssetData;
+  texture?: ITextureAssetData;
 }
 export interface MeshAssetMaterialOverrideReflection6x1Data {
   type: '6x1',
-  texture: ITextureAssetData;
+  texture?: ITextureAssetData;
 }
 
 export interface MeshAssetMaterialOverrideReflectionSeparateData {
   type: 'separate',
-  pxTexture: ITextureAssetData;
-  nxTexture: ITextureAssetData;
-  pyTexture: ITextureAssetData;
-  nyTexture: ITextureAssetData;
-  pzTexture: ITextureAssetData;
-  nzTexture: ITextureAssetData;
+  pxTexture?: ITextureAssetData;
+  nxTexture?: ITextureAssetData;
+  pyTexture?: ITextureAssetData;
+  nyTexture?: ITextureAssetData;
+  pzTexture?: ITextureAssetData;
+  nzTexture?: ITextureAssetData;
 }
 
 export type MeshAssetMaterialOverrideReflectionData = MeshAssetMaterialOverrideReflectionBoxNetData | MeshAssetMaterialOverrideReflection3x2Data | MeshAssetMaterialOverrideReflection6x1Data | MeshAssetMaterialOverrideReflectionSeparateData;
@@ -64,30 +64,30 @@ export class MeshAssetMaterialOverrideData implements IMeshAssetMaterialOverride
         case "box-net":
           self.reflection = {
             type: definition.reflection.type,
-            texture: assetDb.getById(definition.reflection.textureAssetId, AssetType.Texture),
+            texture: definition.reflection.textureAssetId ? assetDb.getById(definition.reflection.textureAssetId, AssetType.Texture) : undefined,
           };
           break;
         case "3x2":
           self.reflection = {
             type: definition.reflection.type,
-            texture: assetDb.getById(definition.reflection.textureAssetId, AssetType.Texture),
+            texture: definition.reflection.textureAssetId ? assetDb.getById(definition.reflection.textureAssetId, AssetType.Texture) : undefined,
           };
           break;
         case "6x1":
           self.reflection = {
             type: definition.reflection.type,
-            texture: assetDb.getById(definition.reflection.textureAssetId, AssetType.Texture),
+            texture: definition.reflection.textureAssetId ? assetDb.getById(definition.reflection.textureAssetId, AssetType.Texture) : undefined,
           };
           break;
         case "separate":
           self.reflection = {
             type: definition.reflection.type,
-            pxTexture: assetDb.getById(definition.reflection.pxTextureAssetId, AssetType.Texture),
-            nxTexture: assetDb.getById(definition.reflection.nxTextureAssetId, AssetType.Texture),
-            pyTexture: assetDb.getById(definition.reflection.pyTextureAssetId, AssetType.Texture),
-            nyTexture: assetDb.getById(definition.reflection.nyTextureAssetId, AssetType.Texture),
-            pzTexture: assetDb.getById(definition.reflection.pzTextureAssetId, AssetType.Texture),
-            nzTexture: assetDb.getById(definition.reflection.nzTextureAssetId, AssetType.Texture),
+            pxTexture: definition.reflection.pxTextureAssetId ? assetDb.getById(definition.reflection.pxTextureAssetId, AssetType.Texture) : undefined,
+            nxTexture: definition.reflection.nxTextureAssetId ? assetDb.getById(definition.reflection.nxTextureAssetId, AssetType.Texture) : undefined,
+            pyTexture: definition.reflection.pyTextureAssetId ? assetDb.getById(definition.reflection.pyTextureAssetId, AssetType.Texture) : undefined,
+            nyTexture: definition.reflection.nyTextureAssetId ? assetDb.getById(definition.reflection.nyTextureAssetId, AssetType.Texture) : undefined,
+            pzTexture: definition.reflection.pzTextureAssetId ? assetDb.getById(definition.reflection.pzTextureAssetId, AssetType.Texture) : undefined,
+            nzTexture: definition.reflection.nzTextureAssetId ? assetDb.getById(definition.reflection.nzTextureAssetId, AssetType.Texture) : undefined,
           };
           break;
         default:

@@ -6,6 +6,7 @@ const nextConfig = {
     '@polyzone/runtime',
     '@polyzone/core',
   ],
+  devIndicators: false,
   webpack: (config) => {
     config.module.rules.push({
       test: /\.fx$/,

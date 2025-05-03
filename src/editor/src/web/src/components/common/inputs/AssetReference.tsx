@@ -12,22 +12,41 @@ import { useAssetDrop } from "@app/interactions/assets";
 import { AssetReferenceModalAssetReference, AssetReferenceModalData, AssetReferenceResultPayload } from "@app/pages/modal/asset-reference";
 import { getIconForAssetType } from "@app/components/composer/AssetsAndScenes/AssetList";
 
-interface Props<TAssetType extends AssetType> {
+interface CommonProps<TAssetType extends AssetType> {
   label: string;
   assetType: TAssetType;
   asset: AssetDataOfType<TAssetType> | undefined;
   onAssetChange?: (asset: AssetDataOfType<TAssetType> | undefined) => void;
+  className?: string;
+  enabled?: boolean;
 }
 
-export function createAssetReferenceComponentOfType<TAssetType extends AssetType>(): FunctionComponent<Props<TAssetType>> {
-  const AssetReference: FunctionComponent<Props<TAssetType>> = observer(({
-    label,
-    assetType,
-    asset,
-    onAssetChange,
-  }) => {
+interface SimpleProps<TAssetType extends AssetType> extends CommonProps<TAssetType> {
+
+}
+
+interface TogglableProps<TAssetType extends AssetType> extends CommonProps<TAssetType> {
+  togglable: true;
+  onEnabledChange?: (newValue: boolean) => void;
+}
+
+export type AssetReferenceProps<TAssetType extends AssetType> = SimpleProps<TAssetType> | TogglableProps<TAssetType>;
+
+export function createAssetReferenceComponentOfType<TAssetType extends AssetType>(): FunctionComponent<AssetReferenceProps<TAssetType>> {
+  const AssetReference: FunctionComponent<AssetReferenceProps<TAssetType>> = observer((props) => {
+    const {
+      label,
+      assetType,
+      asset,
+      className,
+    } = props;
+
+    const isTogglable = 'togglable' in props;
+
     // Prop defaults
-    onAssetChange ??= () => { };
+    const enabled = props.enabled !== undefined ? props.enabled : true;
+    const onAssetChange = props.onAssetChange ?? (() => { });
+    const onEnabledChange = (isTogglable && props.onEnabledChange ? props.onEnabledChange : () => { });
 
     const { ProjectController } = useLibrary();
 
@@ -76,22 +95,42 @@ export function createAssetReferenceComponentOfType<TAssetType extends AssetType
     };
 
     return (
-      <>
-        <label className="font-bold">{label}</label>
+      <div className={className}>
+        <div>
+          <label className="font-bold flex flex-row items-center">
+            {isTogglable && (
+              <input
+                type="checkbox"
+                className="mr-2 w-4 h-4"
+                checked={enabled}
+                onChange={(e) => onEnabledChange(e.target.checked)}
+              />
+            )}
+            {label}
+          </label>
+        </div>
         <div className="flex flex-row">
           {/* Asset icon */}
-          <div className="flex bg-blue-300 justify-center items-center p-2">
+          <div className={cn(
+            "flex bg-blue-300 justify-center items-center p-2",
+            {
+              "opacity-30": !enabled,
+            },
+          )}>
             <AssetIcon className="icon" />
           </div>
 
           {/* Asset reference / name */}
           <button
             ref={DropTarget}
-            className={cn("w-full p-2 bg-white overflow-scroll whitespace-nowrap cursor-pointer text-left overflow-ellipsis", {
-              "!bg-blue-300": isDragOverThisZone,
-              'italic': !hasAsset,
-            })}
+            className={cn(
+              "w-full p-2 bg-white overflow-scroll whitespace-nowrap cursor-pointer text-left overflow-ellipsis disabled:opacity-30",
+              {
+                "!bg-blue-300": isDragOverThisZone,
+                'italic': !hasAsset,
+              })}
             onClick={onClickAssetButton}
+            disabled={!enabled}
           >
             {hasAsset ? (
               asset.path
@@ -110,7 +149,7 @@ export function createAssetReferenceComponentOfType<TAssetType extends AssetType
             </button>
           )}
         </div>
-      </>
+      </div>
     );
   });
   return AssetReference;

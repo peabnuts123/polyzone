@@ -1,24 +1,22 @@
-
 import { IModelMaterialMutation } from "../IModelMaterialMutation";
 import { ModelMaterialMutationArguments } from "../ModelMaterialMutationArguments";
 import { AssetType } from "@polyzone/runtime/src/cartridge";
-import { toColor3Babylon, toColor3Core } from "@polyzone/runtime/src/util";
-import { RetroMaterial } from "@polyzone/runtime/src/materials/RetroMaterial";
 import { reconcileMaterialOverrideData } from "./util/reconcile-overrides";
+import { ReflectionLoading } from "@polyzone/runtime/src/world";
 
-export class SetModelMaterialOverrideDiffuseColorEnabledMutation implements IModelMaterialMutation {
+export class SetModelMaterialOverrideReflectionEnabledMutation implements IModelMaterialMutation {
   // Mutation parameters
   private readonly modelAssetId: string;
   private readonly materialName: string;
-  private readonly diffuseColorEnabled: boolean;
+  private readonly reflectionEnabled: boolean;
 
   // Undo state
-  private oldDiffuseColorEnabled: boolean | undefined;
+  private oldReflectionEnabled: boolean | undefined;
 
-  public constructor(modelAssetId: string, materialName: string, diffuseColorEnabled: boolean) {
+  public constructor(modelAssetId: string, materialName: string, reflectionEnabled: boolean) {
     this.modelAssetId = modelAssetId;
     this.materialName = materialName;
-    this.diffuseColorEnabled = diffuseColorEnabled;
+    this.reflectionEnabled = reflectionEnabled;
   }
 
   public apply({ ProjectController, ModelMaterialEditorController }: ModelMaterialMutationArguments): void {
@@ -27,27 +25,27 @@ export class SetModelMaterialOverrideDiffuseColorEnabledMutation implements IMod
     const material = ModelMaterialEditorController.getMaterialByName(this.materialName);
 
     // 0. Store undo data
-    this.oldDiffuseColorEnabled = materialOverridesData?.diffuseColorEnabled;
+    this.oldReflectionEnabled = materialOverridesData?.reflectionEnabled;
 
     // 1. Update data
     meshAssetData.setMaterialOverride(this.materialName, (overrides) => {
-      overrides.diffuseColorEnabled = this.diffuseColorEnabled;
-      if (this.diffuseColorEnabled) {
-        // Also ensure color override is set if we're enabling it
-        overrides.diffuseColor ??= toColor3Core(RetroMaterial.Defaults.diffuseColor);
-      }
+      overrides.reflectionEnabled = this.reflectionEnabled;
     });
 
     // 2. Update Babylon state
     materialOverridesData = meshAssetData.getOverridesForMaterial(this.materialName)!;
-    if (this.diffuseColorEnabled) {
+    if (this.reflectionEnabled) {
       // Enabling override
-      // Since we made sure the override had a color if it was enabled,
-      // we know that there MUST be a value in the overrides data at this point
-      material.overrides.diffuseColor = toColor3Babylon(materialOverridesData.diffuseColor!);
+      // Set the material's reflection texture IF one is fully defined in the override data
+      if (materialOverridesData.reflection !== undefined) {
+        ReflectionLoading.load(materialOverridesData.reflection, ModelMaterialEditorController.assetCache, ModelMaterialEditorController.scene)
+          .then((reflectionTexture) => {
+            material.overrides.reflectionTexture = reflectionTexture;
+          });
+      }
     } else {
-      // Disabling override - remove color from material
-      material.overrides.diffuseColor = undefined;
+      // Disabling override
+      material.overrides.reflectionTexture = undefined;
     }
 
     // 3. Update JSONC
@@ -61,6 +59,6 @@ export class SetModelMaterialOverrideDiffuseColorEnabledMutation implements IMod
   }
 
   public get description(): string {
-    return `${this.diffuseColorEnabled ? "Enable" : "Disable"} material diffuse color override`;
+    return `${this.reflectionEnabled ? "Enable" : "Disable"} material reflection override`;
   }
 }
