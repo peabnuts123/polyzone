@@ -57,8 +57,6 @@ export const Inspector: FunctionComponent<Props> = observer(({ modelMaterialEdit
         {isAnyMaterialSelected && (
           <>
             <div className="p-2">
-              {/* Name */}
-              <div className="text-xl">{selectedMaterialName}</div>
 
               {/* @TODO Material picker */}
 
