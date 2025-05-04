@@ -5,13 +5,13 @@
   "type": "module",
   "scripts": {
     "start": "tauri dev",
-    "start:web": "cd src/web && next dev",
+    "start:web": "cd src/web && next dev --turbopack",
     "simulate-ci": "npm run typecheck && npm run lint && npm run test && npm run build && echo 'Build succeeded'",
     "test": "echo \"No tests yet, sorry\"",
     "lint": "eslint --max-warnings 0 --no-error-on-unmatched-pattern \"src/web/**/*.{js,mjs,cjs,jsx,mjsx,ts,tsx,mtsx}\"",
     "typecheck": "cd src/web && tsc",
     "build": "tauri build",
-    "build:web": "cd src/web && next build",
+    "build:web": "cd src/web && next build --turbopack",
     "tauri": "tauri"
   },
   "dependencies": {
@@ -46,6 +46,7 @@
     "eslint-config-next": "15.1.7",
     "fflate": "^0.8.2",
     "postcss": "^8.4.41",
+    "raw-loader": "^4.0.2",
     "tailwindcss": "^3.4.10",
     "typescript": "^5.7.3"
   },

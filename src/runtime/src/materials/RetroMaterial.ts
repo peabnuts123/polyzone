@@ -126,6 +126,10 @@ import "@babylonjs/core/Shaders/ShadersInclude/clipPlaneFragmentDeclaration";
 import "@babylonjs/core/Shaders/ShadersInclude/fogFragmentDeclaration";
 import "@babylonjs/core/Shaders/ShadersInclude/clipPlaneFragment";
 import "@babylonjs/core/Shaders/ShadersInclude/fogFragment";
+// import "@babylonjs/core/Shaders/default.vertex.js";
+// import "@babylonjs/core/ShadersWGSL/default.vertex.js";
+// import "@babylonjs/core/Shaders/default.fragment.js";
+// import "@babylonjs/core/ShadersWGSL/default.fragment.js";
 
 
 
@@ -1650,45 +1654,47 @@ export class RetroMaterial extends PushMaterial {
    * Used internally during the effect preparation.
    */
   public override buildUniformLayout(): void {
+
+
     // Order is important !
     const ubo = this._uniformBuffer;
-    // ubo.addUniform("diffuseLeftColor", 4);
-    // ubo.addUniform("diffuseRightColor", 4);
-    // ubo.addUniform("opacityParts", 4);
-    // ubo.addUniform("reflectionLeftColor", 4);
-    // ubo.addUniform("reflectionRightColor", 4);
-    // ubo.addUniform("refractionLeftColor", 4);
-    // ubo.addUniform("refractionRightColor", 4);
-    // ubo.addUniform("emissiveLeftColor", 4);
-    // ubo.addUniform("emissiveRightColor", 4);
+    ubo.addUniform("diffuseLeftColor", 4); /* @NOTE UNUSED */
+    ubo.addUniform("diffuseRightColor", 4); /* @NOTE UNUSED */
+    ubo.addUniform("opacityParts", 4); /* @NOTE UNUSED */
+    ubo.addUniform("reflectionLeftColor", 4); /* @NOTE UNUSED */
+    ubo.addUniform("reflectionRightColor", 4); /* @NOTE UNUSED */
+    ubo.addUniform("refractionLeftColor", 4); /* @NOTE UNUSED */
+    ubo.addUniform("refractionRightColor", 4); /* @NOTE UNUSED */
+    ubo.addUniform("emissiveLeftColor", 4); /* @NOTE UNUSED */
+    ubo.addUniform("emissiveRightColor", 4); /* @NOTE UNUSED */
 
     ubo.addUniform("vDiffuseInfos", 2);
-    // ubo.addUniform("vAmbientInfos", 2);
-    // ubo.addUniform("vOpacityInfos", 2);
+    ubo.addUniform("vAmbientInfos", 2);  /* @NOTE UNUSED */
+    ubo.addUniform("vOpacityInfos", 2); /* @NOTE UNUSED */
     ubo.addUniform("vReflectionInfos", 2);
     ubo.addUniform("vReflectionPosition", 3);
     ubo.addUniform("vReflectionSize", 3);
-    // ubo.addUniform("vEmissiveInfos", 2);
-    // ubo.addUniform("vLightmapInfos", 2);
-    // ubo.addUniform("vSpecularInfos", 2);
-    // ubo.addUniform("vBumpInfos", 3);
+    ubo.addUniform("vEmissiveInfos", 2); /* @NOTE UNUSED */
+    ubo.addUniform("vLightmapInfos", 2); /* @NOTE UNUSED */
+    ubo.addUniform("vSpecularInfos", 2); /* @NOTE UNUSED */
+    ubo.addUniform("vBumpInfos", 3); /* @NOTE UNUSED */
 
     ubo.addUniform("diffuseMatrix", 16);
-    ubo.addUniform("ambientMatrix", 16);
-    // ubo.addUniform("opacityMatrix", 16);
+    ubo.addUniform("ambientMatrix", 16); /* @NOTE UNUSED */
+    ubo.addUniform("opacityMatrix", 16); /* @NOTE UNUSED */
     ubo.addUniform("reflectionMatrix", 16);
-    ubo.addUniform("emissiveMatrix", 16);
-    ubo.addUniform("lightmapMatrix", 16);
-    ubo.addUniform("specularMatrix", 16);
-    ubo.addUniform("bumpMatrix", 16);
-    // ubo.addUniform("vTangentSpaceParams", 2);
-    // ubo.addUniform("pointSize", 1);
+    ubo.addUniform("emissiveMatrix", 16); /* @NOTE UNUSED */
+    ubo.addUniform("lightmapMatrix", 16); /* @NOTE UNUSED */
+    ubo.addUniform("specularMatrix", 16); /* @NOTE UNUSED */
+    ubo.addUniform("bumpMatrix", 16); /* @NOTE UNUSED */
+    ubo.addUniform("vTangentSpaceParams", 2); /* @NOTE UNUSED */
+    ubo.addUniform("pointSize", 1); /* @NOTE UNUSED */
     ubo.addUniform("alphaCutOff", 1);
-    // ubo.addUniform("refractionMatrix", 16);
-    // ubo.addUniform("vRefractionInfos", 4);
-    // ubo.addUniform("vRefractionPosition", 3);
-    // ubo.addUniform("vRefractionSize", 3);
-    // ubo.addUniform("vSpecularColor", 4);
+    ubo.addUniform("refractionMatrix", 16); /* @NOTE UNUSED */
+    ubo.addUniform("vRefractionInfos", 4); /* @NOTE UNUSED */
+    ubo.addUniform("vRefractionPosition", 3); /* @NOTE UNUSED */
+    ubo.addUniform("vRefractionSize", 3); /* @NOTE UNUSED */
+    ubo.addUniform("vSpecularColor", 4); /* @NOTE UNUSED */
     ubo.addUniform("vEmissiveColor", 3);
     ubo.addUniform("vDiffuseColor", 4);
     ubo.addUniform("vAmbientColor", 3);
