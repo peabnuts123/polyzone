@@ -31,11 +31,21 @@ export class ComposerController {
   }
 
   public onEnter(): void {
-    // @TODO remove?
+    for (const tab of this.currentlyOpenTabs) {
+      if (tab.sceneViewController) {
+        const sceneDbRecord = this.projectController.project.scenes.getById(tab.sceneViewController.scene.id);
+        if (sceneDbRecord === undefined) {
+          throw new Error(`Error reloading scene - could not find scene with id '${tab.sceneViewController.scene.id}' in SceneDb`);
+        }
+
+        console.log(`[ComposerController] (onEnter) Reloading active scene: ${sceneDbRecord.data.path}`);
+        void tab.sceneViewController.reloadSceneData(sceneDbRecord);
+      }
+    }
   }
 
   public onExit(): void {
-    // @TODO remove?
+    /* No-op */
   }
 
   public async loadSceneForTab(tabId: string, sceneManifest: SceneData): Promise<void> {
@@ -126,21 +136,15 @@ export class ComposerController {
     const manifest: CartridgeArchiveManifest = {
       assets: this.projectController.project.assets.getAll()
         .map((asset) => {
+          const assetDefinition = asset.toAssetDefinition();
+
           // @NOTE map assets to pluck only desired properties
           if (asset.type === AssetType.Script) {
             // @NOTE Scripts need to be renamed to .js
-            return {
-              id: asset.id,
-              type: asset.type,
-              path: asset.path.replace(/\.\w+$/, '.js'),
-            };
-          } else {
-            return {
-              id: asset.id,
-              type: asset.type,
-              path: asset.path,
-            };
+            assetDefinition.path = asset.path.replace(/\.\w+$/, '.js');
           }
+
+          return assetDefinition;
         }),
       scenes: scenes.map((scene) =>
         toRuntimeSceneDefinition(scene.jsonc.value, scene.manifest.path),

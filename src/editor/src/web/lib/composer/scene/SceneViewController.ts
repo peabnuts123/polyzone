@@ -184,13 +184,13 @@ export class SceneViewController {
     ambientLight.groundColor = toColor3Babylon(this.scene.config.lighting.ambient.color);
     ambientLight.specular = Color3Babylon.Black();
 
-    for (const sceneObject of this.scene.objects) {
-      // @TODO do this more in parallel?
-      // @TODO store this in a World or something
-      //  - remove need for `sceneInstance`
-      //  - call `destroy` on the objects, lol
-      const _gameObject = await this.createGameObject(sceneObject);
-    }
+    // @TODO store this in a World or something
+    //  - remove need for `sceneInstance`
+    //  - call `destroy` on the objects, lol
+    const _gameObjects = await Promise.all(
+      this.scene.objects.map((sceneObject) =>
+        this.createGameObject(sceneObject),
+      ));
   }
 
   public setCurrentTool(tool: CurrentSelectionTool): void {
@@ -317,7 +317,7 @@ export class SceneViewController {
     await this.createGameObjectComponent(gameObjectData, gameObjectInstance, componentData);
   }
 
-  private async reloadSceneData(scene: SceneDbRecord): Promise<void> {
+  public async reloadSceneData(scene: SceneDbRecord): Promise<void> {
     // Clear out the scene
     this.selectionManager.deselectAll();
     this.babylonToWorldSelectionCache.clear();

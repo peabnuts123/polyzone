@@ -1,8 +1,8 @@
 import { resolvePathForAssetMutation } from "@lib/mutation/util";
-import { MeshAssetData, MeshAssetMaterialOverrideData } from "@lib/project/data";
+import { MeshAssetData, MeshAssetMaterialOverrideData, reflectionDataToDefinition } from "@lib/project/data";
 import { MeshAssetDefinition } from "@lib/project/definition";
 import { ProjectController } from "@lib/project/ProjectController";
-import { MeshAssetMaterialOverrideDefinition, MeshAssetMaterialOverrideReflection3x2Data, MeshAssetMaterialOverrideReflection6x1Data, MeshAssetMaterialOverrideReflectionBoxNetData, MeshAssetMaterialOverrideReflectionDataOfType, MeshAssetMaterialOverrideReflectionDefinitionOfType, MeshAssetMaterialOverrideReflectionSeparateData, MeshAssetMaterialOverrideReflectionType } from "@polyzone/runtime/src/cartridge";
+import { MeshAssetMaterialOverrideDefinition } from "@polyzone/runtime/src/cartridge";
 import { toColor3Definition } from "@polyzone/runtime/src/util/color";
 
 
@@ -28,7 +28,7 @@ export function reconcileMaterialOverrideData(meshAssetData: MeshAssetData, Proj
     reconcileMaterialOverridesForProperty(
       meshAssetData,
       ProjectController,
-      /* Is enabled and defined */(materialOverrideData) => materialOverrideData.diffuseColorEnabled && materialOverrideData.diffuseColor !== undefined,
+      /* Is enabled and defined */(materialOverrideData) => materialOverrideData.diffuseColor !== undefined,
       /* Asset definition path */(materialOverrideDefinition) => materialOverrideDefinition.diffuseColor!,
       /* Updated value */(materialOverrideData) => toColor3Definition(materialOverrideData.diffuseColor!),
     );
@@ -37,7 +37,7 @@ export function reconcileMaterialOverrideData(meshAssetData: MeshAssetData, Proj
     reconcileMaterialOverridesForProperty(
       meshAssetData,
       ProjectController,
-      /* Is enabled and defined */(materialOverrideData) => materialOverrideData.diffuseTextureEnabled && materialOverrideData.diffuseTexture !== undefined,
+      /* Is enabled and defined */(materialOverrideData) => materialOverrideData.diffuseTexture !== undefined,
       /* Asset definition path */(materialOverrideDefinition) => materialOverrideDefinition.diffuseTextureAssetId!,
       /* Updated value */(materialOverrideData) => materialOverrideData.diffuseTexture!.id,
     );
@@ -46,7 +46,7 @@ export function reconcileMaterialOverrideData(meshAssetData: MeshAssetData, Proj
     reconcileMaterialOverridesForProperty(
       meshAssetData,
       ProjectController,
-      /* Is enabled and defined */(materialOverrideData) => materialOverrideData.reflectionEnabled && materialOverrideData.reflection !== undefined,
+      /* Is enabled and defined */(materialOverrideData) => materialOverrideData.reflection !== undefined,
       /* Asset definition path */(materialOverrideDefinition) => materialOverrideDefinition.reflection!,
       /* Updated value */(materialOverrideData) => reflectionDataToDefinition(materialOverrideData.reflection!),
     );
@@ -55,7 +55,7 @@ export function reconcileMaterialOverrideData(meshAssetData: MeshAssetData, Proj
     reconcileMaterialOverridesForProperty(
       meshAssetData,
       ProjectController,
-      /* Is enabled and defined */(materialOverrideData) => materialOverrideData.emissionColorEnabled && materialOverrideData.emissionColor !== undefined,
+      /* Is enabled and defined */(materialOverrideData) => materialOverrideData.emissionColor !== undefined,
       /* Asset definition path */(materialOverrideDefinition) => materialOverrideDefinition.emissionColor!,
       /* Updated value */(materialOverrideData) => toColor3Definition(materialOverrideData.emissionColor!),
     );
@@ -133,42 +133,5 @@ function reconcileMaterialOverridesForProperty<TValueDefinition extends {}>(
         ProjectController.projectJson.delete(mutationPath);
       }
     }
-  }
-}
-
-// @TODO Should this live somewhere else?
-function reflectionDataToDefinition<TReflectionType extends MeshAssetMaterialOverrideReflectionType>(reflection: MeshAssetMaterialOverrideReflectionDataOfType<TReflectionType>): MeshAssetMaterialOverrideReflectionDefinitionOfType<TReflectionType> {
-  switch (reflection.type) {
-    case "box-net":
-      const reflectionBoxNet = reflection as MeshAssetMaterialOverrideReflectionBoxNetData;
-      return {
-        type: reflectionBoxNet.type,
-        textureAssetId: reflectionBoxNet.texture?.id,
-      } as MeshAssetMaterialOverrideReflectionDefinitionOfType<TReflectionType>;
-    case "3x2":
-      const reflection3x2 = reflection as MeshAssetMaterialOverrideReflection3x2Data;
-      return {
-        type: reflection3x2.type,
-        textureAssetId: reflection3x2.texture?.id,
-      } as MeshAssetMaterialOverrideReflectionDefinitionOfType<TReflectionType>;
-    case "6x1":
-      const reflection6x1 = reflection as MeshAssetMaterialOverrideReflection6x1Data;
-      return {
-        type: reflection6x1.type,
-        textureAssetId: reflection6x1.texture?.id,
-      } as MeshAssetMaterialOverrideReflectionDefinitionOfType<TReflectionType>;
-    case "separate":
-      const reflectionSeparate = reflection as MeshAssetMaterialOverrideReflectionSeparateData;
-      return {
-        type: reflectionSeparate.type,
-        pxTextureAssetId: reflectionSeparate.pxTexture?.id,
-        nxTextureAssetId: reflectionSeparate.nxTexture?.id,
-        pyTextureAssetId: reflectionSeparate.pyTexture?.id,
-        nyTextureAssetId: reflectionSeparate.nyTexture?.id,
-        pzTextureAssetId: reflectionSeparate.pzTexture?.id,
-        nzTextureAssetId: reflectionSeparate.nzTexture?.id,
-      } as MeshAssetMaterialOverrideReflectionDefinitionOfType<TReflectionType>;
-    default:
-      throw new Error(`Unimplemented reflection data type: '${(reflection as any).type}'`);
   }
 }

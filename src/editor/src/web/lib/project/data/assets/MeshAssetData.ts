@@ -11,10 +11,18 @@ import {
   MeshAssetMaterialOverrideData as MeshAssetMaterialOverrideDataRuntime,
   MeshAssetMaterialOverrideDefinition,
   MeshAssetMaterialOverrideReflectionData,
+  MeshAssetMaterialOverrideReflectionType,
+  MeshAssetMaterialOverrideReflectionDataOfType,
+  MeshAssetMaterialOverrideReflectionBoxNetData,
+  MeshAssetMaterialOverrideReflectionDefinitionOfType,
+  MeshAssetMaterialOverrideReflection3x2Data,
+  MeshAssetMaterialOverrideReflection6x1Data,
+  MeshAssetMaterialOverrideReflectionSeparateData,
 } from "@polyzone/runtime/src/cartridge";
 import { MeshAssetDefinition } from "@lib/project/definition";
 import { BaseAssetData, CommonAssetDataArgs } from "../BaseAssetData";
 import { AssetDb } from "../AssetDb";
+import { toColor3Definition } from "@polyzone/runtime/src/util";
 
 
 export class MeshAssetMaterialOverrideData implements IMeshAssetMaterialOverrideData {
@@ -37,14 +45,18 @@ export class MeshAssetMaterialOverrideData implements IMeshAssetMaterialOverride
     makeAutoObservable(this._meshAssetMaterialOverrideData);
   }
 
-  public isEmpty(): boolean {
-    return this.isDiffuseColorEmpty() && this.isDiffuseTextureEmpty() && this.isEmissionColorEmpty() && this.isReflectionEmpty();
+  public toDefinition(): MeshAssetMaterialOverrideDefinition {
+    return {
+      diffuseColor: this.diffuseColor ? toColor3Definition(this.diffuseColor) : undefined,
+      emissionColor: this.emissionColor ? toColor3Definition(this.emissionColor) : undefined,
+      diffuseTextureAssetId: this.diffuseTexture?.id,
+      reflection: this.reflection ? reflectionDataToDefinition(this.reflection) : undefined,
+    };
   }
 
-  public isDiffuseColorEmpty(): boolean { return this.diffuseColorEnabled === false || this.diffuseColor === undefined; }
-  public isDiffuseTextureEmpty(): boolean { return this.diffuseTextureEnabled === false || this.diffuseTexture === undefined; }
-  public isEmissionColorEmpty(): boolean { return this.emissionColorEnabled === false || this.emissionColor === undefined; }
-  public isReflectionEmpty(): boolean { return this.reflectionEnabled === false || this.reflection === undefined; }
+  public isEmpty(): boolean {
+    return this.diffuseColor === undefined && this.diffuseTexture === undefined && this.emissionColor === undefined && this.reflection === undefined;
+  }
 
   public static createNew(): MeshAssetMaterialOverrideData {
     return new MeshAssetMaterialOverrideData(
@@ -58,13 +70,32 @@ export class MeshAssetMaterialOverrideData implements IMeshAssetMaterialOverride
     );
   }
 
-  public get diffuseColor(): Color3 | undefined { return this._meshAssetMaterialOverrideData.diffuseColor; }
+  public get diffuseColorRawValue(): Color3 | undefined { return this._meshAssetMaterialOverrideData.diffuseColor; }
+  public get diffuseColor(): Color3 | undefined {
+    if (this.diffuseColorEnabled) return this._meshAssetMaterialOverrideData.diffuseColor;
+    else return undefined;
+  }
   public set diffuseColor(value: Color3 | undefined) { this._meshAssetMaterialOverrideData.diffuseColor = value; }
-  public get diffuseTexture(): ITextureAssetData | undefined { return this._meshAssetMaterialOverrideData.diffuseTexture; }
+
+  public get diffuseTextureRawValue(): ITextureAssetData | undefined { return this._meshAssetMaterialOverrideData.diffuseTexture; }
+  public get diffuseTexture(): ITextureAssetData | undefined {
+    if (this.diffuseTextureEnabled) return this._meshAssetMaterialOverrideData.diffuseTexture;
+    else return undefined;
+  }
   public set diffuseTexture(value: ITextureAssetData | undefined) { this._meshAssetMaterialOverrideData.diffuseTexture = value; }
-  public get emissionColor(): Color3 | undefined { return this._meshAssetMaterialOverrideData.emissionColor; }
+
+  public get emissionColorRawValue(): Color3 | undefined { return this._meshAssetMaterialOverrideData.emissionColor; }
+  public get emissionColor(): Color3 | undefined {
+    if (this.emissionColorEnabled) return this._meshAssetMaterialOverrideData.emissionColor;
+    else return undefined;
+  }
   public set emissionColor(value: Color3 | undefined) { this._meshAssetMaterialOverrideData.emissionColor = value; }
-  public get reflection(): MeshAssetMaterialOverrideReflectionData | undefined { return this._meshAssetMaterialOverrideData.reflection; }
+
+  public get reflectionRawValue(): MeshAssetMaterialOverrideReflectionData | undefined { return this._meshAssetMaterialOverrideData.reflection; }
+  public get reflection(): MeshAssetMaterialOverrideReflectionData | undefined {
+    if (this.reflectionEnabled) return this._meshAssetMaterialOverrideData.reflection;
+    else return undefined;
+  }
   public set reflection(value: MeshAssetMaterialOverrideReflectionData | undefined) { this._meshAssetMaterialOverrideData.reflection = value; }
 }
 
@@ -131,7 +162,61 @@ export class MeshAssetData extends BaseAssetData<AssetType.Mesh> implements IMes
     return this._meshAssetData.getOverridesForMaterial(materialName) as MeshAssetMaterialOverrideData | undefined;
   }
 
+  public toAssetDefinition(): MeshAssetDefinition {
+    return {
+      id: this.id,
+      type: AssetType.Mesh,
+      hash: this.hash,
+      path: this.path,
+      materialOverrides: Object.keys(this.materialOverrides).reduce((curr, next) => {
+        curr[next] = this.materialOverrides[next].toDefinition();
+        return curr;
+      }, {} as Record<string, MeshAssetMaterialOverrideDefinition>),
+    };
+  }
+
   public get materialOverrides(): Record<string, MeshAssetMaterialOverrideData> {
     return this._meshAssetData.materialOverrides as Record<string, MeshAssetMaterialOverrideData>;
+  }
+}
+
+
+export function reflectionDataToDefinition<TReflectionType extends MeshAssetMaterialOverrideReflectionType>(reflection: MeshAssetMaterialOverrideReflectionDataOfType<TReflectionType>): MeshAssetMaterialOverrideReflectionDefinitionOfType<TReflectionType> {
+  switch (reflection.type) {
+    case "box-net":
+      const reflectionBoxNet = reflection as MeshAssetMaterialOverrideReflectionBoxNetData;
+      return {
+        type: reflectionBoxNet.type,
+        strength: reflectionBoxNet.strength,
+        textureAssetId: reflectionBoxNet.texture?.id,
+      } as MeshAssetMaterialOverrideReflectionDefinitionOfType<TReflectionType>;
+    case "3x2":
+      const reflection3x2 = reflection as MeshAssetMaterialOverrideReflection3x2Data;
+      return {
+        type: reflection3x2.type,
+        strength: reflection3x2.strength,
+        textureAssetId: reflection3x2.texture?.id,
+      } as MeshAssetMaterialOverrideReflectionDefinitionOfType<TReflectionType>;
+    case "6x1":
+      const reflection6x1 = reflection as MeshAssetMaterialOverrideReflection6x1Data;
+      return {
+        type: reflection6x1.type,
+        strength: reflection6x1.strength,
+        textureAssetId: reflection6x1.texture?.id,
+      } as MeshAssetMaterialOverrideReflectionDefinitionOfType<TReflectionType>;
+    case "separate":
+      const reflectionSeparate = reflection as MeshAssetMaterialOverrideReflectionSeparateData;
+      return {
+        type: reflectionSeparate.type,
+        strength: reflectionSeparate.strength,
+        pxTextureAssetId: reflectionSeparate.pxTexture?.id,
+        nxTextureAssetId: reflectionSeparate.nxTexture?.id,
+        pyTextureAssetId: reflectionSeparate.pyTexture?.id,
+        nyTextureAssetId: reflectionSeparate.nyTexture?.id,
+        pzTextureAssetId: reflectionSeparate.pzTexture?.id,
+        nzTextureAssetId: reflectionSeparate.nzTexture?.id,
+      } as MeshAssetMaterialOverrideReflectionDefinitionOfType<TReflectionType>;
+    default:
+      throw new Error(`Unimplemented reflection data type: '${(reflection as any).type}'`);
   }
 }

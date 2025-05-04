@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import type { AppProps } from 'next/app';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
+import * as Mobx from 'mobx';
 
 import '@app/styles/index.css';
 import { createLibrary, LibraryContext } from '@lib/index';
@@ -11,6 +12,8 @@ import { isRunningInTauri } from '@lib/tauri';
 
 // @NOTE Dear diary, I am so, so sorry for doing this.
 __hackNextJsServerSideRenderingForTauri();
+
+__storeMobxGlobalsForDebugging();
 
 /* Mock Tauri IPC if not running in Tauri */
 if (typeof window !== "undefined") {
@@ -117,5 +120,13 @@ function __hackNextJsServerSideRenderingForTauri(): void {
         throw new Error(`Failed to mock property '${prop}' on window: ${e}`);
       }
     }
+  }
+}
+
+function __storeMobxGlobalsForDebugging(): void {
+  if (typeof window !== 'undefined') {
+    (window as any).Mobx = {
+      toJS: Mobx.toJS,
+    };
   }
 }

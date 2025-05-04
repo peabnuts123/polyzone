@@ -33,11 +33,11 @@ export const Inspector: FunctionComponent<Props> = observer(({ modelMaterialEdit
   }
 
   const currentDiffuseColorEnabled = overrideData?.diffuseColorEnabled || false;
-  const currentDiffuseColor = toColor3Core(overrideData?.diffuseColor || RetroMaterial.Defaults.diffuseColor);
+  const currentDiffuseColor = toColor3Core(overrideData?.diffuseColorRawValue || RetroMaterial.Defaults.diffuseColor);
   const currentDiffuseTextureEnabled = overrideData?.diffuseTextureEnabled || false;
-  const currentDiffuseTexture = overrideData?.diffuseTexture as TextureAssetData;
+  const currentDiffuseTexture = overrideData?.diffuseTextureRawValue as TextureAssetData | undefined;
   const currentEmissionColorEnabled = overrideData?.emissionColorEnabled || false;
-  const currentEmissionColor = toColor3Core(overrideData?.emissionColor || RetroMaterial.Defaults.emissiveColor);
+  const currentEmissionColor = toColor3Core(overrideData?.emissionColorRawValue || RetroMaterial.Defaults.emissiveColor);
 
 
   return (
@@ -138,7 +138,7 @@ export const ReflectionInput: FunctionComponent<ReflectionInputProps> = observer
   // Computed state
   const selectedMaterialName = controller.selectedMaterialName!;
   const currentReflectionEnabled = overrideData?.reflectionEnabled || false;
-  const currentReflection = overrideData?.reflection;
+  const currentReflection = overrideData?.reflectionRawValue;
 
   // Functions
   const onSelectReflectionType = (type: MeshAssetMaterialOverrideReflectionType | ""): void => {

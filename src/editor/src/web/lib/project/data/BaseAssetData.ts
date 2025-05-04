@@ -89,4 +89,6 @@ export abstract class BaseAssetData<TAssetType extends AssetType> implements IBa
   public loadDefinition(assetDefinition: AssetDefinitionOfType<TAssetType>, assetDb: AssetDb): void {
     this._baseAssetData.loadDefinition(assetDefinition, assetDb);
   }
+
+  public abstract toAssetDefinition(): AssetDefinitionOfType<TAssetType>;
 }
