@@ -180,7 +180,7 @@ export const ReflectionInput: FunctionComponent<ReflectionInputProps> = observer
 
           <input
             type="range"
-            className="grow"
+            className="w-full"
             min={0}
             max={1}
             step={0.01}

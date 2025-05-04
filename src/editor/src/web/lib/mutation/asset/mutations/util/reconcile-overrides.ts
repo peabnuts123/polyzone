@@ -2,7 +2,7 @@ import { resolvePathForAssetMutation } from "@lib/mutation/util";
 import { MeshAssetData, MeshAssetMaterialOverrideData } from "@lib/project/data";
 import { MeshAssetDefinition } from "@lib/project/definition";
 import { ProjectController } from "@lib/project/ProjectController";
-import { MeshAssetMaterialOverrideDefinition, MeshAssetMaterialOverrideReflection3x2Data, MeshAssetMaterialOverrideReflection6x1Data, MeshAssetMaterialOverrideReflectionBoxNetData, MeshAssetMaterialOverrideReflectionBoxNetDefinition, MeshAssetMaterialOverrideReflectionData, MeshAssetMaterialOverrideReflectionDataOfType, MeshAssetMaterialOverrideReflectionDefinitionOfType, MeshAssetMaterialOverrideReflectionSeparateData, MeshAssetMaterialOverrideReflectionType } from "@polyzone/runtime/src/cartridge";
+import { MeshAssetMaterialOverrideDefinition, MeshAssetMaterialOverrideReflection3x2Data, MeshAssetMaterialOverrideReflection6x1Data, MeshAssetMaterialOverrideReflectionBoxNetData, MeshAssetMaterialOverrideReflectionDataOfType, MeshAssetMaterialOverrideReflectionDefinitionOfType, MeshAssetMaterialOverrideReflectionSeparateData, MeshAssetMaterialOverrideReflectionType } from "@polyzone/runtime/src/cartridge";
 import { toColor3Definition } from "@polyzone/runtime/src/util/color";
 
 

@@ -4,7 +4,6 @@ import { ReflectionLoading } from "@polyzone/runtime/src/world";
 import { IModelMaterialMutation } from "../IModelMaterialMutation";
 import { ModelMaterialMutationArguments } from "../ModelMaterialMutationArguments";
 import { reconcileMaterialOverrideData } from "./util/reconcile-overrides";
-import { Material } from "@babylonjs/core/Materials/material";
 
 export class SetModelMaterialOverrideReflection3x2TextureMutation implements IModelMaterialMutation {
   // Mutation parameters

@@ -4,7 +4,7 @@ import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
 import { AssetContainer } from '@babylonjs/core/assetContainer';
 import { PBRMaterial } from '@babylonjs/core/Materials/PBR/pbrMaterial';
 
-import { AssetType, IMeshAssetData, MeshAssetMaterialOverrideReflection3x2Data, MeshAssetMaterialOverrideReflection6x1Data, MeshAssetMaterialOverrideReflectionBoxNetData, MeshAssetMaterialOverrideReflectionSeparateData } from '@polyzone/runtime/src/cartridge';
+import { AssetType, IMeshAssetData } from '@polyzone/runtime/src/cartridge';
 import { debug_modTexture } from "@polyzone/runtime/src";
 import { RetroMaterial } from "@polyzone/runtime/src/materials/RetroMaterial";
 

@@ -1,11 +1,11 @@
-import { makeAutoObservable } from 'mobx';
+import { makeAutoObservable, runInAction } from 'mobx';
 import { Engine } from '@babylonjs/core/Engines/engine';
 import { Scene as BabylonScene } from '@babylonjs/core/scene';
 import { Vector3 as Vector3Babylon } from '@babylonjs/core/Maths/math.vector';
 import { ArcRotateCamera } from '@babylonjs/core/Cameras/arcRotateCamera';
 import { HemisphericLight as HemisphericLightBabylon } from '@babylonjs/core/Lights/hemisphericLight';
 import { DirectionalLight as DirectionalLightBabylon } from '@babylonjs/core/Lights/directionalLight';
-import { Color3 as Color3Babylon, Color4 as Color4Babylon } from '@babylonjs/core/Maths/math.color';
+import { Color3 as Color3Babylon } from '@babylonjs/core/Maths/math.color';
 import { v4 as uuid } from 'uuid';
 import "@babylonjs/loaders/OBJ/objFileLoader";
 import "@babylonjs/loaders/glTF";
@@ -163,18 +163,21 @@ export class ModelMaterialEditorController {
 
     // Add mesh component to preview game object
     const meshAsset = await this.assetCache.loadAsset(this.model, this.babylonScene);
-    const meshComponent = new MeshComponent(uuid(), gameObject, meshAsset);
-    gameObject.addComponent(meshComponent);
 
-    // Read materials from preview mesh (e.g. for list view)
-    this.materialInstances = meshAsset.assetContainer.materials.map((material) => {
-      // @NOTE Sanity check that materials are all the expected type
-      if (material instanceof RetroMaterial) {
-        return material;
-      } else {
-        console.error(`Found non-RetroMaterial instance in mesh asset: `, material);
-        throw new Error(`Found non-RetroMaterial instance in mesh asset`);
-      }
+    runInAction(() => {
+      const meshComponent = new MeshComponent(uuid(), gameObject, meshAsset);
+      gameObject.addComponent(meshComponent);
+
+      // Read materials from preview mesh (e.g. for list view)
+      this.materialInstances = meshAsset.assetContainer.materials.map((material) => {
+        // @NOTE Sanity check that materials are all the expected type
+        if (material instanceof RetroMaterial) {
+          return material;
+        } else {
+          console.error(`Found non-RetroMaterial instance in mesh asset: `, material);
+          throw new Error(`Found non-RetroMaterial instance in mesh asset`);
+        }
+      });
     });
   }
 

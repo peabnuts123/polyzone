@@ -5,10 +5,8 @@ import { FreeCamera as FreeCameraBabylon } from '@babylonjs/core/Cameras/freeCam
 import { Vector3 as Vector3Babylon } from '@babylonjs/core/Maths/math.vector';
 import { HemisphericLight as HemisphericLightBabylon } from '@babylonjs/core/Lights/hemisphericLight';
 import { Color3 as Color3Babylon } from '@babylonjs/core/Maths/math.color';
-import { LoadAssetContainerAsync } from '@babylonjs/core/Loading/sceneLoader';
 import "@babylonjs/loaders/OBJ/objFileLoader";
 import "@babylonjs/loaders/glTF";
-import { AssetContainer } from '@babylonjs/core/assetContainer';
 import { PointLight as PointLightBabylon } from '@babylonjs/core/Lights/pointLight';
 import { DirectionalLight as DirectionalLightBabylon } from '@babylonjs/core/Lights/directionalLight';
 import { PointerEventTypes } from '@babylonjs/core/Events/pointerEvents';

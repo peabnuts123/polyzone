@@ -1,6 +1,6 @@
 import { convertFileSrc } from '@tauri-apps/api/core';
 import { readFile, writeFile, rename, exists } from '@tauri-apps/plugin-fs';
-import { action, computed, makeObservable, observable, runInAction } from 'mobx';
+import { makeObservable, runInAction } from 'mobx';
 
 import { IFileSystem, VirtualFile } from "@polyzone/runtime/src/filesystem";
 import { joinToNativePath } from '@lib/util/path';
