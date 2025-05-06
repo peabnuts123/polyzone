@@ -42,14 +42,17 @@ export class SetModelMaterialOverrideReflection3x2TextureMutation implements IMo
     if (reflectionTextureAssetData) {
       ReflectionLoading.load3x2(
         materialOverridesData.reflection as MeshAssetMaterialOverrideReflection3x2Data,
-        ModelMaterialEditorController.assetCache,
-        ModelMaterialEditorController.scene,
+        {
+          assetCache: ModelMaterialEditorController.assetCache,
+          scene: ModelMaterialEditorController.scene,
+          assetDb: ProjectController.project.assets,
+        },
       )
         .then((reflectionTexture) => {
-          material.overrides.reflectionTexture = reflectionTexture;
+          material.overridesFromAsset.reflectionTexture = reflectionTexture;
         });
     } else {
-      material.overrides.reflectionTexture = undefined;
+      material.overridesFromAsset.reflectionTexture = undefined;
     }
 
     // 3. Update JSONC

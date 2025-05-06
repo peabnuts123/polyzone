@@ -5,3 +5,4 @@ export * from './MeshSupplementaryAsset';
 export * from './ScriptAsset';
 export * from './SoundAsset';
 export * from './TextureAsset';
+export * from './MaterialAsset';

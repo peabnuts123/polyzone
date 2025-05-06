@@ -8,6 +8,7 @@ import { IMeshSupplementaryAssetData, MeshSupplementaryAssetData } from './MeshS
 import { IScriptAssetData, ScriptAssetData } from './ScriptAssetData';
 import { ISoundAssetData, SoundAssetData } from './SoundAssetData';
 import { ITextureAssetData, TextureAssetData } from './TextureAssetData';
+import { IMaterialAssetData, MaterialAssetData } from './MaterialAssetData';
 import { CommonAssetDataArgs } from "./BaseAssetData";
 
 
@@ -91,6 +92,8 @@ export function createAssetData<TAssetType extends AssetType>(assetDefinition: A
       return new SoundAssetData(args) as ISoundAssetData as IAssetDataOfType<TAssetType>;
     case AssetType.Texture:
       return new TextureAssetData(args) as ITextureAssetData as IAssetDataOfType<TAssetType>;
+    case AssetType.Material:
+      return new MaterialAssetData(args) as IMaterialAssetData as IAssetDataOfType<TAssetType>;
     default:
       throw new Error(`Unimplemented AssetType: ${assetDefinition.type}`);
   }

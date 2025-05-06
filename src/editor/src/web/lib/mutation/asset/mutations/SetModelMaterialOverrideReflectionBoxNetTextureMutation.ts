@@ -42,14 +42,17 @@ export class SetModelMaterialOverrideReflectionBoxNetTextureMutation implements 
     if (reflectionTextureAssetData) {
       ReflectionLoading.loadBoxNet(
         materialOverridesData.reflection as MeshAssetMaterialOverrideReflectionBoxNetData,
-        ModelMaterialEditorController.assetCache,
-        ModelMaterialEditorController.scene,
+        {
+          assetCache: ModelMaterialEditorController.assetCache,
+          scene: ModelMaterialEditorController.scene,
+          assetDb: ProjectController.project.assets,
+        },
       )
         .then((reflectionTexture) => {
-          material.overrides.reflectionTexture = reflectionTexture;
+          material.overridesFromAsset.reflectionTexture = reflectionTexture;
         });
     } else {
-      material.overrides.reflectionTexture = undefined;
+      material.overridesFromAsset.reflectionTexture = undefined;
     }
 
     // 3. Update JSONC

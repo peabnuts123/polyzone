@@ -5,12 +5,13 @@ import { RetroMaterial } from "@polyzone/runtime/src/materials/RetroMaterial";
 import { toColor3Core } from "@polyzone/runtime/src/util";
 
 import { ModelMaterialEditorController } from "@lib/material-editor/model/ModelMaterialEditorController";
-import { MeshAssetMaterialOverrideData, TextureAssetData } from "@lib/project/data";
-import { ReflectionSeparateTexture, SetModelMaterialOverrideDiffuseColorEnabledMutation, SetModelMaterialOverrideDiffuseColorMutation, SetModelMaterialOverrideDiffuseTextureEnabledMutation, SetModelMaterialOverrideDiffuseTextureMutation, SetModelMaterialOverrideEmissionColorEnabledMutation, SetModelMaterialOverrideEmissionColorMutation, SetModelMaterialOverrideReflection3x2TextureMutation, SetModelMaterialOverrideReflection6x1TextureMutation, SetModelMaterialOverrideReflectionBoxNetTextureMutation, SetModelMaterialOverrideReflectionEnabledMutation, SetModelMaterialOverrideReflectionSeparateTextureMutation, SetModelMaterialOverrideReflectionStrengthMutation, SetModelMaterialOverrideReflectionTypeMutation } from "@lib/mutation/asset/mutations";
+import { MaterialAssetData, MeshAssetMaterialOverrideData, TextureAssetData } from "@lib/project/data";
+import { ReflectionSeparateTexture, SetModelMaterialOverrideBaseMaterialEnabledMutation, SetModelMaterialOverrideBaseMaterialMutation, SetModelMaterialOverrideDiffuseColorEnabledMutation, SetModelMaterialOverrideDiffuseColorMutation, SetModelMaterialOverrideDiffuseTextureEnabledMutation, SetModelMaterialOverrideDiffuseTextureMutation, SetModelMaterialOverrideEmissionColorEnabledMutation, SetModelMaterialOverrideEmissionColorMutation, SetModelMaterialOverrideReflection3x2TextureMutation, SetModelMaterialOverrideReflection6x1TextureMutation, SetModelMaterialOverrideReflectionBoxNetTextureMutation, SetModelMaterialOverrideReflectionEnabledMutation, SetModelMaterialOverrideReflectionSeparateTextureMutation, SetModelMaterialOverrideReflectionStrengthMutation, SetModelMaterialOverrideReflectionTypeMutation } from "@lib/mutation/asset/mutations";
 import { ColorInput, createAssetReferenceComponentOfType, NumberInput } from "../common/inputs";
 import { AssetType, MeshAssetMaterialOverrideReflectionType } from "@polyzone/runtime/src/cartridge/archive";
 
 const TextureAssetReference = createAssetReferenceComponentOfType<AssetType.Texture>();
+const MaterialAssetReference = createAssetReferenceComponentOfType<AssetType.Material>();
 
 
 interface Props {
@@ -32,6 +33,8 @@ export const Inspector: FunctionComponent<Props> = observer(({ modelMaterialEdit
     overrideData = controller.model.getOverridesForMaterial(selectedMaterialName!);
   }
 
+  const currentBaseMaterialEnabled = overrideData?.materialEnabled || false;
+  const currentBaseMaterial = overrideData?.material as MaterialAssetData | undefined;
   const currentDiffuseColorEnabled = overrideData?.diffuseColorEnabled || false;
   const currentDiffuseColor = toColor3Core(overrideData?.diffuseColorRawValue || RetroMaterial.Defaults.diffuseColor);
   const currentDiffuseTextureEnabled = overrideData?.diffuseTextureEnabled || false;
@@ -58,7 +61,20 @@ export const Inspector: FunctionComponent<Props> = observer(({ modelMaterialEdit
           <>
             <div className="p-2">
 
-              {/* @TODO Material picker */}
+              {/* Base material */}
+              <MaterialAssetReference togglable
+                label="Base material"
+                className="mb-[50px]"
+                asset={currentBaseMaterial}
+                assetType={AssetType.Material}
+                enabled={currentBaseMaterialEnabled}
+                onEnabledChange={(newValue) => {
+                  controller.mutator.apply(new SetModelMaterialOverrideBaseMaterialEnabledMutation(controller.model.id, selectedMaterialName, newValue));
+                }}
+                onAssetChange={(newValue) => {
+                  controller.mutator.apply(new SetModelMaterialOverrideBaseMaterialMutation(controller.model.id, selectedMaterialName, newValue?.id));
+                }}
+              />
 
               <h2 className="text-h2 mb-2">Overrides</h2>
 

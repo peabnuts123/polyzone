@@ -1,4 +1,3 @@
-import type { Scene as BabylonScene } from "@babylonjs/core/scene";
 import { Texture as TextureBabylon } from '@babylonjs/core/Materials/Textures/texture';
 import { RawCubeTexture } from '@babylonjs/core/Materials/Textures/rawCubeTexture';
 import { Engine } from '@babylonjs/core/Engines/engine';
@@ -16,7 +15,7 @@ import {
 import { debug_modTexture } from '@polyzone/runtime';
 
 import { LoadedAssetBase } from './LoadedAssetBase';
-import type { AssetCache } from './AssetCache';
+import type { AssetCacheContext } from './AssetCache';
 import { RetroMaterial } from "../../materials/RetroMaterial";
 
 
@@ -30,7 +29,9 @@ export class TextureAsset extends LoadedAssetBase<AssetType.Texture> {
     this._texture = texture;
   }
 
-  public static async fromAssetData(assetData: ITextureAssetData, scene: BabylonScene, _assetCache: AssetCache): Promise<TextureAsset> {
+  public static async fromAssetData(assetData: ITextureAssetData, context: AssetCacheContext): Promise<TextureAsset> {
+    const { scene } = context;
+
     const texture = new TextureBabylon(assetData.babylonFetchUrl, scene, {
       noMipmap: true,
       samplingMode: TextureBabylon.NEAREST_SAMPLINGMODE,
@@ -104,16 +105,16 @@ export abstract class ReflectionLoading {
   /**
    * Load a reflection texture from the given data.
    */
-  public static async load(data: MeshAssetMaterialOverrideReflectionData, assetCache: AssetCache, scene: BabylonScene): Promise<CubeTexture | undefined> {
+  public static async load(data: MeshAssetMaterialOverrideReflectionData, context: AssetCacheContext): Promise<CubeTexture | undefined> {
     switch (data.type) {
       case "box-net":
-        return ReflectionLoading.loadBoxNet(data, assetCache, scene);
+        return ReflectionLoading.loadBoxNet(data, context);
       case "3x2":
-        return ReflectionLoading.load3x2(data, assetCache, scene);
+        return ReflectionLoading.load3x2(data, context);
       case "6x1":
-        return ReflectionLoading.load6x1(data, assetCache, scene);
+        return ReflectionLoading.load6x1(data, context);
       case "separate":
-        return ReflectionLoading.loadSeparate(data, assetCache, scene);
+        return ReflectionLoading.loadSeparate(data, context);
       default:
         throw new Error(`Unimplemented MeshAssetMaterialOverrideReflectionType: ${(data as { type: any }).type}`);
     }
@@ -132,11 +133,13 @@ export abstract class ReflectionLoading {
    *   └────┴────┴────┴────┘
    * ```
    */
-  public static async loadBoxNet(data: MeshAssetMaterialOverrideReflectionBoxNetData, assetCache: AssetCache, scene: BabylonScene): Promise<CubeTexture | undefined> {
+  public static async loadBoxNet(data: MeshAssetMaterialOverrideReflectionBoxNetData, context: AssetCacheContext): Promise<CubeTexture | undefined> {
     if (data.texture === undefined) return undefined;
 
+    const { assetCache, scene } = context;
+
     // Load texture through cache
-    const cachedTextureAsset = await assetCache.loadAsset(data.texture, scene);
+    const cachedTextureAsset = await assetCache.loadAsset(data.texture, context);
 
     // Read texture into HTML canvas
     const [canvas, ctx] = await ReflectionLoading.loadTextureToCanvas(cachedTextureAsset.texture);
@@ -177,11 +180,13 @@ export abstract class ReflectionLoading {
    *   └────┴────┴────┘
    * ```
    */
-  public static async load3x2(data: MeshAssetMaterialOverrideReflection3x2Data, assetCache: AssetCache, scene: BabylonScene): Promise<CubeTexture | undefined> {
+  public static async load3x2(data: MeshAssetMaterialOverrideReflection3x2Data, context: AssetCacheContext): Promise<CubeTexture | undefined> {
     if (data.texture === undefined) return undefined;
 
+    const { assetCache, scene } = context;
+
     // Load texture through cache
-    const cachedTextureAsset = await assetCache.loadAsset(data.texture, scene);
+    const cachedTextureAsset = await assetCache.loadAsset(data.texture, context);
 
     // Read texture into HTML canvas
     const [canvas, ctx] = await ReflectionLoading.loadTextureToCanvas(cachedTextureAsset.texture);
@@ -220,11 +225,13 @@ export abstract class ReflectionLoading {
    *   └────┴────┴────┴────┴────┴────┘
    * ```
    */
-  public static async load6x1(data: MeshAssetMaterialOverrideReflection6x1Data, assetCache: AssetCache, scene: BabylonScene): Promise<CubeTexture | undefined> {
+  public static async load6x1(data: MeshAssetMaterialOverrideReflection6x1Data, context: AssetCacheContext): Promise<CubeTexture | undefined> {
     if (data.texture === undefined) return undefined;
 
+    const { assetCache, scene } = context;
+
     // Load texture through cache
-    const cachedTextureAsset = await assetCache.loadAsset(data.texture, scene);
+    const cachedTextureAsset = await assetCache.loadAsset(data.texture, context);
 
     // Read texture into HTML canvas
     const [canvas, ctx] = await ReflectionLoading.loadTextureToCanvas(cachedTextureAsset.texture);
@@ -254,7 +261,7 @@ export abstract class ReflectionLoading {
     return result;
   }
 
-  public static async loadSeparate(data: MeshAssetMaterialOverrideReflectionSeparateData, assetCache: AssetCache, scene: BabylonScene): Promise<CubeTexture | undefined> {
+  public static async loadSeparate(data: MeshAssetMaterialOverrideReflectionSeparateData, context: AssetCacheContext): Promise<CubeTexture | undefined> {
     if (
       data.pxTexture === undefined ||
       data.nxTexture === undefined ||
@@ -264,13 +271,15 @@ export abstract class ReflectionLoading {
       data.nzTexture === undefined
     ) return undefined;
 
+    const { assetCache, scene } = context;
+
     // Load texture assets through cache
-    const pxTextureAsset = await assetCache.loadAsset(data.pxTexture, scene);
-    const nxTextureAsset = await assetCache.loadAsset(data.nxTexture, scene);
-    const pyTextureAsset = await assetCache.loadAsset(data.pyTexture, scene);
-    const nyTextureAsset = await assetCache.loadAsset(data.nyTexture, scene);
-    const pzTextureAsset = await assetCache.loadAsset(data.pzTexture, scene);
-    const nzTextureAsset = await assetCache.loadAsset(data.nzTexture, scene);
+    const pxTextureAsset = await assetCache.loadAsset(data.pxTexture, context);
+    const nxTextureAsset = await assetCache.loadAsset(data.nxTexture, context);
+    const pyTextureAsset = await assetCache.loadAsset(data.pyTexture, context);
+    const nyTextureAsset = await assetCache.loadAsset(data.nyTexture, context);
+    const pzTextureAsset = await assetCache.loadAsset(data.pzTexture, context);
+    const nzTextureAsset = await assetCache.loadAsset(data.nzTexture, context);
 
     // Read textures into raw buffers (doesn't seem to be an easy way to assemble a CubeTexture from 6 Texture assets)
     const textures = await Promise.all([

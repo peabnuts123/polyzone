@@ -19,7 +19,7 @@ class Resolver {
    * will be unmodified.
    * @param url The URL to resolve.
    */
-  private resolve(url: string): string {
+  public resolve(url: string): string {
     for (const [protocol, fileSystem] of this.fileSystems) {
       if (url.startsWith(protocol)) {
         // @NOTE lo-fi canonicalisation hack using `decodeURIComponent` + trim leading slash

@@ -162,7 +162,7 @@ export class ModelMaterialEditorController {
     transform.gameObject = gameObject;
 
     // Add mesh component to preview game object
-    const meshAsset = await this.assetCache.loadAsset(this.model, this.babylonScene);
+    const meshAsset = await this.assetCache.loadAsset(this.model, { scene: this.babylonScene, assetDb: this.projectController.project.assets });
 
     runInAction(() => {
       const meshComponent = new MeshComponent(uuid(), gameObject, meshAsset);
@@ -201,7 +201,7 @@ export class ModelMaterialEditorController {
   }
 
   public async loadAssetThroughCache<TAssetType extends AssetType>(assetData: AssetDataOfType<TAssetType>): Promise<LoadedAssetOfType<TAssetType>> {
-    return this.assetCache.loadAsset(assetData, this.babylonScene);
+    return this.assetCache.loadAsset(assetData, { scene: this.babylonScene, assetDb: this.projectController.project.assets });
   }
 
   public selectMaterial(materialName: string): void {

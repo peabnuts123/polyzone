@@ -101,12 +101,16 @@ export class SetModelMaterialOverrideReflectionTypeMutation implements IModelMat
     // @NOTE This is currently not possible, since we JUST cleared out any texture data or whatever
     // but we leave it here for forward compatibility?
     if (materialOverridesData.reflection !== undefined) {
-      ReflectionLoading.load(materialOverridesData.reflection, ModelMaterialEditorController.assetCache, ModelMaterialEditorController.scene)
+      ReflectionLoading.load(materialOverridesData.reflection, {
+        assetCache: ModelMaterialEditorController.assetCache,
+        scene: ModelMaterialEditorController.scene,
+        assetDb: ProjectController.project.assets,
+      })
         .then((reflectionTexture) => {
-          material.overrides.reflectionTexture = reflectionTexture;
+          material.overridesFromAsset.reflectionTexture = reflectionTexture;
         });
     } else {
-      material.overrides.reflectionTexture = undefined;
+      material.overridesFromAsset.reflectionTexture = undefined;
     }
 
     // 3. Update JSONC

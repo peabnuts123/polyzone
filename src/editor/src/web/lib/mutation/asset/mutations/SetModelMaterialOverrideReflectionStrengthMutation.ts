@@ -46,8 +46,8 @@ export class SetModelMaterialOverrideReflectionStrengthMutation implements IMode
     });
 
     // 2. Update Babylon state
-    if (material.overrides.reflectionTexture) {
-      material.overrides.reflectionTexture.level = reflectionStrength;
+    if (material.overridesFromAsset.reflectionTexture) {
+      material.overridesFromAsset.reflectionTexture.level = reflectionStrength;
     }
   }
 

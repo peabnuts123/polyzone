@@ -247,7 +247,7 @@ export class SceneViewController {
       /* Mesh component */
       let meshAsset: MeshAsset | undefined = undefined;
       if (componentData.meshAsset !== undefined) {
-        meshAsset = await this.assetCache.loadAsset(componentData.meshAsset, this.babylonScene);
+        meshAsset = await this.assetCache.loadAsset(componentData.meshAsset, { scene: this.babylonScene, assetDb: this.projectController.project.assets });
       }
       const meshComponent = newComponent = new MeshComponent(componentData, gameObject, meshAsset);
       // Store reverse reference to new instance for managing instance later (e.g. autoload)

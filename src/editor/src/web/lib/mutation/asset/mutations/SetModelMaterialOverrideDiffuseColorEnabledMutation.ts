@@ -44,10 +44,10 @@ export class SetModelMaterialOverrideDiffuseColorEnabledMutation implements IMod
       // Enabling override
       // Since we made sure the override had a color if it was enabled,
       // we know that there MUST be a value in the overrides data at this point
-      material.overrides.diffuseColor = toColor3Babylon(materialOverridesData.diffuseColor!);
+      material.overridesFromAsset.diffuseColor = toColor3Babylon(materialOverridesData.diffuseColor!);
     } else {
       // Disabling override - remove color from material
-      material.overrides.diffuseColor = undefined;
+      material.overridesFromAsset.diffuseColor = undefined;
     }
 
     // 3. Update JSONC

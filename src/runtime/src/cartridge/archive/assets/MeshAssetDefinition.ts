@@ -33,7 +33,7 @@ export type MeshAssetMaterialOverrideReflectionDefinition = MeshAssetMaterialOve
 export type MeshAssetMaterialOverrideReflectionDefinitionOfType<T extends MeshAssetMaterialOverrideReflectionType> = Extract<MeshAssetMaterialOverrideReflectionDefinition, { type: T }>;
 
 export interface MeshAssetMaterialOverrideDefinition {
-  // materialAssetId?: string;
+  materialAssetId?: string;
   diffuseColor?: ColorDefinition;
   diffuseTextureAssetId?: string;
   emissionColor?: ColorDefinition;

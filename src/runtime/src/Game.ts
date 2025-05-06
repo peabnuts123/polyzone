@@ -158,7 +158,7 @@ export class Game {
         /* Mesh component */
         let meshAsset: MeshAsset | undefined = undefined;
         if (componentData.meshAsset !== undefined) {
-          meshAsset = await this.assetCache.loadAsset(componentData.meshAsset, this.babylonScene);
+          meshAsset = await this.assetCache.loadAsset(componentData.meshAsset, { scene: this.babylonScene, assetDb: this.cartridge!.assetDb });
         }
         gameObject.addComponent(new MeshComponent(componentData.id, gameObject, meshAsset));
       } else if (componentData instanceof ScriptComponentData) {
@@ -170,7 +170,7 @@ export class Game {
           // Script "asset" itself which may contain metadata about the asset rather than the script data itself
           // @TODO Where can this go? What can reference it? It currently doesn't have any data, so, ignore for now.
           // I guess the code here will reference it?
-          // const scriptAsset = await this.assetCache.loadAsset(componentData.scriptAsset, this.babylonScene);
+          // const scriptAsset = await this.assetCache.loadAsset(componentData.scriptAsset, {scene: this.babylonScene, assetDb: this.cartridge!.assetDb});
 
           const scriptModule = this.scriptLoader.getModule(componentData.scriptAsset);
           if (

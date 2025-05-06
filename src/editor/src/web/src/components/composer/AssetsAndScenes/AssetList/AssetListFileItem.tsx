@@ -1,6 +1,6 @@
 import { FunctionComponent } from "react";
 import { AssetType } from "@polyzone/runtime/src/cartridge";
-import { DocumentIcon, DocumentTextIcon, PhotoIcon, CubeIcon } from '@heroicons/react/24/outline';
+import { DocumentIcon, DocumentTextIcon, PhotoIcon, CubeIcon, GlobeAltIcon } from '@heroicons/react/24/outline';
 import { observer } from "mobx-react-lite";
 
 import { useAssetDrag } from "@app/interactions/assets";
@@ -37,6 +37,8 @@ export function getIconForAssetType(assetType: AssetType): typeof CubeIcon {
       return DocumentTextIcon;
     case AssetType.Texture:
       return PhotoIcon;
+    case AssetType.Material:
+      return GlobeAltIcon;
     default:
       return DocumentIcon;
   }

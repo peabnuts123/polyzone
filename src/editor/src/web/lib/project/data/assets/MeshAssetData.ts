@@ -18,6 +18,7 @@ import {
   MeshAssetMaterialOverrideReflection3x2Data,
   MeshAssetMaterialOverrideReflection6x1Data,
   MeshAssetMaterialOverrideReflectionSeparateData,
+  IMaterialAssetData,
 } from "@polyzone/runtime/src/cartridge";
 import { MeshAssetDefinition } from "@lib/project/definition";
 import { BaseAssetData, CommonAssetDataArgs } from "../BaseAssetData";
@@ -28,6 +29,7 @@ import { toColor3Definition } from "@polyzone/runtime/src/util";
 export class MeshAssetMaterialOverrideData implements IMeshAssetMaterialOverrideData {
   private _meshAssetMaterialOverrideData: MeshAssetMaterialOverrideDataRuntime;
 
+  public materialEnabled: boolean;
   public diffuseColorEnabled: boolean;
   public diffuseTextureEnabled: boolean;
   public emissionColorEnabled: boolean;
@@ -36,6 +38,7 @@ export class MeshAssetMaterialOverrideData implements IMeshAssetMaterialOverride
   public constructor(meshAssetMaterialOverrideDataRuntime: MeshAssetMaterialOverrideDataRuntime) {
     this._meshAssetMaterialOverrideData = meshAssetMaterialOverrideDataRuntime;
 
+    this.materialEnabled = meshAssetMaterialOverrideDataRuntime.material !== undefined;
     this.diffuseColorEnabled = meshAssetMaterialOverrideDataRuntime.diffuseColor !== undefined;
     this.diffuseTextureEnabled = meshAssetMaterialOverrideDataRuntime.diffuseTexture !== undefined;
     this.emissionColorEnabled = meshAssetMaterialOverrideDataRuntime.emissionColor !== undefined;
@@ -47,6 +50,7 @@ export class MeshAssetMaterialOverrideData implements IMeshAssetMaterialOverride
 
   public toDefinition(): MeshAssetMaterialOverrideDefinition {
     return {
+      materialAssetId: this.material?.id,
       diffuseColor: this.diffuseColor ? toColor3Definition(this.diffuseColor) : undefined,
       emissionColor: this.emissionColor ? toColor3Definition(this.emissionColor) : undefined,
       diffuseTextureAssetId: this.diffuseTexture?.id,
@@ -69,6 +73,13 @@ export class MeshAssetMaterialOverrideData implements IMeshAssetMaterialOverride
       MeshAssetMaterialOverrideDataRuntime.createFrom(definition, assetDb),
     );
   }
+
+  public get materialRawValue(): IMaterialAssetData | undefined { return this._meshAssetMaterialOverrideData.material; }
+  public get material(): IMaterialAssetData | undefined {
+    if (this.materialEnabled) return this._meshAssetMaterialOverrideData.material;
+    else return undefined;
+  }
+  public set material(value: IMaterialAssetData | undefined) { this._meshAssetMaterialOverrideData.material = value; }
 
   public get diffuseColorRawValue(): Color3 | undefined { return this._meshAssetMaterialOverrideData.diffuseColor; }
   public get diffuseColor(): Color3 | undefined {

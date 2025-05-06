@@ -39,7 +39,7 @@ export class SetModelMaterialOverrideEmissionColorMutation implements IModelMate
 
     // - Store undo values
     this.dataEmissionColor = materialOverridesData?.emissionColor;
-    this.sceneEmissionColor = material.overrides.emissionColor;
+    this.sceneEmissionColor = material.overridesFromAsset.emissionColor;
   }
 
   public update({ ProjectController, ModelMaterialEditorController }: ModelMaterialMutationArguments, { emissionColor }: SetModelMaterialOverrideEmissionColorMutationUpdateArgs): void {
@@ -51,7 +51,7 @@ export class SetModelMaterialOverrideEmissionColorMutation implements IModelMate
       overrides.emissionColor = emissionColor;
     });
     // - 2. Babylon state
-    material.overrides.emissionColor = toColor3Babylon(emissionColor);
+    material.overridesFromAsset.emissionColor = toColor3Babylon(emissionColor);
   }
 
   public apply({ ProjectController }: ModelMaterialMutationArguments): void {

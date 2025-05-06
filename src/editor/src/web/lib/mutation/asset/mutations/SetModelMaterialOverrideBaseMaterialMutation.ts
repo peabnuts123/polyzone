@@ -1,55 +1,54 @@
+
+import { AssetType } from "@polyzone/runtime/src/cartridge";
 import { IModelMaterialMutation } from "../IModelMaterialMutation";
 import { ModelMaterialMutationArguments } from "../ModelMaterialMutationArguments";
-import { AssetType } from "@polyzone/runtime/src/cartridge";
 import { reconcileMaterialOverrideData } from "./util/reconcile-overrides";
-import { ReflectionLoading } from "@polyzone/runtime/src/world";
 
-export class SetModelMaterialOverrideReflectionEnabledMutation implements IModelMaterialMutation {
+export class SetModelMaterialOverrideBaseMaterialMutation implements IModelMaterialMutation {
   // Mutation parameters
   private readonly modelAssetId: string;
   private readonly materialName: string;
-  private readonly reflectionEnabled: boolean;
+  private readonly baseMaterialAssetId: string | undefined;
 
   // Undo state
-  private oldReflectionEnabled: boolean | undefined;
+  private oldBaseMaterialAssetId: string | undefined;
 
-  public constructor(modelAssetId: string, materialName: string, reflectionEnabled: boolean) {
+  public constructor(modelAssetId: string, materialName: string, baseMaterialAssetId: string | undefined) {
     this.modelAssetId = modelAssetId;
     this.materialName = materialName;
-    this.reflectionEnabled = reflectionEnabled;
+    this.baseMaterialAssetId = baseMaterialAssetId;
   }
 
   public apply({ ProjectController, ModelMaterialEditorController }: ModelMaterialMutationArguments): void {
     const meshAssetData = ProjectController.project.assets.getById(this.modelAssetId, AssetType.Mesh);
+    const baseMaterialAssetData = this.baseMaterialAssetId ? ProjectController.project.assets.getById(this.baseMaterialAssetId, AssetType.Material) : undefined;
     let materialOverridesData = meshAssetData.getOverridesForMaterial(this.materialName);
     const material = ModelMaterialEditorController.getMaterialByName(this.materialName);
 
     // 0. Store undo data
-    this.oldReflectionEnabled = materialOverridesData?.reflectionEnabled;
+    this.oldBaseMaterialAssetId = materialOverridesData?.material?.id;
 
     // 1. Update data
     meshAssetData.setMaterialOverride(this.materialName, (overrides) => {
-      overrides.reflectionEnabled = this.reflectionEnabled;
+      overrides.material = baseMaterialAssetData;
     });
 
     // 2. Update Babylon state
     materialOverridesData = meshAssetData.getOverridesForMaterial(this.materialName)!;
-    if (this.reflectionEnabled) {
-      // Enabling override
-      // Set the material's reflection texture IF one is fully defined in the override data
-      if (materialOverridesData.reflection !== undefined) {
-        ReflectionLoading.load(materialOverridesData.reflection, {
-          assetCache: ModelMaterialEditorController.assetCache,
-          scene: ModelMaterialEditorController.scene,
-          assetDb: ProjectController.project.assets,
-        })
-          .then((reflectionTexture) => {
-            material.overridesFromAsset.reflectionTexture = reflectionTexture;
-          });
+    if (baseMaterialAssetData) {
+      if (materialOverridesData.material !== undefined) {
+        ModelMaterialEditorController.assetCache.loadAsset(
+          materialOverridesData.material,
+          {
+            scene: ModelMaterialEditorController.scene,
+            assetDb: ProjectController.project.assets,
+          },
+        ).then((materialAsset) => {
+          material.readOverridesFromMaterial(materialAsset);
+        });
       }
     } else {
-      // Disabling override
-      material.overridesFromAsset.reflectionTexture = undefined;
+      material.readOverridesFromMaterial(undefined);
     }
 
     // 3. Update JSONC
@@ -63,6 +62,6 @@ export class SetModelMaterialOverrideReflectionEnabledMutation implements IModel
   }
 
   public get description(): string {
-    return `${this.reflectionEnabled ? "Enable" : "Disable"} material reflection override`;
+    return `Set material base material override`;
   }
 }

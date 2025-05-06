@@ -18,6 +18,7 @@ import {
   ScriptAssetData,
   SoundAssetData,
   TextureAssetData,
+  MaterialAssetData,
 } from './assets';
 
 
@@ -119,6 +120,8 @@ export function createAssetData<TAssetType extends AssetType>(assetDefinition: A
       return new SoundAssetData(args) as AssetDataOfType<TAssetType>;
     case AssetType.Texture:
       return new TextureAssetData(args) as AssetDataOfType<TAssetType>;
+    case AssetType.Material:
+      return new MaterialAssetData(args) as AssetDataOfType<TAssetType>;
     default:
       throw new Error(`Unimplemented AssetType: ${assetDefinition.type}`);
   }

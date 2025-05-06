@@ -1,3 +1,5 @@
+export * from './SetModelMaterialOverrideBaseMaterialEnabledMutation';
+export * from './SetModelMaterialOverrideBaseMaterialMutation';
 export * from './SetModelMaterialOverrideDiffuseColorEnabledMutation';
 export * from './SetModelMaterialOverrideDiffuseColorMutation';
 export * from './SetModelMaterialOverrideDiffuseTextureEnabledMutation';

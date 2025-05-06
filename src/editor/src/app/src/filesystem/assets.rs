@@ -20,6 +20,7 @@ pub enum AssetType {
     Script,
     Sound,
     Texture,
+    Material,
 }
 
 // List of all file extensions that are supported asset types
@@ -28,6 +29,7 @@ const SUPPORTED_MESH_SUPPLEMENTARY_ASSET_FILE_EXTENSIONS: [&str; 1] = [ "mtl" ];
 const SUPPORTED_SCRIPT_ASSET_FILE_EXTENSIONS: [&str; 2] = [ "ts", "js" ];
 const SUPPORTED_SOUND_ASSET_FILE_EXTENSIONS: [&str; 3] = [ "mp3", "ogg", "wav" ];
 const SUPPORTED_TEXTURE_ASSET_FILE_EXTENSIONS: [&str; 6] = [ "png", "jpg", "jpeg", "bmp", "basis", "dds" ];
+const SUPPORTED_MATERIAL_ASSET_FILE_EXTENSIONS: [&str; 1] = [ "pzmat" ];
 
 // Types
 /// An asset file on disk
@@ -288,6 +290,8 @@ pub fn get_asset_type(path: &PathBuf) -> Option<AssetType> {
                 Some(AssetType::Sound)
             } else if SUPPORTED_TEXTURE_ASSET_FILE_EXTENSIONS.contains(&extension) {
                 Some(AssetType::Texture)
+            } else if SUPPORTED_MATERIAL_ASSET_FILE_EXTENSIONS.contains(&extension) {
+                Some(AssetType::Material)
             } else {
                 None
             }

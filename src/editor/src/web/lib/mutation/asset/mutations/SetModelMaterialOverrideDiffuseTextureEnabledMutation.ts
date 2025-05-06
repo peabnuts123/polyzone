@@ -39,14 +39,17 @@ export class SetModelMaterialOverrideDiffuseTextureEnabledMutation implements IM
       if (materialOverridesData.diffuseTexture !== undefined) {
         ModelMaterialEditorController.assetCache.loadAsset(
           materialOverridesData.diffuseTexture,
-          ModelMaterialEditorController.scene,
+          {
+            scene: ModelMaterialEditorController.scene,
+            assetDb: ProjectController.project.assets,
+          },
         ).then((textureAsset) => {
-          material.overrides.diffuseTexture = textureAsset.texture;
+          material.overridesFromAsset.diffuseTexture = textureAsset.texture;
         });
       }
     } else {
       // Disabling override
-      material.overrides.diffuseTexture = undefined;
+      material.overridesFromAsset.diffuseTexture = undefined;
     }
 
     // 3. Update JSONC

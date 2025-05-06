@@ -1,9 +1,7 @@
-import type { Scene as BabylonScene } from "@babylonjs/core/scene";
-
 import { AssetType, IMeshSupplementaryAssetData } from '@polyzone/runtime/src/cartridge';
 
 import { LoadedAssetBase } from './LoadedAssetBase';
-import type { AssetCache } from './AssetCache';
+import type { AssetCacheContext } from './AssetCache';
 
 
 export class MeshSupplementaryAsset extends LoadedAssetBase<AssetType.MeshSupplementary> {
@@ -13,7 +11,7 @@ export class MeshSupplementaryAsset extends LoadedAssetBase<AssetType.MeshSupple
     super();
   }
 
-  public static async fromAssetData(_assetData: IMeshSupplementaryAssetData, _scene: BabylonScene, _assetCache: AssetCache): Promise<MeshSupplementaryAsset> {
+  public static async fromAssetData(_assetData: IMeshSupplementaryAssetData, _context: AssetCacheContext): Promise<MeshSupplementaryAsset> {
     /* No data to load at-present */
     return new MeshSupplementaryAsset();
   }

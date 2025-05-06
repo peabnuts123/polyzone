@@ -39,7 +39,7 @@ export class SetModelMaterialOverrideDiffuseColorMutation implements IModelMater
 
     // - Store undo values
     this.dataDiffuseColor = materialOverridesData?.diffuseColor;
-    this.sceneDiffuseColor = material.overrides.diffuseColor;
+    this.sceneDiffuseColor = material.overridesFromAsset.diffuseColor;
   }
 
   public update({ ProjectController, ModelMaterialEditorController }: ModelMaterialMutationArguments, { diffuseColor }: SetModelMaterialOverrideDiffuseColorMutationUpdateArgs): void {
@@ -51,7 +51,7 @@ export class SetModelMaterialOverrideDiffuseColorMutation implements IModelMater
       overrides.diffuseColor = diffuseColor;
     });
     // - 2. Babylon state
-    material.overrides.diffuseColor = toColor3Babylon(diffuseColor);
+    material.overridesFromAsset.diffuseColor = toColor3Babylon(diffuseColor);
   }
 
   public apply({ ProjectController }: ModelMaterialMutationArguments): void {

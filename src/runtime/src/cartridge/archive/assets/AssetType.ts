@@ -4,4 +4,5 @@ export enum AssetType {
   Script = "script",
   Sound = "sound",
   Texture = "texture",
+  Material = "material",
 }

@@ -54,14 +54,17 @@ export class SetModelMaterialOverrideReflectionSeparateTextureMutation implement
       /* @NOTE Will only return a defined texture when all 6 textures are defined */
       ReflectionLoading.loadSeparate(
         materialOverridesData.reflection as MeshAssetMaterialOverrideReflectionSeparateData,
-        ModelMaterialEditorController.assetCache,
-        ModelMaterialEditorController.scene,
+        {
+          assetCache: ModelMaterialEditorController.assetCache,
+          scene: ModelMaterialEditorController.scene,
+          assetDb: ProjectController.project.assets,
+        },
       )
         .then((reflectionTexture) => {
-          material.overrides.reflectionTexture = reflectionTexture;
+          material.overridesFromAsset.reflectionTexture = reflectionTexture;
         });
     } else {
-      material.overrides.reflectionTexture = undefined;
+      material.overridesFromAsset.reflectionTexture = undefined;
     }
 
     // 3. Update JSONC

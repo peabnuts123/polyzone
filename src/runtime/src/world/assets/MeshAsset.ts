@@ -1,17 +1,16 @@
 import { LoadAssetContainerAsync } from '@babylonjs/core/Loading/sceneLoader.js';
-import { Scene as BabylonScene } from "@babylonjs/core/scene";
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
 import { AssetContainer } from '@babylonjs/core/assetContainer';
 import { PBRMaterial } from '@babylonjs/core/Materials/PBR/pbrMaterial';
+import { CubeTexture } from '@babylonjs/core/Materials/Textures/cubeTexture';
 
 import { AssetType, IMeshAssetData } from '@polyzone/runtime/src/cartridge';
 import { debug_modTexture } from "@polyzone/runtime/src";
+import { toColor3Babylon } from "@polyzone/runtime/src/util";
 import { RetroMaterial } from "@polyzone/runtime/src/materials/RetroMaterial";
 
 import { LoadedAssetBase } from './LoadedAssetBase';
-import type { AssetCache } from './AssetCache';
-import { toColor3Babylon } from '../../util';
-import { CubeTexture } from '@babylonjs/core/Materials/Textures/cubeTexture';
+import type { AssetCacheContext } from './AssetCache';
 import { ReflectionLoading } from './TextureAsset';
 
 
@@ -25,7 +24,9 @@ export class MeshAsset extends LoadedAssetBase<AssetType.Mesh> {
     this._assetContainer = assetContainer;
   }
 
-  public static async fromAssetData(assetData: IMeshAssetData, scene: BabylonScene, assetCache: AssetCache): Promise<MeshAsset> {
+  public static async fromAssetData(assetData: IMeshAssetData, context: AssetCacheContext): Promise<MeshAsset> {
+    const { scene, assetCache } = context;
+
     // Load mesh
     // @TODO can we rely on cache better? Is this the right thing to be using?
     const assetContainer = await LoadAssetContainerAsync(assetData.babylonFetchUrl, scene, { pluginExtension: assetData.fileExtension });
@@ -69,45 +70,32 @@ export class MeshAsset extends LoadedAssetBase<AssetType.Mesh> {
       // Set overrides
       const materialOverrideData = assetData.getOverridesForMaterial(oldMaterial.name);
       if (materialOverrideData !== undefined) {
+        // BASE MATERIAL OVERRIDES
+        if (materialOverrideData.material !== undefined) {
+          const material = await assetCache.loadAsset(materialOverrideData.material, context);
+          newMaterial.readOverridesFromMaterial(material);
+        }
+
+        // ASSET-SPECIFIC OVERRIDES
         /* Diffuse color */
         if (materialOverrideData.diffuseColor !== undefined) {
-          newMaterial.overrides.diffuseColor = toColor3Babylon(materialOverrideData.diffuseColor);
+          newMaterial.overridesFromAsset.diffuseColor = toColor3Babylon(materialOverrideData.diffuseColor);
         }
 
         /* Diffuse texture */
         if (materialOverrideData.diffuseTexture !== undefined) {
-          const textureAsset = await assetCache.loadAsset(materialOverrideData.diffuseTexture, scene);
-          newMaterial.overrides.diffuseTexture = textureAsset.texture;
+          const textureAsset = await assetCache.loadAsset(materialOverrideData.diffuseTexture, context);
+          newMaterial.overridesFromAsset.diffuseTexture = textureAsset.texture;
         }
 
         /* Emission color */
         if (materialOverrideData.emissionColor !== undefined) {
-          newMaterial.overrides.emissionColor = toColor3Babylon(materialOverrideData.emissionColor);
+          newMaterial.overridesFromAsset.emissionColor = toColor3Babylon(materialOverrideData.emissionColor);
         }
 
         /* Reflection */
         if (materialOverrideData.reflection !== undefined) {
-          /* @NOTE Reflection loading mechanisms might return `undefined` if data is empty */
-          switch (materialOverrideData.reflection.type) {
-            case 'box-net': {
-              newMaterial.overrides.reflectionTexture = await ReflectionLoading.loadBoxNet(materialOverrideData.reflection, assetCache, scene);
-              break;
-            }
-            case '3x2': {
-              newMaterial.overrides.reflectionTexture = await ReflectionLoading.load3x2(materialOverrideData.reflection, assetCache, scene);
-              break;
-            }
-            case '6x1': {
-              newMaterial.overrides.reflectionTexture = await ReflectionLoading.load6x1(materialOverrideData.reflection, assetCache, scene);
-              break;
-            }
-            case 'separate': {
-              newMaterial.overrides.reflectionTexture = await ReflectionLoading.loadSeparate(materialOverrideData.reflection, assetCache, scene);
-              break;
-            }
-            default:
-              throw new Error(`Unimplemented reflection type '${(materialOverrideData.reflection as { 'type': string }).type}'`);
-          }
+          newMaterial.overridesFromAsset.reflectionTexture = await ReflectionLoading.load(materialOverrideData.reflection, context);
         }
       }
 

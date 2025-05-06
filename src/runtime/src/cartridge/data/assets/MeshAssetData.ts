@@ -2,10 +2,11 @@ import { Color3 } from "@polyzone/core/src";
 
 import { toColor3Core } from '@polyzone/runtime/src/util/color';
 
-import { AssetType, MeshAssetDefinition, MeshAssetMaterialOverrideDefinition, MeshAssetMaterialOverrideReflectionType } from "../../archive/assets";
+import { AssetType, MeshAssetDefinition, MeshAssetMaterialOverrideDefinition, MeshAssetMaterialOverrideReflection3x2Definition, MeshAssetMaterialOverrideReflection6x1Definition, MeshAssetMaterialOverrideReflectionBoxNetDefinition, MeshAssetMaterialOverrideReflectionDefinitionOfType, MeshAssetMaterialOverrideReflectionSeparateDefinition, MeshAssetMaterialOverrideReflectionType } from "../../archive/assets";
 import { BaseAssetData, IBaseAssetData } from "./BaseAssetData";
 import { IAssetDb } from "./AssetDb";
 import { ITextureAssetData } from "./TextureAssetData";
+import { IMaterialAssetData } from "./MaterialAssetData";
 
 export interface MeshAssetMaterialOverrideReflectionBoxNetData {
   type: 'box-net',
@@ -38,6 +39,7 @@ export type MeshAssetMaterialOverrideReflectionData = MeshAssetMaterialOverrideR
 export type MeshAssetMaterialOverrideReflectionDataOfType<T extends MeshAssetMaterialOverrideReflectionType> = Extract<MeshAssetMaterialOverrideReflectionData, { type: T }>;
 
 export interface IMeshAssetMaterialOverrideData {
+  get material(): IMaterialAssetData | undefined;
   get diffuseColor(): Color3 | undefined;
   get diffuseTexture(): ITextureAssetData | undefined;
   get emissionColor(): Color3 | undefined;
@@ -45,7 +47,7 @@ export interface IMeshAssetMaterialOverrideData {
 }
 
 export class MeshAssetMaterialOverrideData implements IMeshAssetMaterialOverrideData {
-  // private material: MaterialAssetData; // @TODO
+  private _material: IMaterialAssetData | undefined;
   private _diffuseColor: Color3 | undefined;
   private _diffuseTexture: ITextureAssetData | undefined;
   private _emissionColor: Color3 | undefined;
@@ -54,6 +56,9 @@ export class MeshAssetMaterialOverrideData implements IMeshAssetMaterialOverride
   public static createFrom(definition: MeshAssetMaterialOverrideDefinition, assetDb: IAssetDb): MeshAssetMaterialOverrideData {
     const self = new MeshAssetMaterialOverrideData();
 
+    if (definition.materialAssetId) {
+      self.material = assetDb.getById(definition.materialAssetId, AssetType.Material);
+    }
     if (definition.diffuseColor) {
       self.diffuseColor = toColor3Core(definition.diffuseColor);
     }
@@ -64,48 +69,14 @@ export class MeshAssetMaterialOverrideData implements IMeshAssetMaterialOverride
       self.emissionColor = toColor3Core(definition.emissionColor);
     }
     if (definition.reflection) {
-      switch (definition.reflection.type) {
-        case "box-net":
-          self.reflection = {
-            type: definition.reflection.type,
-            strength: definition.reflection.strength,
-            texture: definition.reflection.textureAssetId ? assetDb.getById(definition.reflection.textureAssetId, AssetType.Texture) : undefined,
-          };
-          break;
-        case "3x2":
-          self.reflection = {
-            type: definition.reflection.type,
-            strength: definition.reflection.strength,
-            texture: definition.reflection.textureAssetId ? assetDb.getById(definition.reflection.textureAssetId, AssetType.Texture) : undefined,
-          };
-          break;
-        case "6x1":
-          self.reflection = {
-            type: definition.reflection.type,
-            strength: definition.reflection.strength,
-            texture: definition.reflection.textureAssetId ? assetDb.getById(definition.reflection.textureAssetId, AssetType.Texture) : undefined,
-          };
-          break;
-        case "separate":
-          self.reflection = {
-            type: definition.reflection.type,
-            strength: definition.reflection.strength,
-            pxTexture: definition.reflection.pxTextureAssetId ? assetDb.getById(definition.reflection.pxTextureAssetId, AssetType.Texture) : undefined,
-            nxTexture: definition.reflection.nxTextureAssetId ? assetDb.getById(definition.reflection.nxTextureAssetId, AssetType.Texture) : undefined,
-            pyTexture: definition.reflection.pyTextureAssetId ? assetDb.getById(definition.reflection.pyTextureAssetId, AssetType.Texture) : undefined,
-            nyTexture: definition.reflection.nyTextureAssetId ? assetDb.getById(definition.reflection.nyTextureAssetId, AssetType.Texture) : undefined,
-            pzTexture: definition.reflection.pzTextureAssetId ? assetDb.getById(definition.reflection.pzTextureAssetId, AssetType.Texture) : undefined,
-            nzTexture: definition.reflection.nzTextureAssetId ? assetDb.getById(definition.reflection.nzTextureAssetId, AssetType.Texture) : undefined,
-          };
-          break;
-        default:
-          throw new Error(`Unimplemented reflection type '${(definition.reflection as { 'type': string }).type}'`);
-      }
+      self.reflection = loadReflectionDefinition(definition.reflection, assetDb);
     }
 
     return self;
   }
 
+  public get material(): IMaterialAssetData | undefined { return this._material; }
+  public set material(value: IMaterialAssetData | undefined) { this._material = value; }
   public get diffuseColor(): Color3 | undefined { return this._diffuseColor; }
   public set diffuseColor(value: Color3 | undefined) { this._diffuseColor = value; }
   public get diffuseTexture(): ITextureAssetData | undefined { return this._diffuseTexture; }
@@ -141,5 +112,50 @@ export class MeshAssetData extends BaseAssetData<AssetType.Mesh> implements IMes
 
   public get materialOverrides(): Record<string, IMeshAssetMaterialOverrideData> {
     return this._materialOverrides;
+  }
+}
+
+export function loadReflectionDefinition<TReflectionType extends MeshAssetMaterialOverrideReflectionType>(reflection: MeshAssetMaterialOverrideReflectionDefinitionOfType<TReflectionType>, assetDb: IAssetDb): MeshAssetMaterialOverrideReflectionDataOfType<TReflectionType> {
+  // @TODO Why does typescript need us to launder everything here?
+  switch (reflection.type) {
+    case "box-net": {
+      const reflectionBoxNet = reflection as MeshAssetMaterialOverrideReflectionBoxNetDefinition;
+      return {
+        type: reflectionBoxNet.type,
+        strength: reflectionBoxNet.strength,
+        texture: reflectionBoxNet.textureAssetId ? assetDb.getById(reflectionBoxNet.textureAssetId, AssetType.Texture) : undefined,
+      } as MeshAssetMaterialOverrideReflectionBoxNetData as MeshAssetMaterialOverrideReflectionDataOfType<TReflectionType>;
+    }
+    case "3x2": {
+      const reflection3x2 = reflection as MeshAssetMaterialOverrideReflection3x2Definition;
+      return {
+        type: reflection3x2.type,
+        strength: reflection3x2.strength,
+        texture: reflection3x2.textureAssetId ? assetDb.getById(reflection3x2.textureAssetId, AssetType.Texture) : undefined,
+      } as MeshAssetMaterialOverrideReflection3x2Data as MeshAssetMaterialOverrideReflectionDataOfType<TReflectionType>;
+    }
+    case "6x1": {
+      const reflection6x1 = reflection as MeshAssetMaterialOverrideReflection6x1Definition;
+      return {
+        type: reflection6x1.type,
+        strength: reflection6x1.strength,
+        texture: reflection6x1.textureAssetId ? assetDb.getById(reflection6x1.textureAssetId, AssetType.Texture) : undefined,
+      } as MeshAssetMaterialOverrideReflection6x1Data as MeshAssetMaterialOverrideReflectionDataOfType<TReflectionType>;
+    }
+    case "separate": {
+      const reflectionSeparate = reflection as MeshAssetMaterialOverrideReflectionSeparateDefinition;
+      return {
+        type: reflectionSeparate.type,
+        strength: reflectionSeparate.strength,
+        pxTexture: reflectionSeparate.pxTextureAssetId ? assetDb.getById(reflectionSeparate.pxTextureAssetId, AssetType.Texture) : undefined,
+        nxTexture: reflectionSeparate.nxTextureAssetId ? assetDb.getById(reflectionSeparate.nxTextureAssetId, AssetType.Texture) : undefined,
+        pyTexture: reflectionSeparate.pyTextureAssetId ? assetDb.getById(reflectionSeparate.pyTextureAssetId, AssetType.Texture) : undefined,
+        nyTexture: reflectionSeparate.nyTextureAssetId ? assetDb.getById(reflectionSeparate.nyTextureAssetId, AssetType.Texture) : undefined,
+        pzTexture: reflectionSeparate.pzTextureAssetId ? assetDb.getById(reflectionSeparate.pzTextureAssetId, AssetType.Texture) : undefined,
+        nzTexture: reflectionSeparate.nzTextureAssetId ? assetDb.getById(reflectionSeparate.nzTextureAssetId, AssetType.Texture) : undefined,
+      } as MeshAssetMaterialOverrideReflectionDataOfType<TReflectionType>;
+    }
+    default:
+      throw new Error(`Unimplemented reflection type '${(reflection as { 'type': string }).type}'`);
   }
 }

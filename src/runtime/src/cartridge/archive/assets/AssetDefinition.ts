@@ -4,6 +4,7 @@ import { MeshSupplementaryAssetDefinition } from './MeshSupplementaryAssetDefini
 import { ScriptAssetDefinition } from './ScriptAssetDefinition';
 import { SoundAssetDefinition } from './SoundAssetDefinition';
 import { TextureAssetDefinition } from './TextureAssetDefinition';
+import { MaterialAssetDefinition } from './MaterialAssetDefinition';
 
 /**
  * Raw reference to an asset.
@@ -14,5 +15,5 @@ export interface BaseAssetDefinition {
     path: string;
 }
 
-export type AssetDefinition = MeshAssetDefinition | MeshSupplementaryAssetDefinition | ScriptAssetDefinition | SoundAssetDefinition | TextureAssetDefinition;
+export type AssetDefinition = MeshAssetDefinition | MeshSupplementaryAssetDefinition | ScriptAssetDefinition | SoundAssetDefinition | TextureAssetDefinition | MaterialAssetDefinition;
 export type AssetDefinitionOfType<TAssetType extends AssetType> = Extract<AssetDefinition, { type: TAssetType }>;

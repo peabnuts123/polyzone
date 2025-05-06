@@ -5,13 +5,14 @@ import {
   ScriptAssetDefinition as RuntimeScriptAssetDefinition,
   SoundAssetDefinition as RuntimeSoundAssetDefinition,
   TextureAssetDefinition as RuntimeTextureAssetDefinition,
+  MaterialAssetDefinition as RuntimeMaterialAssetDefinition,
 } from '@polyzone/runtime/src/cartridge/archive';
 
 export interface BaseAssetDefinition extends RuntimeBaseAssetDefinition {
   hash: string;
 }
 
-export type AssetDefinition = MeshAssetDefinition | MeshSupplementaryAssetDefinition | ScriptAssetDefinition | SoundAssetDefinition | TextureAssetDefinition;
+export type AssetDefinition = MeshAssetDefinition | MeshSupplementaryAssetDefinition | ScriptAssetDefinition | SoundAssetDefinition | TextureAssetDefinition | MaterialAssetDefinition;
 export type AssetDefinitionOfType<TAssetType extends AssetType> = Extract<AssetDefinition, { type: TAssetType }>;
 
 export interface MeshAssetDefinition extends BaseAssetDefinition, RuntimeMeshAssetDefinition { }
@@ -19,3 +20,4 @@ export interface MeshSupplementaryAssetDefinition extends BaseAssetDefinition, R
 export interface ScriptAssetDefinition extends BaseAssetDefinition, RuntimeScriptAssetDefinition { }
 export interface SoundAssetDefinition extends BaseAssetDefinition, RuntimeSoundAssetDefinition { }
 export interface TextureAssetDefinition extends BaseAssetDefinition, RuntimeTextureAssetDefinition { }
+export interface MaterialAssetDefinition extends BaseAssetDefinition, RuntimeMaterialAssetDefinition { }

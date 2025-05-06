@@ -1,9 +1,8 @@
-import type { Scene as BabylonScene } from "@babylonjs/core/scene";
 
 import { AssetType, ISoundAssetData } from '@polyzone/runtime/src/cartridge';
 
 import { LoadedAssetBase } from './LoadedAssetBase';
-import type { AssetCache } from './AssetCache';
+import type { AssetCacheContext } from './AssetCache';
 
 
 export class SoundAsset extends LoadedAssetBase<AssetType.Sound> {
@@ -13,7 +12,7 @@ export class SoundAsset extends LoadedAssetBase<AssetType.Sound> {
     super();
   }
 
-  public static async fromAssetData(_assetData: ISoundAssetData, _scene: BabylonScene, _assetCache: AssetCache): Promise<SoundAsset> {
+  public static async fromAssetData(_assetData: ISoundAssetData, _context: AssetCacheContext): Promise<SoundAsset> {
     /* No data to load at-present */
     return new SoundAsset();
   }

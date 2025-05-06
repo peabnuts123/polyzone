@@ -162,6 +162,7 @@ import "@babylonjs/core/Shaders/ShadersInclude/fogFragment";
 // import "@babylonjs/core/Shaders/ShadersInclude/oitFragment";
 import MasterVertexShaderSource from './shaders/master.vertex.fx';
 import MasterFragmentShaderSource from './shaders/master.fragment.fx';
+import { MaterialAsset } from "../world";
 
 
 /*
@@ -386,10 +387,10 @@ export class RetroMaterialDefines extends MaterialDefines implements IImageProce
 }
 
 export class RetroMaterialOverrides {
-  private material: Material;
+  private retroMaterial: RetroMaterial;
 
-  public constructor(material: Material) {
-    this.material = material;
+  public constructor(retroMaterial: RetroMaterial) {
+    this.retroMaterial = retroMaterial;
   }
 
   /**
@@ -403,7 +404,7 @@ export class RetroMaterialOverrides {
   public get diffuseTexture(): BaseTexture | undefined { return this._diffuseTexture; }
   public set diffuseTexture(value: BaseTexture | undefined) {
     this._diffuseTexture = value;
-    this.material.markAsDirty(Material.TextureDirtyFlag);
+    this.retroMaterial.markAsDirty(Material.TextureDirtyFlag);
   }
   /**
    * Define the texture used to display the reflection.
@@ -413,7 +414,7 @@ export class RetroMaterialOverrides {
   public get reflectionTexture(): CubeTexture | undefined { return this._reflectionTexture; }
   public set reflectionTexture(value: CubeTexture | undefined) {
     this._reflectionTexture = value;
-    this.material.markAsDirty(Material.TextureDirtyFlag);
+    this.retroMaterial.markAsDirty(Material.TextureDirtyFlag);
   }
   /**
    * Define the color of the material as if self lit.
@@ -458,7 +459,8 @@ export class RetroMaterial extends PushMaterial {
    */
   public _diffuseColor: Color3 | undefined = undefined;
   public get diffuseColor(): Color3 | undefined {
-    if (this.overrides.diffuseColor) return this.overrides.diffuseColor;
+    if (this.overridesFromAsset.diffuseColor) return this.overridesFromAsset.diffuseColor;
+    else if (this.overridesFromMaterial.diffuseColor) return this.overridesFromMaterial.diffuseColor;
     else return this._diffuseColor;
   }
   public set diffuseColor(value: Color3 | undefined) {
@@ -469,7 +471,8 @@ export class RetroMaterial extends PushMaterial {
    */
   private _diffuseTexture: BaseTexture | undefined = undefined;
   public get diffuseTexture(): BaseTexture | undefined {
-    if (this.overrides.diffuseTexture) return this.overrides.diffuseTexture;
+    if (this.overridesFromAsset.diffuseTexture) return this.overridesFromAsset.diffuseTexture;
+    else if (this.overridesFromMaterial.diffuseTexture) return this.overridesFromMaterial.diffuseTexture;
     else return this._diffuseTexture;
   }
   public set diffuseTexture(value: BaseTexture | undefined) {
@@ -482,7 +485,8 @@ export class RetroMaterial extends PushMaterial {
    */
   private _reflectionTexture: CubeTexture | undefined = undefined;
   public get reflectionTexture(): CubeTexture | undefined {
-    if (this.overrides.reflectionTexture) return this.overrides.reflectionTexture;
+    if (this.overridesFromAsset.reflectionTexture) return this.overridesFromAsset.reflectionTexture;
+    else if (this.overridesFromMaterial.reflectionTexture) return this.overridesFromMaterial.reflectionTexture;
     else return this._reflectionTexture;
   }
   public set reflectionTexture(value: CubeTexture | undefined) {
@@ -495,7 +499,8 @@ export class RetroMaterial extends PushMaterial {
    */
   private _emissionColor: Color3 | undefined = undefined;
   public get emissionColor(): Color3 | undefined {
-    if (this.overrides.emissionColor) return this.overrides.emissionColor;
+    if (this.overridesFromAsset.emissionColor) return this.overridesFromAsset.emissionColor;
+    else if (this.overridesFromMaterial.emissionColor) return this.overridesFromMaterial.emissionColor;
     else return this._emissionColor;
   }
   public set emissionColor(value: Color3 | undefined) {
@@ -508,7 +513,66 @@ export class RetroMaterial extends PushMaterial {
    */
   public disableLighting: boolean = false;
 
-  public readonly overrides = new RetroMaterialOverrides(this);
+  /**
+   * Material overrides from the assigned base material (.pzmat) override.
+   * These materials take precedence over the asset's default imported material properties.
+   * Asset-specific overrides take precedence over these.
+   *
+   * @example
+   * ```markdown
+   *  - `.mtl` file specifies the diffuse texture as `dirt.png`
+   *  - Base material override (`.pzmat`) specifies diffuse texture as `metal.png`
+   *  - Asset override specifies diffuse texture as `grass.png`
+   *
+   * Result: `grass.png`
+   * ```
+   *
+   * @example
+   * ```markdown
+   *  - `.mtl` file specifies the diffuse texture as `dirt.png`
+   *  - Base material override (`.pzmat`) specifies diffuse texture as `metal.png`
+   *  - Asset override does not specify a diffuse texture
+   *
+   * Result: `metal.png`
+   * ```
+   */
+  public readonly overridesFromMaterial = new RetroMaterialOverrides(this);
+  public readOverridesFromMaterial(material: MaterialAsset | undefined): void {
+    if (material) {
+      this.overridesFromMaterial.diffuseColor = material.diffuseColor;
+      this.overridesFromMaterial.diffuseTexture = material.diffuseTexture;
+      this.overridesFromMaterial.emissionColor = material.emissionColor;
+      this.overridesFromMaterial.reflectionTexture = material.reflectionTexture;
+    } else {
+      this.overridesFromMaterial.diffuseColor = undefined;
+      this.overridesFromMaterial.diffuseTexture = undefined;
+      this.overridesFromMaterial.emissionColor = undefined;
+      this.overridesFromMaterial.reflectionTexture = undefined;
+    }
+  }
+  /**
+   * Material overrides specific to the asset.
+   * These take precedence over the base material overrides, as well as the asset's default imported material properties.
+   *
+   * @example
+   * ```markdown
+   *  - `.mtl` file specifies the diffuse texture as `dirt.png`
+   *  - Base material override (`.pzmat`) specifies diffuse texture as `metal.png`
+   *  - Asset override specifies diffuse texture as `grass.png`
+   *
+   * Result: `grass.png`
+   * ```
+   *
+   * @example
+   * ```markdown
+   *  - `.mtl` file specifies the diffuse texture as `dirt.png`
+   *  - Base material override (`.pzmat`) specifies diffuse texture as `metal.png`
+   *  - Asset override does not specify a diffuse texture
+   *
+   * Result: `metal.png`
+   * ```
+   */
+  public readonly overridesFromAsset = new RetroMaterialOverrides(this);
 
   // /**
   //  * AKA Occlusion Texture in other nomenclature, it helps adding baked shadows into your material.
