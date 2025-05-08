@@ -24,36 +24,30 @@ export class MaterialEditorViewMutator extends Mutator<MaterialEditorViewMutatio
   }
 
   protected override async persistChanges(): Promise<void> {
-    /* Write any changes to the project file */
-    const writeProjectFile = async (): Promise<void> => {
-      const projectFileJson = this.projectController.projectJson.toString();
-      const projectFileBytes = new TextEncoder().encode(projectFileJson);
+    const { materialAssetData, materialJson } = this.materialEditorViewController;
+    const { project, projectJson, projectDefinition, mutator: projectMutator } = this.projectController;
 
-      // Notify backend of modified project file to prevent a duplicate project modified event
-      await invoke('notify_project_file_updated', {
-        data: Array.from(projectFileBytes),
-      });
+    const assetFileJson = materialJson.toString();
+    const assetFileBytes = new TextEncoder().encode(assetFileJson);
 
-      await this.projectController.fileSystem.writeFile(
-        this.projectController.project.fileName,
-        projectFileBytes,
-      );
-    };
+    const existingAsset = project.assets.findById(materialAssetData.id);
+    if (existingAsset === undefined) throw new Error(`Cannot persist changes to asset - it is not known to the project definition?`);
 
-    /* Write any changes to the asset file */
-    const writeAssetFile = async (): Promise<void> => {
-      const assetFileJson = this.materialEditorViewController.materialJson.toString();
-      const assetFileBytes = new TextEncoder().encode(assetFileJson);
+    const newAssetHash = await invoke('hash_data', { data: Array.from(assetFileBytes) });
 
-      await this.projectController.fileSystem.writeFile(
-        this.materialEditorViewController.materialAssetData.path,
-        assetFileBytes,
-      );
-    };
+    if (existingAsset.hash !== newAssetHash) {
+      // Asset contents have changed - record changes to hash
+      existingAsset.hash = newAssetHash;
 
-    await Promise.all([
-      writeProjectFile(),
-      writeAssetFile(),
-    ]);
+      // Hash must change in project file too
+      const assetDefinitionIndex = projectDefinition.assets.findIndex((assetDefinition) => assetDefinition.id === existingAsset.id);
+      projectJson.mutate((project) => project.assets[assetDefinitionIndex].hash, newAssetHash);
+      await projectMutator.persistChanges();
+    }
+
+    return this.projectController.fileSystem.writeFile(
+      materialAssetData.path,
+      assetFileBytes,
+    );
   }
 }

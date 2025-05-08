@@ -34,7 +34,7 @@ export class SceneViewMutator extends Mutator<SceneViewMutationArguments> {
     const newSceneHash = await invoke('hash_data', { data: Array.from(sceneDefinitionBytes) });
 
     if (existingScene.manifest.hash !== newSceneHash) {
-      // Scene contents have changes - record changes to hash
+      // Scene contents have changed - record changes to hash
       existingScene.data.hash = newSceneHash;
       existingScene.manifest.hash = newSceneHash;
 
