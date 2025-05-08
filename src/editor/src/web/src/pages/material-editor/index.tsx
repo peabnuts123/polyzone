@@ -43,27 +43,19 @@ const MaterialEditorPage: FunctionComponent = observer(({ }) => {
 
   // Computed state
   const noTabsOpen = MaterialEditorController.currentlyOpenTabs.length === 0;
-  const [{ isDragOverThisZone }, DropTarget] = useAssetDrop(
+  const [{ isDragOverThisZone: isModelDragOverThisZone }, ModelDropTarget] = useAssetDrop(
     AssetType.Mesh,
     ({ assetData: modelData }) => {
-      const TabState = TabStateRef.current;
-      if (TabState.currentTabPageId === undefined) {
-        // No tab open - we must first open a tab to load the model into
-        const newTabData = createNewTab();
-        void MaterialEditorController.loadModelForTab(newTabData.id, modelData);
-      } else {
-        // If model is already open - switch to tab
-        const existingTabForScene = MaterialEditorController.currentlyOpenTabs.find((tab) => tab.type === 'model' && tab.modelEditorController?.model.id === modelData.id);
-        if (existingTabForScene !== undefined) {
-          TabState.setCurrentTabPageId(existingTabForScene.id);
-          return;
-        } else {
-          // Replace the current tab
-          void MaterialEditorController.loadModelForTab(TabState.currentTabPageId, modelData);
-        }
-      }
+      openModelOrMaterialInAppropriateTab(modelData, true);
     },
   );
+  const [{ isDragOverThisZone: isMaterialDragOverThisZone }, MaterialDropTarget] = useAssetDrop(
+    AssetType.Material,
+    ({ assetData: materialData }) => {
+      openModelOrMaterialInAppropriateTab(materialData, true);
+    },
+  );
+  const isDragOverThisZone = isModelDragOverThisZone || isMaterialDragOverThisZone;
 
   // Functions
   const createNewTab = (): TabData => {
@@ -99,7 +91,7 @@ const MaterialEditorPage: FunctionComponent = observer(({ }) => {
     }
   };
 
-  const openModelOrMaterialInAppropriateTab = (modelOrMaterial: MeshAssetData | MaterialAssetData): void => {
+  const openModelOrMaterialInAppropriateTab = (modelOrMaterial: MeshAssetData | MaterialAssetData, allowReplace: boolean = false): void => {
     // If target is already open - switch to tab
     const existingModelTab = MaterialEditorController.currentlyOpenTabs.find((tab) => tab.type === 'model' && tab.modelEditorController?.model.id === modelOrMaterial.id);
     const existingMaterialTab = MaterialEditorController.currentlyOpenTabs.find((tab) => tab.type === 'material' && tab.materialEditorController?.materialAssetData.id === modelOrMaterial.id);
@@ -109,11 +101,11 @@ const MaterialEditorPage: FunctionComponent = observer(({ }) => {
       return;
     }
 
-    // If current tab is empty, replace current tab,
+    // If current tab is empty (or replaceable), replace current tab,
     // Otherwise, open a new tab
     let targetTabId: string;
-    if (TabState.currentTabPageId !== undefined && MaterialEditorController.isTabEmpty(TabState.currentTabPageId)) {
-      // The selected tab is empty - load into this tab
+    if (TabState.currentTabPageId !== undefined && (MaterialEditorController.isTabEmpty(TabState.currentTabPageId) || allowReplace)) {
+      // The selected tab is empty (or replaceable) - load into this tab
       targetTabId = TabState.currentTabPageId;
     } else {
       // No tab open / the current tab has a model loaded - load into a new tab
@@ -182,7 +174,10 @@ const MaterialEditorPage: FunctionComponent = observer(({ }) => {
       <PanelGroup direction="vertical">
         <Panel defaultSize={75} minSize={25}>
           <div
-            ref={DropTarget}
+            ref={(element) => {
+              ModelDropTarget.current = element;
+              MaterialDropTarget.current = element;
+            }}
             className="w-full h-full relative"
           >
             {/* Overlay for scene drag drop */}

@@ -120,22 +120,7 @@ const Editor: FunctionComponent = observer(() => {
   const noTabsOpen = ComposerController.currentlyOpenTabs.length === 0;
   const [{ isDragOverThisZone }, DropTarget] = useSceneDrop(
     /* onDrop: */({ sceneData }) => {
-      const TabState = TabStateRef.current;
-      if (TabState.currentTabPageId === undefined) {
-        // No tab open - we must first open a tab to load the scene into
-        const newTabData = createNewTab();
-        void ComposerController.loadSceneForTab(newTabData.id, sceneData);
-      } else {
-        // If scene is already open - switch to tab
-        const existingTabForScene = ComposerController.currentlyOpenTabs.find((tab) => tab.sceneViewController?.scene.id === sceneData.id);
-        if (existingTabForScene !== undefined) {
-          TabState.setCurrentTabPageId(existingTabForScene.id);
-          return;
-        } else {
-          // Replace the current tab
-          void ComposerController.loadSceneForTab(TabState.currentTabPageId, sceneData);
-        }
-      }
+      openSceneInAppropriateTab(sceneData, true);
     },
   );
 
@@ -173,7 +158,7 @@ const Editor: FunctionComponent = observer(() => {
     }
   };
 
-  const openSceneInAppropriateTab = (scene: SceneData): void => {
+  const openSceneInAppropriateTab = (scene: SceneData, allowReplace: boolean = false): void => {
     // If scene is already open - switch to tab
     const existingTabForScene = ComposerController.currentlyOpenTabs.find((tab) => tab.sceneViewController?.scene.id === scene.id);
     if (existingTabForScene !== undefined) {
@@ -183,10 +168,10 @@ const Editor: FunctionComponent = observer(() => {
 
     const currentlyFocusedTabData = ComposerController.currentlyOpenTabs.find((tab) => tab.id === TabState.currentTabPageId);
 
-    // If current tab is empty, replace current tab,
+    // If current tab is empty (or replaceable), replace current tab,
     // Otherwise, open a new tab
-    if (TabState.currentTabPageId !== undefined && currentlyFocusedTabData?.sceneViewController === undefined) {
-      // The selected tab is empty - load into this tab
+    if (TabState.currentTabPageId !== undefined && (currentlyFocusedTabData?.sceneViewController === undefined || allowReplace)) {
+      // The selected tab is empty (or replaceable) - load into this tab
       void ComposerController.loadSceneForTab(TabState.currentTabPageId, scene);
     } else {
       // No tab open / the current tab has a scene loaded - load into a new tab

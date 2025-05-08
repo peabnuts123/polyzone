@@ -57,7 +57,7 @@ export class ComposerController {
 
         // Unload possible previously-loaded scene
         if (tab.sceneViewController !== undefined) {
-          tab.sceneViewController?.destroy();
+          tab.sceneViewController.destroy();
         }
 
         const sceneViewController = new SceneViewController(
