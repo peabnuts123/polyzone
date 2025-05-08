@@ -11,8 +11,8 @@ import { MaterialAssetDefinition } from './MaterialAssetDefinition';
  * i.e. A pointer to a file, before being loaded by the engine.
  */
 export interface BaseAssetDefinition {
-    id: string;
-    path: string;
+  id: string;
+  path: string;
 }
 
 export type AssetDefinition = MeshAssetDefinition | MeshSupplementaryAssetDefinition | ScriptAssetDefinition | SoundAssetDefinition | TextureAssetDefinition | MaterialAssetDefinition;

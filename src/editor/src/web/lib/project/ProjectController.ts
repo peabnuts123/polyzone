@@ -5,7 +5,7 @@ import Resolver from '@polyzone/runtime/src/Resolver';
 
 import { TauriFileSystem } from '@lib/filesystem/TauriFileSystem';
 import { JsoncContainer } from "@lib/util/JsoncContainer";
-import { ProjectMutator } from "@lib/mutation/project/ProjectMutator";
+import { ProjectMutator } from "@lib/mutation/Project";
 import { ApplicationDataController } from '../application/ApplicationDataController';
 import { ProjectDefinition } from "./definition";
 import { invoke } from "@lib/util/TauriCommands";

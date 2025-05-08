@@ -2,7 +2,7 @@ import { FunctionComponent } from "react";
 import { FolderIcon } from '@heroicons/react/24/outline';
 import { observer } from "mobx-react-lite";
 
-import { ListItemCommon } from "@app/components/composer/AssetsAndScenes"; // @TODO move?
+import { ListItem } from "@app/components/common/ListItem";
 
 export interface ModelListVirtualDirectory {
   id: string;
@@ -18,7 +18,7 @@ export interface ModelListDirectoryItemProps {
 
 export const ModelListDirectoryItem: FunctionComponent<ModelListDirectoryItemProps> = observer(({ directory, currentDirectory, setCurrentDirectory }) => {
   return (
-    <ListItemCommon
+    <ListItem
       label={directory.name}
       Icon={FolderIcon}
       onClick={() => {

@@ -24,7 +24,7 @@ import { MeshAsset, AssetCache } from '@polyzone/runtime/src/world/assets';
 
 import { JsoncContainer } from '@lib/util/JsoncContainer';
 import { ProjectController } from '@lib/project/ProjectController';
-import { SceneViewMutator } from '@lib/mutation/scene/SceneViewMutator';
+import { SceneViewMutator } from '@lib/mutation/SceneView';
 import { SceneDefinition } from '@lib/project/definition';
 import { CameraComponentData, DirectionalLightComponentData, IComposerComponentData, MeshComponentData, PointLightComponentData, ScriptComponentData } from '@lib/project/data/components';
 import { SceneData, GameObjectData, AssetData } from '@lib/project/data';

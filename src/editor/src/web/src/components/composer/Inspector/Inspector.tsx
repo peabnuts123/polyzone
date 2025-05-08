@@ -9,7 +9,7 @@ import {
   SetGameObjectScaleMutation,
   SetGameObjectNameMutation,
   AddGameObjectComponentMutation,
-} from "@lib/mutation/scene/mutations";
+} from "@lib/mutation/SceneView/mutations";
 import type { SceneViewController } from "@lib/composer/scene";
 import { VectorInput, TextInput } from "@app/components/common/inputs";
 import { getInspectorFor } from "./GameObjectComponents";

@@ -7,10 +7,10 @@ import { toPathList } from "@polyzone/runtime/src/util";
 import { useLibrary } from "@lib/index";
 import { createDirView } from "@lib/util/path";
 import { MeshAssetData } from "@lib/project/data/assets";
+import { ListItem } from '@app/components/common/ListItem';
 import { ModelListFileItem, ModelListVirtualFile } from './ModelListFileItem';
 import { ModelListDirectoryItem, ModelListVirtualDirectory } from './ModelListDirectoryItem';
 
-import { ListItemCommon } from "../../../composer/AssetsAndScenes/ListItemCommon"; // @TODO Move probably?
 import { AssetType } from "@polyzone/runtime/src/cartridge";
 
 interface Props {
@@ -49,7 +49,7 @@ export const ModelList: FunctionComponent<Props> = observer(({ openModel }) => {
       {/* Parent directory button */}
       {/* Only visible if you are not in the root */}
       {currentDirectory.length > 0 && (
-        <ListItemCommon
+        <ListItem
           label=".."
           onClick={() => setCurrentDirectory(currentDirectory.slice(0, currentDirectory.length - 1))}
         />

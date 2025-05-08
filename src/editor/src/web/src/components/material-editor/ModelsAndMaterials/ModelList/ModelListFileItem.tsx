@@ -1,11 +1,9 @@
 import type { FunctionComponent } from "react";
 import { observer } from "mobx-react-lite";
 
-import { baseName } from "@polyzone/runtime/src/util";
-
 import { MeshAssetData } from "@lib/project/data/assets";
 import { useAssetDrag } from "@app/interactions/assets";
-import { ListItemCommon } from "@app/components/composer/AssetsAndScenes"; // @TODO move?
+import { ListItem } from "@app/components/common/ListItem";
 import { getIconForAssetType } from "@app/components/composer/AssetsAndScenes/AssetList";
 
 
@@ -28,11 +26,11 @@ export const ModelListFileItem: FunctionComponent<ModelListFileItemProps> = obse
   const [{ }, DragSource] = useAssetDrag(file.model);
 
   // Computed state
-  const fileName = baseName(file.model.path);
+  const fileName = file.model.baseName;
   const AssetIcon = getIconForAssetType(file.model.type);
 
   return (
-    <ListItemCommon
+    <ListItem
       label={fileName}
       Icon={AssetIcon}
       classNames="cursor-grab"

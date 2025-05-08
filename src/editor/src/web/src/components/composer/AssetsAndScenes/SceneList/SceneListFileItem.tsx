@@ -8,10 +8,10 @@ import { baseName, rename } from "@polyzone/runtime/src/util";
 import { SceneData } from "@lib/project/data";
 import { useLibrary } from "@lib/index";
 import { isRunningInBrowser } from "@lib/tauri";
-import { MoveSceneMutation } from "@lib/mutation/project/mutations";
-import { useSceneDrag } from "@app/interactions/scenes";
-import { ListItemCommon } from '../ListItemCommon';
+import { MoveSceneMutation } from "@lib/mutation/Project/mutations";
 import { convertToSafeFileName } from "@lib/util/path";
+import { useSceneDrag } from "@app/interactions/scenes";
+import { ListItem } from '@app/components/common/ListItem';
 
 
 export interface SceneListVirtualFile {
@@ -65,7 +65,6 @@ export const SceneListFileItem: FunctionComponent<SceneListFileItemProps> = obse
   };
 
   const onRenamed = (newBaseName: string): void => {
-    console.log(`New path: ${newBaseName}`);
     setIsRenaming(false);
     if (newBaseName !== fileName) {
       const newPath = rename(file.scene.path, newBaseName);
@@ -86,7 +85,7 @@ export const SceneListFileItem: FunctionComponent<SceneListFileItemProps> = obse
         />
       </div>
     ) : (
-      <ListItemCommon
+      <ListItem
         label={fileName}
         Icon={BuildingOffice2Icon}
         classNames="cursor-grab"

@@ -5,10 +5,10 @@ import { observer } from "mobx-react-lite";
 
 import { baseName } from "@polyzone/runtime/src/util";
 
-import { ListItemCommon } from '../ListItemCommon';
-import { useSceneDrop } from "@app/interactions";
-import { MoveSceneMutation } from "@lib/mutation/project/mutations";
+import { MoveSceneMutation } from "@lib/mutation/Project/mutations";
 import { useLibrary } from "@lib/index";
+import { ListItem } from '@app/components/common/ListItem';
+import { useSceneDrop } from "@app/interactions";
 
 export interface SceneListVirtualDirectory {
   id: string;
@@ -36,7 +36,7 @@ export const SceneListDirectoryItem: FunctionComponent<SceneListDirectoryItemPro
   );
 
   return (
-    <ListItemCommon
+    <ListItem
       label={directory.name}
       Icon={FolderIcon}
       classNames={cn({

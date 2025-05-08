@@ -22,23 +22,6 @@ import {
 } from './assets';
 
 
-export type AssetDbVirtualNode = AssetDbVirtualFile | AssetDbVirtualDirectory;
-
-// @TODO Should these move into `AssetList`?
-export interface AssetDbVirtualNodeBase {
-  id: string;
-  name: string;
-}
-
-export interface AssetDbVirtualFile extends AssetDbVirtualNodeBase {
-  type: 'file';
-  data: AssetData;
-}
-
-export interface AssetDbVirtualDirectory extends AssetDbVirtualNodeBase {
-  type: 'directory';
-}
-
 export class AssetDb implements IAssetDb {
   private _assetDb: AssetDbRuntime;
 

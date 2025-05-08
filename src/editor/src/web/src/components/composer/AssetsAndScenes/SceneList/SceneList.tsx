@@ -6,14 +6,14 @@ import cn from 'classnames';
 
 import { baseName, toPathList } from "@polyzone/runtime/src/util";
 
-import { useSceneDrop } from "@app/interactions";
 import { useLibrary } from "@lib/index";
-import { CreateNewSceneMutation, MoveSceneMutation } from "@lib/mutation/project/mutations";
+import { CreateNewSceneMutation, MoveSceneMutation } from "@lib/mutation/Project/mutations";
 import { createDirView } from "@lib/util/path";
 import { SceneData } from "@lib/project/data";
+import { useSceneDrop } from "@app/interactions";
+import { ListItem } from '@app/components/common/ListItem';
 import { CreateNewSceneListFileItem, SceneListFileItem, SceneListVirtualFile } from './SceneListFileItem';
 import { SceneListDirectoryItem, SceneListVirtualDirectory } from './SceneListDirectoryItem';
-import { ListItemCommon } from "../ListItemCommon";
 
 interface Props {
   openScene: (scene: SceneData) => void;
@@ -92,7 +92,7 @@ export const SceneList: FunctionComponent<Props> = observer(({ openScene }) => {
       {/* Parent directory button */}
       {/* Only visible if you are not in the root */}
       {currentDirectory.length > 0 && (
-        <ListItemCommon
+        <ListItem
           label=".."
           onClick={() => setCurrentDirectory(currentDirectory.slice(0, currentDirectory.length - 1))}
           classNames={cn({

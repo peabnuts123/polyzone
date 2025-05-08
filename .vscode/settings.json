@@ -16,6 +16,7 @@
   "files.associations": {
     "*.pzproj": "jsonc",
     "*.pzscene": "jsonc",
+    "*.pzmat": "jsonc",
   },
   "css.customData": [
     ".vscode/tailwind.json"

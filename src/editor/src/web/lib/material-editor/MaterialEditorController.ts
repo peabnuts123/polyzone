@@ -2,13 +2,28 @@ import { makeAutoObservable, runInAction } from 'mobx';
 import { v4 as uuid } from 'uuid';
 
 import { ProjectController } from '@lib/project/ProjectController';
-import { MeshAssetData } from '@lib/project/data/assets';
-import { ModelMaterialEditorController } from './model/ModelMaterialEditorController';
+import { MaterialAssetData, MeshAssetData } from '@lib/project/data/assets';
+import { ModelEditorViewController } from './model/ModelEditorViewController';
+import { MaterialEditorViewController } from './material/MaterialEditorViewController';
 
-export interface TabData {
+export interface ModelTabData {
   id: string;
-  modelEditorController?: ModelMaterialEditorController;
+  type: 'model';
+  modelEditorController: ModelEditorViewController;
 }
+
+export interface MaterialTabData {
+  id: string;
+  type: 'material';
+  materialEditorController: MaterialEditorViewController;
+}
+
+export interface IndeterminateTabData {
+  id: string;
+  type: undefined;
+}
+
+export type TabData = ModelTabData | MaterialTabData | IndeterminateTabData;
 
 export class MaterialEditorController {
   private _currentlyOpenTabs: TabData[] = [];
@@ -26,32 +41,61 @@ export class MaterialEditorController {
 
 
   public async loadModelForTab(tabId: string, model: MeshAssetData): Promise<void> {
-    for (const tab of this.currentlyOpenTabs) {
-      if (tab.id === tabId) {
-        // Unload possible previously-loaded model
-        if (tab.modelEditorController !== undefined) {
-          tab.modelEditorController?.destroy();
-        }
+    const tabIndex = this.currentlyOpenTabs.findIndex((tab) => tab.id === tabId);
 
-        const controller = new ModelMaterialEditorController(
-          model,
-          this.projectController,
-        );
-
-        runInAction(() => {
-          tab.modelEditorController = controller;
-        });
-        return;
-      }
+    if (tabIndex === -1) {
+      throw new Error(`Could not load model for tab - no tab exists with ID '${tabId}'`);
     }
 
-    throw new Error(`Could not load model for tab - no tab exists with ID '${tabId}'`);
+    const tab = this.currentlyOpenTabs[tabIndex];
+
+    // Unload possible previously-loaded model
+    this.destroyTabController(tab);
+
+    const controller = new ModelEditorViewController(
+      model,
+      this.projectController,
+    );
+
+    runInAction(() => {
+      this.currentlyOpenTabs[tabIndex] = {
+        id: tab.id,
+        type: 'model',
+        modelEditorController: controller,
+      };
+    });
+  }
+
+  public async loadMaterialForTab(tabId: string, material: MaterialAssetData): Promise<void> {
+    const tabIndex = this.currentlyOpenTabs.findIndex((tab) => tab.id === tabId);
+
+    if (tabIndex === -1) {
+      throw new Error(`Could not load material for tab - no tab exists with ID '${tabId}'`);
+    }
+
+    const tab = this.currentlyOpenTabs[tabIndex];
+
+    // Unload possible previously-loaded material
+    this.destroyTabController(tab);
+
+    const controller = new MaterialEditorViewController(
+      material,
+      this.projectController,
+    );
+
+    runInAction(() => {
+      this.currentlyOpenTabs[tabIndex] = {
+        id: tab.id,
+        type: 'material',
+        materialEditorController: controller,
+      };
+    });
   }
 
   public openNewTab(): TabData {
     const newTabData: TabData = {
       id: uuid(),
-      modelEditorController: undefined,
+      type: undefined,
     };
 
     runInAction(() => {
@@ -67,19 +111,35 @@ export class MaterialEditorController {
       throw new Error(`Could not close tab - no tab exists with ID '${tabId}'`);
     }
 
-    // Unload model
-    this.currentlyOpenTabs[tabIndex].modelEditorController?.destroy();
+    // Unload controller
+    this.destroyTabController(this.currentlyOpenTabs[tabIndex]);
 
     runInAction(() => {
       this.currentlyOpenTabs.splice(tabIndex, 1);
     });
   }
 
+  public isTabEmpty(tabId: string): boolean {
+    const tabIndex = this.currentlyOpenTabs.findIndex((tab) => tab.id === tabId);
+    if (tabIndex === -1) {
+      throw new Error(`Could not check if tab is empty - no tab exists with ID '${tabId}'`);
+    }
+    return this.currentlyOpenTabs[tabIndex].type === undefined;
+  }
+
   /** Called when the app is unloaded (e.g. page refresh) */
   public onDestroy(): void {
-    // Destroy all model editor controllers
+    // Destroy all controllers
     for (const tab of this.currentlyOpenTabs) {
-      tab.modelEditorController?.destroy();
+      this.destroyTabController(tab);
+    }
+  }
+
+  private destroyTabController(tab: TabData): void {
+    if (tab.type === 'model') {
+      tab.modelEditorController.destroy();
+    } else if (tab.type === 'material') {
+      tab.materialEditorController.destroy();
     }
   }
 

@@ -5,7 +5,7 @@ import { TrashIcon } from '@heroicons/react/24/solid';
 
 import type { IComposerComponentData } from "@lib/project/data";
 import type { InspectorComponentProps } from "./InspectorComponent";
-import { RemoveGameObjectComponentMutation } from "@lib/mutation/scene/mutations";
+import { RemoveGameObjectComponentMutation } from "@lib/mutation/SceneView/mutations";
 
 export const InspectorComponentBase: FunctionComponent<PropsWithChildren<InspectorComponentProps<IComposerComponentData>>> = observer(({ children, gameObject, component, controller }) => {
   const onClickDeleteComponent = (): void => {

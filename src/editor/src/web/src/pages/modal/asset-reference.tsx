@@ -7,7 +7,7 @@ import { AssetType } from "@polyzone/runtime/src/cartridge";
 import { useModal } from '@lib/modal';
 import { createDirView } from "@lib/util/path";
 import { getIconForAssetType } from "@app/components/composer/AssetsAndScenes/AssetList";
-import { ListItemCommon } from "@app/components/composer/AssetsAndScenes";
+import { ListItem } from "@app/components/common/ListItem";
 
 /** Result payload for when the modal is closed by selected an asset */
 interface AssetReferenceSelectedResultPayload {
@@ -40,7 +40,7 @@ export interface AssetReferenceModalData<TAssetType extends AssetType> {
   @NOTE a lot of similarities with AssetList.
   But they are just kind of awkwardly different, and it's probably better
   to just have 2 copies of this code rather than try make some epic abstraction.
-  A lot of re-use is happening with <ListItemCommon /> anyway.
+  A lot of re-use is happening with <ListItem /> anyway.
  */
 
 const AssetReferenceModal: FunctionComponent = ({ }) => {
@@ -151,7 +151,7 @@ export const AssetReferenceModalListFileItem: FunctionComponent<AssetReferenceMo
   const AssetIcon = getIconForAssetType(asset.data.type);
   const isSelected = asset.id === selectedAssetId;
   return (
-    <ListItemCommon
+    <ListItem
       label={asset.name}
       Icon={AssetIcon}
       classNames={cn({ '!bg-blue-300': isSelected })}
@@ -170,7 +170,7 @@ export interface AssetReferenceModalListDirectoryItemProps {
 }
 export const AssetReferenceModalListDirectoryItem: FunctionComponent<AssetReferenceModalListDirectoryItemProps> = ({ asset, currentDirectory, setCurrentDirectory }) => {
   return (
-    <ListItemCommon
+    <ListItem
       label={asset.name}
       Icon={FolderIcon}
       onClick={() => {

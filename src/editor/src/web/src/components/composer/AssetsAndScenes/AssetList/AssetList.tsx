@@ -3,11 +3,10 @@ import { useState } from "react";
 import { observer } from "mobx-react-lite";
 
 import { useLibrary } from "@lib/index";
-import { AssetListFileItem } from "./AssetListFileItem";
-import { AssetListDirectoryItem } from "./AssetListDirectoryItem";
-import { AssetDbVirtualDirectory, AssetDbVirtualFile } from "@lib/project/data/AssetDb";
 import { createDirView } from "@lib/util/path";
-import { ListItemCommon } from "../ListItemCommon";
+import { ListItem } from '@app/components/common/ListItem';
+import { AssetDbVirtualFile, AssetListFileItem } from "./AssetListFileItem";
+import { AssetDbVirtualDirectory, AssetListDirectoryItem } from "./AssetListDirectoryItem";
 
 export const AssetList: FunctionComponent = observer(({ }) => {
   // Hooks
@@ -25,7 +24,6 @@ export const AssetList: FunctionComponent = observer(({ }) => {
     (asset) => ({
       id: asset.id,
       type: 'file',
-      name: asset.baseName,
       data: asset,
     } satisfies AssetDbVirtualFile as AssetDbVirtualFile),
     (directoryName, asset) => ({
@@ -41,7 +39,7 @@ export const AssetList: FunctionComponent = observer(({ }) => {
       {/* Parent directory button */}
       {/* Only visible if you are not in the root */}
       {currentDirectory.length > 0 && (
-        <ListItemCommon
+        <ListItem
           label=".."
           onClick={() => setCurrentDirectory(currentDirectory.slice(0, currentDirectory.length - 1))}
         />

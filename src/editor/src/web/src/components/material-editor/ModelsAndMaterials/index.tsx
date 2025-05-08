@@ -1,15 +1,18 @@
 import type { FunctionComponent } from "react";
 import { observer } from "mobx-react-lite";
 
-import { MeshAssetData } from "@lib/project/data/assets";
+import { MaterialAssetData, MeshAssetData } from "@lib/project/data/assets";
 import { TabProvider, TabBar, TabPage } from "@app/components/tabs";
 import { ModelList } from "./ModelList";
+import { MaterialList } from "./MaterialList";
 
 interface Props {
   openModel: (scene: MeshAssetData) => void;
+  openMaterial: (material: MaterialAssetData) => void;
 }
 
-export const ModelsAndMaterials: FunctionComponent<Props> = observer(({ openModel }) => {
+
+export const ModelsAndMaterials: FunctionComponent<Props> = observer(({ openModel, openMaterial }) => {
   return (
     <TabProvider defaultTabId="models">
       <div className="h-full flex flex-col">
@@ -34,7 +37,7 @@ export const ModelsAndMaterials: FunctionComponent<Props> = observer(({ openMode
 
         <TabPage tabId="materials">
           <div className="px-2 h-full overflow-y-scroll grow">
-            Shared materials not yet implemented.
+            <MaterialList openMaterial={openMaterial} />
           </div>
         </TabPage>
       </div>

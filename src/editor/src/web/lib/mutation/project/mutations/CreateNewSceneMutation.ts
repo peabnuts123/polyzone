@@ -56,7 +56,7 @@ export class CreateNewSceneMutation implements IProjectMutation {
     ProjectController.project.scenes.add(newSceneManifest, newSceneJsonc);
 
     // 2. Update JSON
-    const jsonPath = resolvePath((project: ProjectDefinition) => project.scenes[ProjectController.project.scenes.length]);
+    const jsonPath = resolvePath((project: ProjectDefinition) => project.scenes[ProjectController.projectDefinition.scenes.length]);
     ProjectController.projectJson.mutate(jsonPath, newSceneManifest, { isArrayInsertion: true });
 
     // 3. Create new asset on disk

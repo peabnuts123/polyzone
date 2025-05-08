@@ -4,9 +4,14 @@ import { DocumentIcon, DocumentTextIcon, PhotoIcon, CubeIcon, GlobeAltIcon } fro
 import { observer } from "mobx-react-lite";
 
 import { useAssetDrag } from "@app/interactions/assets";
-import type { AssetDbVirtualFile } from "@lib/project/data/AssetDb";
-import { ListItemCommon } from '../ListItemCommon';
+import { ListItem } from '@app/components/common/ListItem';
+import { AssetData } from "@lib/project/data";
 
+export interface AssetDbVirtualFile {
+  id: string;
+  type: 'file';
+  data: AssetData;
+}
 
 export interface AssetListFileItemProps {
   asset: AssetDbVirtualFile;
@@ -18,9 +23,12 @@ export const AssetListFileItem: FunctionComponent<AssetListFileItemProps> = obse
   // Drag and drop hook
   const [{ }, DragSource] = useAssetDrag(asset.data);
 
+  // Computed state
+  const fileName = asset.data.baseName;
+
   return (
-    <ListItemCommon
-      label={asset.name}
+    <ListItem
+      label={fileName}
       Icon={AssetIcon}
       classNames="cursor-grab"
       innerRef={DragSource}

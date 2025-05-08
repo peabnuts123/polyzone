@@ -4,7 +4,7 @@ import { Menu, MenuItem } from "@tauri-apps/api/menu";
 import { PlusIcon } from '@heroicons/react/24/outline';
 import { observer } from "mobx-react-lite";
 
-import { CreateBlankGameObjectMutation, DeleteGameObjectMutation } from "@lib/mutation/scene/mutations";
+import { CreateBlankGameObjectMutation, DeleteGameObjectMutation } from "@lib/mutation/SceneView/mutations";
 import { GameObjectData } from "@lib/project/data";
 import { isRunningInBrowser } from "@lib/tauri";
 

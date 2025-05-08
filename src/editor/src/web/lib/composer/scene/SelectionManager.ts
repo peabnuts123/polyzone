@@ -13,8 +13,8 @@ import { Vector3 as Vector3Babylon } from "@babylonjs/core/Maths/math.vector";
 
 import { toVector3Core } from "@polyzone/runtime/src/util";
 
-import { SetGameObjectPositionMutation, SetGameObjectRotationMutation, SetGameObjectScaleMutation } from "@lib/mutation/scene/mutations";
-import { SceneViewMutator } from "@lib/mutation/scene/SceneViewMutator";
+import { SetGameObjectPositionMutation, SetGameObjectRotationMutation, SetGameObjectScaleMutation } from "@lib/mutation/SceneView/mutations";
+import { SceneViewMutator } from "@lib/mutation/SceneView";
 import { GameObjectData } from "@lib/project/data";
 
 

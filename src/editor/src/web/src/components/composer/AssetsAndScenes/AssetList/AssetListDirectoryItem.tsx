@@ -2,8 +2,13 @@ import { FunctionComponent } from "react";
 import { FolderIcon } from '@heroicons/react/24/outline';
 import { observer } from "mobx-react-lite";
 
-import type { AssetDbVirtualDirectory } from "@lib/project/data/AssetDb";
-import { ListItemCommon } from '../ListItemCommon';
+import { ListItem } from '@app/components/common/ListItem';
+
+export interface AssetDbVirtualDirectory {
+  id: string;
+  type: 'directory';
+  name: string;
+}
 
 export interface AssetListDirectoryItemProps {
   asset: AssetDbVirtualDirectory;
@@ -13,7 +18,7 @@ export interface AssetListDirectoryItemProps {
 
 export const AssetListDirectoryItem: FunctionComponent<AssetListDirectoryItemProps> = observer(({ asset, currentDirectory, setCurrentDirectory }) => {
   return (
-    <ListItemCommon
+    <ListItem
       label={asset.name}
       Icon={FolderIcon}
       onClick={() => {

@@ -5,7 +5,7 @@ import { ChevronRightIcon, ChevronDownIcon, ArrowTurnDownRightIcon, TrashIcon } 
 import { Menu, MenuItem } from "@tauri-apps/api/menu";
 import cn from 'classnames';
 
-import { SetGameObjectParentMutation } from "@lib/mutation/scene/mutations";
+import { SetGameObjectParentMutation } from "@lib/mutation/SceneView/mutations";
 import { GameObjectData } from "@lib/project/data";
 import { useDrag, useDrop } from '@lib/util/drag-and-drop';
 import { isRunningInBrowser } from "@lib/tauri";
