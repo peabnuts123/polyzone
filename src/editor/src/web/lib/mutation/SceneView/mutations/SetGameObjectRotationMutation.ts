@@ -1,7 +1,6 @@
 import { Vector3Definition as ArchiveVector3 } from "@polyzone/runtime/src/cartridge/archive/util";
 import { Vector3 } from "@polyzone/core/src/util";
 
-import { GameObjectData } from "@lib/project/data";
 import { resolvePathForSceneObjectMutation } from "@lib/mutation/util";
 import { ISceneMutation } from "../ISceneMutation";
 import { SceneViewMutationArguments } from "../SceneViewMutationArguments";
@@ -14,46 +13,52 @@ export interface SetGameObjectRotationMutationUpdateArgs {
 
 export class SetGameObjectRotationMutation implements ISceneMutation, IContinuousSceneMutation<SetGameObjectRotationMutationUpdateArgs> {
   // State
-  // @TODO should we look you up by ID or something?
-  private readonly gameObject: GameObjectData;
-  private rotation: Vector3;
+  private readonly gameObjectId: string;
   private _hasBeenApplied: boolean = false;
 
   // Undo state
-  private configRotation: Vector3 | undefined = undefined;
-  private sceneRotation: Vector3 | undefined = undefined;
+  private oldDataRotation: Vector3 | undefined = undefined;
+  private oldSceneRotation: Vector3 | undefined = undefined;
 
 
-  public constructor(gameObject: GameObjectData) {
-    this.gameObject = gameObject;
-    this.rotation = gameObject.transform.rotation;
+  public constructor(gameObjectId: string) {
+    this.gameObjectId = gameObjectId;
   }
 
-  begin(_args: SceneViewMutationArguments): void {
+  begin({ SceneViewController }: SceneViewMutationArguments): void {
+    const gameObjectData = SceneViewController.scene.getGameObject(this.gameObjectId);
+    const gameObject = SceneViewController.findGameObjectById(this.gameObjectId);
+    if (gameObject === undefined) throw new Error(`Cannot begin mutation - no game object exists in the scene with id '${this.gameObjectId}'`);
+
     // - Store undo values
-    this.configRotation = this.gameObject.transform.rotation;
-    this.sceneRotation = this.gameObject.sceneInstance!.transform.rotation;
+    this.oldDataRotation = gameObjectData.transform.rotation;
+    this.oldSceneRotation = gameObject.transform.rotation;
   }
 
   update({ SceneViewController }: SceneViewMutationArguments, { rotation, resetGizmo }: SetGameObjectRotationMutationUpdateArgs): void {
-    this.rotation = rotation;
+    const gameObjectData = SceneViewController.scene.getGameObject(this.gameObjectId);
+    const gameObject = SceneViewController.findGameObjectById(this.gameObjectId);
+    if (gameObject === undefined) throw new Error(`Cannot update mutation - no game object exists in the scene with id '${this.gameObjectId}'`);
+
     // - 1. Update Data
-    this.gameObject.transform.rotation = rotation;
+    gameObjectData.transform.rotation = rotation;
     // - 2. Update Scene
-    this.gameObject.sceneInstance!.transform.localRotation = rotation;
+    gameObject.transform.localRotation = rotation;
     if (resetGizmo) {
       SceneViewController.selectionManager.updateGizmos();
     }
   }
 
   apply({ SceneViewController }: SceneViewMutationArguments): void {
+    const gameObjectData = SceneViewController.scene.getGameObject(this.gameObjectId);
+
     // - 3. Update JSONC
     const updatedValue: ArchiveVector3 = {
-      x: this.rotation.x,
-      y: this.rotation.y,
-      z: this.rotation.z,
+      x: gameObjectData.transform.rotation.x,
+      y: gameObjectData.transform.rotation.y,
+      z: gameObjectData.transform.rotation.z,
     };
-    const mutationPath = resolvePathForSceneObjectMutation(this.gameObject.id, SceneViewController.sceneDefinition, (gameObject) => gameObject.transform.rotation);
+    const mutationPath = resolvePathForSceneObjectMutation(gameObjectData.id, SceneViewController.sceneDefinition, (gameObject) => gameObject.transform.rotation);
     SceneViewController.sceneJson.mutate(mutationPath, updatedValue);
   }
 
@@ -64,7 +69,7 @@ export class SetGameObjectRotationMutation implements ISceneMutation, IContinuou
   }
 
   get description(): string {
-    return `Rotate '${this.gameObject.name}'`;
+    return `Rotate object`;
   }
 
   public get hasBeenApplied(): boolean { return this._hasBeenApplied; }

@@ -102,10 +102,13 @@ export class SetGameObjectParentMutation implements ISceneMutation {
     //  Babylon scene and read the results from there.
 
     // 2. Update scene
-    const gameObject = gameObjectData.sceneInstance!;
+    const gameObject = SceneViewController.findGameObjectById(this.gameObjectId);
+    if (gameObject === undefined) throw new Error(`Cannot apply mutation - no game object exists in the scene with id '${this.gameObjectId}'`);
     if (newParentData !== undefined) {
       // Set parent to new object
-      const newParent = newParentData.sceneInstance!;
+      const newParent = SceneViewController.findGameObjectById(newParentData.id);
+      if (newParent === undefined) throw new Error(`Cannot apply mutation - no game object exists in the scene with id '${newParentData.id}'`);
+
       gameObject.transform.parent = newParent.transform;
     } else {
       // Set parent to undefined i.e. top-level object

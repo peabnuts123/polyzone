@@ -6,7 +6,7 @@ import { CubeTexture } from '@babylonjs/core/Materials/Textures/cubeTexture';
 
 import { AssetType, IMeshAssetData } from '@polyzone/runtime/src/cartridge';
 import { debug_modTexture } from "@polyzone/runtime/src";
-import { toColor3Babylon } from "@polyzone/runtime/src/util";
+import { areUrisCanonicallyEquivalent, canonicalisePath, extractProtocolFromUri, toColor3Babylon } from "@polyzone/runtime/src/util";
 import { RetroMaterial } from "@polyzone/runtime/src/materials/RetroMaterial";
 
 import { LoadedAssetBase } from './LoadedAssetBase';
@@ -25,16 +25,27 @@ export class MeshAsset extends LoadedAssetBase<AssetType.Mesh> {
   }
 
   public static async fromAssetData(assetData: IMeshAssetData, context: AssetCacheContext): Promise<MeshAsset> {
-    const { scene, assetCache } = context;
+    const { scene, assetCache, assetDb } = context;
 
     // Load mesh
-    // @TODO can we rely on cache better? Is this the right thing to be using?
+    // @TODO can we rely on cache better? All transitive assets will be reloaded. Is this the right thing to be using?
     const assetContainer = await LoadAssetContainerAsync(assetData.babylonFetchUrl, scene, { pluginExtension: assetData.fileExtension });
 
     // @TODO Store textures (and other assets) in assetCache
 
     for (const texture of assetContainer.textures) {
       debug_modTexture(texture);
+
+      // @TODO How can I see if there's a reference to a MeshSupplementary asset?
+
+      const textureAsset = assetDb.assets.find((asset) => {
+        return areUrisCanonicallyEquivalent(asset.babylonFetchUrl, texture.name) && asset.type === AssetType.Texture;
+      });
+      if (textureAsset === undefined) {
+        console.error(`[MeshAsset] (fromAssetData) Mesh has reference to non-tracked asset: '${texture.name}'`);
+      } else {
+        assetCache.registerDependency(assetData.id, textureAsset.id);
+      }
     }
 
     // Replace every material with custom PolyZone material

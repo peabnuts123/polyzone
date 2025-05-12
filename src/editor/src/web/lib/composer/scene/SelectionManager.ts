@@ -14,8 +14,7 @@ import { Vector3 as Vector3Babylon } from "@babylonjs/core/Maths/math.vector";
 import { toVector3Core } from "@polyzone/runtime/src/util";
 
 import { SetGameObjectPositionMutation, SetGameObjectRotationMutation, SetGameObjectScaleMutation } from "@lib/mutation/SceneView/mutations";
-import { SceneViewMutator } from "@lib/mutation/SceneView";
-import { GameObjectData } from "@lib/project/data";
+import { SceneViewController } from "./SceneViewController";
 
 
 export enum CurrentSelectionTool {
@@ -26,6 +25,7 @@ export enum CurrentSelectionTool {
 
 export class SelectionManager {
   private readonly babylonScene: BabylonScene;
+  private readonly sceneViewController: SceneViewController;
   private readonly gizmoManager: GizmoManager;
   private readonly moveGizmo: PositionGizmo;
   private readonly rotateGizmo: RotationGizmo;
@@ -33,15 +33,16 @@ export class SelectionManager {
   private readonly boundingBoxGizmo: BoundingBoxGizmo;
 
   private _currentTool: CurrentSelectionTool = CurrentSelectionTool.Rotate;
-  private _selectedObject: GameObjectData | undefined = undefined;
+  private _selectedObjectId: string | undefined = undefined;
   private fakeTransformTarget: TransformNode | undefined = undefined;
 
   private currentMoveMutation: SetGameObjectPositionMutation | undefined = undefined;
   private currentRotateMutation: SetGameObjectRotationMutation | undefined = undefined;
   private currentScaleMutation: SetGameObjectScaleMutation | undefined = undefined;
 
-  public constructor(scene: BabylonScene, mutator: SceneViewMutator) {
+  public constructor(scene: BabylonScene, sceneViewController: SceneViewController) {
     this.babylonScene = scene;
+    this.sceneViewController = sceneViewController;
     const utilityLayer = new UtilityLayerRenderer(scene);
     this.gizmoManager = new GizmoManager(scene, 2, utilityLayer);
     this.gizmoManager.usePointerToAttachGizmos = false;
@@ -50,29 +51,29 @@ export class SelectionManager {
     this.moveGizmo = new PositionGizmo(utilityLayer, 2, this.gizmoManager);
     this.moveGizmo.planarGizmoEnabled = true;
     this.moveGizmo.onDragStartObservable.add(() => {
-      this.currentMoveMutation = new SetGameObjectPositionMutation(this.selectedObject!);
-      mutator.beginContinuous(this.currentMoveMutation);
+      this.currentMoveMutation = new SetGameObjectPositionMutation(this.selectedObjectId!);
+      sceneViewController.mutator.beginContinuous(this.currentMoveMutation);
     });
     this.moveGizmo.onDragObservable.add((_eventData) => {
-      if (this.selectedObject !== undefined) {
-        mutator.updateContinuous(this.currentMoveMutation!, {
+      if (this.selectedObjectId !== undefined) {
+        sceneViewController.mutator.updateContinuous(this.currentMoveMutation!, {
           position: toVector3Core(this.fakeTransformTarget!.position),
         });
       }
     });
     this.moveGizmo.onDragEndObservable.add(() => {
-      mutator.apply(this.currentMoveMutation!);
+      sceneViewController.mutator.apply(this.currentMoveMutation!);
       this.currentMoveMutation = undefined;
     });
 
     // Rotate
     this.rotateGizmo = new RotationGizmo(utilityLayer, 32, true, 6, this.gizmoManager);
     this.rotateGizmo.onDragStartObservable.add(() => {
-      this.currentRotateMutation = new SetGameObjectRotationMutation(this.selectedObject!);
-      mutator.beginContinuous(this.currentRotateMutation);
+      this.currentRotateMutation = new SetGameObjectRotationMutation(this.selectedObjectId!);
+      sceneViewController.mutator.beginContinuous(this.currentRotateMutation);
     });
     this.rotateGizmo.onDragObservable.add((_eventData) => {
-      if (this.selectedObject !== undefined) {
+      if (this.selectedObjectId !== undefined) {
         // Sometimes the rotation comes down as a quaternion, and sometimes not.
         // At this stage, I don't really know why ¯\_(ツ)_/¯
         let rotation: Vector3Babylon;
@@ -84,26 +85,26 @@ export class SelectionManager {
           rotation = this.fakeTransformTarget!.rotation;
         }
 
-        mutator.updateContinuous(this.currentRotateMutation!, {
+        sceneViewController.mutator.updateContinuous(this.currentRotateMutation!, {
           rotation: toVector3Core(rotation),
         });
       }
     });
     this.rotateGizmo.onDragEndObservable.add((_eventData) => {
-      mutator.apply(this.currentRotateMutation!);
+      sceneViewController.mutator.apply(this.currentRotateMutation!);
       this.currentRotateMutation = undefined;
     });
 
     // Scale
     this.scaleGizmo = new ScaleGizmo(utilityLayer, 2, this.gizmoManager);
     this.scaleGizmo.onDragStartObservable.add(() => {
-      this.currentScaleMutation = new SetGameObjectScaleMutation(this.selectedObject!);
-      mutator.beginContinuous(this.currentScaleMutation);
+      this.currentScaleMutation = new SetGameObjectScaleMutation(this.selectedObjectId!);
+      sceneViewController.mutator.beginContinuous(this.currentScaleMutation);
     });
     this.scaleGizmo.onDragObservable.add((_eventData) => {
-      if (this.selectedObject !== undefined) {
+      if (this.selectedObjectId !== undefined) {
         // Scaling is handled as a percentage to accommodate rotation
-        mutator.updateContinuous(this.currentScaleMutation!, {
+        sceneViewController.mutator.updateContinuous(this.currentScaleMutation!, {
           scaleDelta: toVector3Core(this.fakeTransformTarget!.scaling),
         });
         // @NOTE Reset scaling to uniform scale, because rotation doesn't work with non-uniform scaling
@@ -111,7 +112,7 @@ export class SelectionManager {
       }
     });
     this.scaleGizmo.onDragEndObservable.add(() => {
-      mutator.apply(this.currentScaleMutation!);
+      sceneViewController.mutator.apply(this.currentScaleMutation!);
       this.currentScaleMutation = undefined;
     });
 
@@ -125,14 +126,12 @@ export class SelectionManager {
     makeAutoObservable(this);
   }
 
-  public select(gameObject: GameObjectData): void {
-    console.log(`[SelectionManager] (select) gameObject: `, gameObject);
-    this.selectedObject = gameObject;
+  public select(gameObjectId: string): void {
+    this.selectedObjectId = gameObjectId;
   }
 
   public deselectAll(): void {
-    console.log(`[SelectionManager] (deselectAll) Deselected.`);
-    this.selectedObject = undefined;
+    this.selectedObjectId = undefined;
   }
 
   public updateGizmos(): void {
@@ -142,8 +141,10 @@ export class SelectionManager {
     this.scaleGizmo.attachedNode = null;
     this.boundingBoxGizmo.attachedMesh = null;
 
-    if (this.selectedObject !== undefined) {
-      const realTransformTarget = this.selectedObject.sceneInstance!.transform.node;
+    if (this.selectedObjectId !== undefined) {
+      const selectedObjectInstance = this.sceneViewController.findGameObjectById(this.selectedObjectId);
+      if (selectedObjectInstance === undefined) throw new Error(`Cannot update gizmos, no game object exists in the scene with id '${this.selectedObjectId}'`);
+      const realTransformTarget = selectedObjectInstance.transform.node;
 
       // Construct a new dummy transform target if we need one and it doesn't exist
       if (this.fakeTransformTarget === undefined) {
@@ -213,11 +214,11 @@ export class SelectionManager {
   }
 
   // Selected object
-  public get selectedObject(): GameObjectData | undefined {
-    return this._selectedObject;
+  public get selectedObjectId(): string | undefined {
+    return this._selectedObjectId;
   }
-  private set selectedObject(value: GameObjectData | undefined) {
-    this._selectedObject = value;
+  private set selectedObjectId(value: string | undefined) {
+    this._selectedObjectId = value;
     this.updateGizmos();
   }
 

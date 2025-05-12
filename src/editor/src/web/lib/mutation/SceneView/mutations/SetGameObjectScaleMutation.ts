@@ -1,7 +1,6 @@
 import { Vector3Definition as ArchiveVector3 } from "@polyzone/runtime/src/cartridge/archive/util";
 import { Vector3 } from "@polyzone/core/src/util";
 
-import { GameObjectData } from "@lib/project/data";
 import { resolvePathForSceneObjectMutation } from "@lib/mutation/util";
 import { ISceneMutation } from "../ISceneMutation";
 import { SceneViewMutationArguments } from "../SceneViewMutationArguments";
@@ -20,41 +19,44 @@ export type SetGameObjectScaleMutationUpdateArgs = SetGameObjectScaleMutationDel
 
 export class SetGameObjectScaleMutation implements ISceneMutation, IContinuousSceneMutation<SetGameObjectScaleMutationUpdateArgs> {
   // State
-  // @TODO should we look you up by ID or something?
-  private readonly gameObject: GameObjectData;
-  private scale: Vector3;
+  private readonly gameObjectId: string;
   private _hasBeenApplied: boolean = false;
   // Undo state
-  private configScale: Vector3 | undefined = undefined;
-  private sceneScale: Vector3 | undefined = undefined;
+  private oldDataScale: Vector3 | undefined = undefined;
+  private oldSceneScale: Vector3 | undefined = undefined;
 
 
-  public constructor(gameObject: GameObjectData) {
-    this.gameObject = gameObject;
-    this.scale = gameObject.transform.scale.clone();
+  public constructor(gameObjectId: string) {
+    this.gameObjectId = gameObjectId;
   }
 
-  begin(_args: SceneViewMutationArguments): void {
+  begin({ SceneViewController }: SceneViewMutationArguments): void {
+    const gameObjectData = SceneViewController.scene.getGameObject(this.gameObjectId);
+    const gameObject = SceneViewController.findGameObjectById(this.gameObjectId);
+    if (gameObject === undefined) throw new Error(`Cannot begin mutation - no game object exists in the scene with id '${this.gameObjectId}'`);
+
     // - Store undo values
-    this.configScale = this.gameObject.transform.scale;
-    this.sceneScale = this.gameObject.sceneInstance!.transform.scale;
+    this.oldDataScale = gameObjectData.transform.scale;
+    this.oldSceneScale = gameObject.transform.scale;
   }
 
   update({ SceneViewController }: SceneViewMutationArguments, updateArgs: SetGameObjectScaleMutationUpdateArgs): void {
+    const gameObjectData = SceneViewController.scene.getGameObject(this.gameObjectId);
+    const gameObject = SceneViewController.findGameObjectById(this.gameObjectId);
+    if (gameObject === undefined) throw new Error(`Cannot update mutation - no game object exists in the scene with id '${this.gameObjectId}'`);
+
     if ('scaleDelta' in updateArgs) {
       const { scaleDelta } = updateArgs;
-      this.scale.multiplySelf(scaleDelta);
       // - 1. Update Data
-      this.gameObject.transform.scale.multiplySelf(scaleDelta);
+      gameObjectData.transform.scale.multiplySelf(scaleDelta);
       // - 2. Update Scene
-      this.gameObject.sceneInstance!.transform.localScale.multiplySelf(scaleDelta);
+      gameObject.transform.localScale.multiplySelf(scaleDelta);
     } else {
       const { scale } = updateArgs;
-      this.scale = scale;
       // - 1. Update Data
-      this.gameObject.transform.scale = scale;
+      gameObjectData.transform.scale = scale;
       // - 2. Update Scene
-      this.gameObject.sceneInstance!.transform.localScale = scale;
+      gameObject.transform.localScale = scale;
     }
 
     if (updateArgs.resetGizmo) {
@@ -63,13 +65,15 @@ export class SetGameObjectScaleMutation implements ISceneMutation, IContinuousSc
   }
 
   apply({ SceneViewController }: SceneViewMutationArguments): void {
+    const gameObjectData = SceneViewController.scene.getGameObject(this.gameObjectId);
+
     // - 3. Update JSONC
     const updatedValue: ArchiveVector3 = {
-      x: this.scale.x,
-      y: this.scale.y,
-      z: this.scale.z,
+      x: gameObjectData.transform.scale.x,
+      y: gameObjectData.transform.scale.y,
+      z: gameObjectData.transform.scale.z,
     };
-    const mutationPath = resolvePathForSceneObjectMutation(this.gameObject.id, SceneViewController.sceneDefinition, (gameObject) => gameObject.transform.scale);
+    const mutationPath = resolvePathForSceneObjectMutation(gameObjectData.id, SceneViewController.sceneDefinition, (gameObject) => gameObject.transform.scale);
     SceneViewController.sceneJson.mutate(mutationPath, updatedValue);
   }
 
@@ -80,7 +84,7 @@ export class SetGameObjectScaleMutation implements ISceneMutation, IContinuousSc
   }
 
   get description(): string {
-    return `Scale '${this.gameObject.name}'`;
+    return `Scale object`;
   }
 
   public get hasBeenApplied(): boolean { return this._hasBeenApplied; }

@@ -21,10 +21,26 @@ export interface AssetCacheContext {
 export type LoadAssetContextParam = Omit<AssetCacheContext, 'assetCache'>;
 
 export class AssetCache {
-  private cache: Map<IAssetData, LoadedAsset>;
+  /**
+   * Cache of loaded assets, keyed by asset ID.
+   */
+  private cache: Map<string, LoadedAsset>;
+  /**
+   * A map of assets' IDs and the IDs of the assets on which those assets depend.
+   *
+   * Key = Id of the asset.
+   * Value = Array of asset IDs on which the asset depends.
+   */
+  private assetDependencies: Map<string, string[]>;
+  /**
+   * A map of assets' IDs and the asset IDs of the assets that depend on them.
+   */
+  private assetDependents: Map<string, string[]>;
 
   public constructor() {
-    this.cache = new Map<IAssetData, LoadedAsset>();
+    this.cache = new Map();
+    this.assetDependencies = new Map();
+    this.assetDependents = new Map();
   }
 
   /**
@@ -41,7 +57,7 @@ export class AssetCache {
     try {
 
       // @NOTE Why does TypeScript want everything to be type laundered here?
-      const cached = this.cache.get(asset);
+      const cached = this.cache.get(asset.id);
       if (cached) {
         console.log(`[AssetCache] (loadAsset) Asset already loaded, returning cached asset: ${asset.path}`);
         return cached as LoadedAssetOfType<TAssetType>;
@@ -72,7 +88,7 @@ export class AssetCache {
         }
 
         const result = await assetPromise;
-        this.cache.set(asset, result);
+        this.cache.set(asset.id, result);
 
         return result;
       }
@@ -82,17 +98,57 @@ export class AssetCache {
     }
   }
 
-  public delete(asset: IAssetData): void {
-    const cached = this.cache.get(asset);
+  /**
+   * Register an asset dependency from `assetId` onto `dependencyAssetId`.
+   * @param assetId The ID of the asset which is dependent on the asset with ID `dependencyAssetId`.
+   * @param dependencyAssetId The ID of the asset on which the asset with ID `assetId` is dependent.
+   */
+  public registerDependency(assetId: string, dependencyAssetId: string): void {
+    const assetDependencies = this.assetDependencies.get(assetId) || [];
+    const assetDependents = this.assetDependents.get(dependencyAssetId) || [];
+
+    // Add the dependency if it doesn't already exist
+    if (!assetDependencies.includes(dependencyAssetId)) {
+      assetDependencies.push(dependencyAssetId);
+    }
+    this.assetDependencies.set(assetId, assetDependencies);
+
+    // Add the dependent if it doesn't already exist
+    if (!assetDependents.includes(assetId)) {
+      assetDependents.push(assetId);
+    }
+    this.assetDependents.set(dependencyAssetId, assetDependents);
+  }
+
+  /**
+   * Get an array of the Asset IDs on which the asset with ID `assetId` depends.
+   * @param assetId The ID of the asset whose dependencies are to be retrieved.
+   */
+  public getAssetDependencies(assetId: string): string[] {
+    return this.assetDependencies.get(assetId) || [];
+  }
+
+  /**
+   * Get an array of the IDs of assets which depend on the asset with the ID `assetId`.
+   * @param assetId The ID of the asset whose dependents are to be retrieved.
+   */
+  public getAssetDependents(assetId: string): string[] {
+    return this.assetDependents.get(assetId) || [];
+  }
+
+  public delete(assetId: string): void {
+    const cached = this.cache.get(assetId);
     if (cached) {
       cached.dispose();
-      this.cache.delete(asset);
+      this.cache.delete(assetId);
     }
   }
 
   public clear(): void {
     this.cache.forEach((asset) => asset.dispose());
     this.cache.clear();
+    this.assetDependencies.clear();
+    this.assetDependents.clear();
   }
 
   public onDestroy(): void {

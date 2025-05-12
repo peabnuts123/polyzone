@@ -1,6 +1,6 @@
 import { Color3 as Color3Babylon } from '@babylonjs/core/Maths/math.color';
 import { Color3 } from "@polyzone/core/src/util";
-import { toColor3Babylon, toColor3Core } from "@polyzone/runtime/src/util";
+import { toColor3Babylon, toColor3Definition } from "@polyzone/runtime/src/util";
 import { MaterialDefinition } from "@polyzone/runtime/src/world";
 import { resolvePath } from "@lib/util/JsoncContainer";
 import { IContinuousMaterialEditorViewMutation } from "../IContinuousMaterialEditorViewMutation";

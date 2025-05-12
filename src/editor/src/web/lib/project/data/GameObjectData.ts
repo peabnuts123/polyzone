@@ -1,7 +1,6 @@
 import { makeAutoObservable } from "mobx";
 
 import { ClassReference } from "@polyzone/core/src/util";
-import type { GameObject as GameObjectRuntime } from "@polyzone/runtime/src/world";
 
 import type { IComposerComponentData } from "./components";
 import type { TransformData } from "./TransformData";
@@ -9,10 +8,6 @@ import { IGameObjectData, GameObjectData as GameObjectDataRuntime } from "@polyz
 
 export class GameObjectData implements IGameObjectData {
   private _gameObjectData: GameObjectDataRuntime;
-
-  // @TODO this is a bit cooked TBH. We should probably have a reference to World or SceneBabylon or something.
-  //  I think this is only used by mutations
-  public sceneInstance: GameObjectRuntime | undefined = undefined;
 
   public constructor(id: string, name: string, transform: TransformData, components: IComposerComponentData[], children: GameObjectData[]) {
     this._gameObjectData = new GameObjectDataRuntime(id,name, transform, components, children);

@@ -1,4 +1,4 @@
-import { GameObjectData, IComposerComponentData } from "@lib/project/data";
+import { IComposerComponentData } from "@lib/project/data";
 import { ISceneMutation } from "../ISceneMutation";
 import { SceneViewMutationArguments } from "../SceneViewMutationArguments";
 import { resolvePathForSceneObjectMutation } from "@lib/mutation/util";
@@ -8,8 +8,8 @@ export class AddGameObjectComponentMutation implements ISceneMutation {
   private readonly gameObjectId: string;
   private readonly newComponent: IComposerComponentData;
 
-  public constructor(gameObject: GameObjectData, newComponent: IComposerComponentData) {
-    this.gameObjectId = gameObject.id;
+  public constructor(gameObjectId: string, newComponent: IComposerComponentData) {
+    this.gameObjectId = gameObjectId;
     this.newComponent = newComponent;
   }
 
@@ -19,7 +19,8 @@ export class AddGameObjectComponentMutation implements ISceneMutation {
     gameObjectData.components.push(this.newComponent);
 
     // 2. Update scene
-    const gameObject = gameObjectData.sceneInstance!;
+    const gameObject = SceneViewController.findGameObjectById(this.gameObjectId);
+    if (gameObject === undefined) throw new Error(`Cannot apply mutation - no game object exists in the scene with id '${this.gameObjectId}'`);
     SceneViewController.createGameObjectComponent(gameObjectData, gameObject, this.newComponent);
 
     // 3. Update JSONC

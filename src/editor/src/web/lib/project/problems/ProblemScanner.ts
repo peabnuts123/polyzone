@@ -27,6 +27,8 @@ export interface ScannerContext {
 // - Things with the same guid: scene objects, assets, etc.
 // - Errors in script files
 // - Asset dependency is missing e.g. missing texture files
+// - Reference to asset that is not monitored by PolyZone
+// - Something about Material assets?
 
 export class ProblemScanner {
   private readonly projectController: ProjectController;

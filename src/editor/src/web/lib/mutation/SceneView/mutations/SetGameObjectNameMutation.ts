@@ -1,4 +1,3 @@
-import { GameObjectData } from "@lib/project/data";
 import { resolvePathForSceneObjectMutation } from "@lib/mutation/util";
 import { ISceneMutation } from "../ISceneMutation";
 import { SceneViewMutationArguments } from "../SceneViewMutationArguments";
@@ -10,40 +9,46 @@ export interface SetGameObjectNameMutationUpdateArgs {
 
 export class SetGameObjectNameMutation implements ISceneMutation, IContinuousSceneMutation<SetGameObjectNameMutationUpdateArgs> {
   // State
-  // @TODO should we look you up by ID or something?
-  private readonly gameObject: GameObjectData;
-  private name: string;
+  private readonly gameObjectId: string;
   private _hasBeenApplied: boolean = false;
 
   // Undo state
-  private configName: string | undefined = undefined;
-  private sceneName: string | undefined = undefined;
+  // @TODO These should probably be the same lol
+  private oldDataName: string | undefined = undefined;
+  private oldSceneName: string | undefined = undefined;
 
 
-  public constructor(gameObject: GameObjectData) {
-    this.gameObject = gameObject;
-    this.name = gameObject.name;
+  public constructor(gameObjectId: string) {
+    this.gameObjectId = gameObjectId;
   }
 
-  public begin(_args: SceneViewMutationArguments): void {
+  public begin({ SceneViewController }: SceneViewMutationArguments): void {
+    const gameObjectData = SceneViewController.scene.getGameObject(this.gameObjectId);
+    const gameObject = SceneViewController.findGameObjectById(this.gameObjectId);
+    if (gameObject === undefined) throw new Error(`Cannot begin mutation - no game object exists in the scene with id '${this.gameObjectId}'`);
+
     // - Store undo values
-    this.configName = this.gameObject.name;
-    this.sceneName = this.gameObject.sceneInstance!.name;
+    this.oldDataName = gameObjectData.name;
+    this.oldSceneName = gameObject.name;
   }
 
-  public update({ }: SceneViewMutationArguments, { name }: SetGameObjectNameMutationUpdateArgs): void {
-    this.name = name;
+  public update({ SceneViewController }: SceneViewMutationArguments, { name }: SetGameObjectNameMutationUpdateArgs): void {
+    const gameObjectData = SceneViewController.scene.getGameObject(this.gameObjectId);
+    const gameObject = SceneViewController.findGameObjectById(this.gameObjectId);
+    if (gameObject === undefined) throw new Error(`Cannot update mutation - no game object exists in the scene with id '${this.gameObjectId}'`);
+
     // - 1. Data
-    this.gameObject.name = name;
+    gameObjectData.name = name;
     // - 2. Babylon state
-    this.gameObject.sceneInstance!.name = name;
+    gameObject!.name = name;
   }
 
   public apply({ SceneViewController }: SceneViewMutationArguments): void {
+    const gameObjectData = SceneViewController.scene.getGameObject(this.gameObjectId);
+
     // - 3. JSONC
-    const updatedValue = this.name;
-    const mutationPath = resolvePathForSceneObjectMutation(this.gameObject.id, SceneViewController.sceneDefinition, (gameObject) => gameObject.name);
-    SceneViewController.sceneJson.mutate(mutationPath, updatedValue);
+    const mutationPath = resolvePathForSceneObjectMutation(this.gameObjectId, SceneViewController.sceneDefinition, (gameObject) => gameObject.name);
+    SceneViewController.sceneJson.mutate(mutationPath, gameObjectData.name);
   }
 
   public undo(_args: SceneViewMutationArguments): void {
@@ -53,14 +58,7 @@ export class SetGameObjectNameMutation implements ISceneMutation, IContinuousSce
   }
 
   public get description(): string {
-    // Old name is dependent on whether this mutation has been applied or not (e.g. if it's been undone)
-    let oldName: string;
-    if (this.configName) {
-      oldName = this.configName;
-    } else {
-      oldName = this.gameObject.name;
-    }
-    return `Rename '${oldName}' => '${this.name}'`;
+    return `Rename object`;
   }
 
   public get hasBeenApplied(): boolean { return this._hasBeenApplied; }

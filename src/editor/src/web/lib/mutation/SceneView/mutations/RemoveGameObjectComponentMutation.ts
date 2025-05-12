@@ -34,7 +34,8 @@ export class RemoveGameObjectComponentMutation implements ISceneMutation {
     // 2. Update scene
     // @NOTE Don't need to update scene for certain types (since they aren't instantiated in the composer)
     if (!ComponentTypesThatDontExistInTheComposer.some((Type) => this.componentToRemove instanceof Type)) {
-      const gameObject = gameObjectData.sceneInstance!;
+      const gameObject = SceneViewController.findGameObjectById(this.gameObjectId);
+      if (gameObject === undefined) throw new Error(`Cannot apply mutation - no game object exists in the scene with id '${this.gameObjectId}'`);
       const sceneComponent = gameObject.getComponent(this.componentToRemove.id, GameObjectComponent);
       if (isSelectableObject(sceneComponent)) {
         SceneViewController.removeFromSelectionCache(sceneComponent);

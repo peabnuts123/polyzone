@@ -45,7 +45,8 @@ export class SetGameObjectLightComponentColorMutation implements ISceneMutation,
   public begin({ SceneViewController }: SceneViewMutationArguments): void {
     const gameObjectData = SceneViewController.scene.getGameObject(this.gameObjectId);
     const componentData = gameObjectData.getComponent(this.componentId, LightComponentDataTypes);
-    const gameObject = gameObjectData.sceneInstance!;
+    const gameObject = SceneViewController.findGameObjectById(this.gameObjectId);
+    if (gameObject === undefined) throw new Error(`Cannot begin mutation - no game object exists in the scene with id '${this.gameObjectId}'`);
     const component = gameObject.getComponent(this.componentId, LightComponentTypes);
 
     // - Store undo values
@@ -56,7 +57,8 @@ export class SetGameObjectLightComponentColorMutation implements ISceneMutation,
   public update({ SceneViewController }: SceneViewMutationArguments, { color }: SetGameObjectLightComponentColorMutationUpdateArgs): void {
     const gameObjectData = SceneViewController.scene.getGameObject(this.gameObjectId);
     const componentData = gameObjectData.getComponent(this.componentId, LightComponentDataTypes);
-    const gameObject = gameObjectData.sceneInstance!;
+    const gameObject = SceneViewController.findGameObjectById(this.gameObjectId);
+    if (gameObject === undefined) throw new Error(`Cannot apply mutation - no game object exists in the scene with id '${this.gameObjectId}'`);
     const component = gameObject.getComponent(this.componentId, LightComponentTypes);
 
     this.color = color;

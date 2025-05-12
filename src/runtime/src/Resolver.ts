@@ -1,5 +1,6 @@
 import { FileToolsOptions } from '@babylonjs/core/Misc/fileTools';
 import { IFileSystem } from './filesystem';
+import { canonicalisePath, stripProtocolFromUri } from './util';
 
 /**
  * Wrapper around Babylon URL resolving to read files from
@@ -22,13 +23,9 @@ class Resolver {
   public resolve(url: string): string {
     for (const [protocol, fileSystem] of this.fileSystems) {
       if (url.startsWith(protocol)) {
-        // @NOTE lo-fi canonicalisation hack using `decodeURIComponent` + trim leading slash
         // @NOTE crazy bug in browsers (!) non-http protocols are not parsed correctly,
         //  so we must strip the protocol off the URL. See: https://issues.chromium.org/issues/40063064
-        const canonical = decodeURIComponent(
-          new URL(url.substring(protocol.length), 'http://foo.bar').pathname,
-        ).replace(/^\//, '');
-
+        const canonical = canonicalisePath(stripProtocolFromUri(url));
         return fileSystem.getUrlForPath(canonical);
       }
     }

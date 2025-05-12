@@ -67,7 +67,7 @@ export const HierarchyObject: FunctionComponent<HierarchyObjectProps> = observer
 
   // Computed state
   /** Whether this object is selected in the scene view */
-  const isSelected = controller.selectedObject === gameObject;
+  const isSelected = controller.selectedObjectId === gameObject.id;
   /** Whether this object has children */
   const hasChildren = gameObject.children.length > 0;
   /** Whether this object's children are visible */
@@ -240,7 +240,7 @@ export const HierarchyObject: FunctionComponent<HierarchyObjectProps> = observer
           <button
             className="grow pl-1 text-left"
             ref={DragSource}
-            onClick={() => controller.selectionManager.select(gameObject)}
+            onClick={() => controller.selectionManager.select(gameObject.id)}
           >
             {gameObject.name}
           </button>

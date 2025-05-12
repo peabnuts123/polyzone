@@ -1,7 +1,6 @@
 import type { MeshComponentDefinition } from "@polyzone/runtime/src/cartridge";
 
 import { GameObjectData, MeshComponentData } from "@lib/project/data";
-import { MeshComponent } from "@lib/composer/scene";
 import { resolvePathForSceneObjectMutation } from "@lib/mutation/util";
 import type { MeshAssetData } from "@lib/project/data/assets";
 import { ISceneMutation } from "../ISceneMutation";
@@ -25,16 +24,14 @@ export class SetGameObjectMeshComponentAssetMutation implements ISceneMutation {
     const componentData = gameObjectData.getComponent(this.componentId, MeshComponentData);
     // - Replace asset reference
     componentData.meshAsset = this.meshAsset;
-    const componentIndex = gameObjectData.components.indexOf(componentData);
 
     // 2. Update babylon scene
-    const gameObject = gameObjectData.sceneInstance!;
-    const meshComponent = gameObject.components.find((component) => component.id === this.componentId) as MeshComponent;
-    /* @NOTE async */ void SceneViewController.reinitializeComponentInstance(meshComponent, gameObjectData);
+    /* @NOTE async */ void SceneViewController.reinitializeComponentInstance(componentData, gameObjectData);
 
     // 3. Modify JSONC
     // - Replace ID of asset in component definition
     const updatedValue = this.meshAsset?.id ?? null;
+    const componentIndex = gameObjectData.components.indexOf(componentData);
     const mutationPath = resolvePathForSceneObjectMutation(
       this.gameObjectId,
       SceneViewController.sceneDefinition,

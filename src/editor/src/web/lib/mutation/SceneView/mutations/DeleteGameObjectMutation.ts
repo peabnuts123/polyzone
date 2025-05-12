@@ -28,10 +28,11 @@ export class DeleteGameObjectMutation implements ISceneMutation {
     }
 
     // 2. Update Scene
-    const gameObject = gameObjectData.sceneInstance!;
+    const gameObject = SceneViewController.findGameObjectById(this.gameObjectId);
+    if (gameObject === undefined) throw new Error(`Cannot apply mutation - no game object exists in the scene with id '${this.gameObjectId}'`);
     gameObject.transform.parent = undefined;
     gameObject.destroy();
-    if (SceneViewController.selectionManager.selectedObject === gameObjectData) {
+    if (SceneViewController.selectionManager.selectedObjectId === gameObjectData.id) {
       SceneViewController.selectionManager.deselectAll();
     }
 

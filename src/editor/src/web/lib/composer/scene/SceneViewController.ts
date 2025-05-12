@@ -27,14 +27,15 @@ import { ProjectController } from '@lib/project/ProjectController';
 import { SceneViewMutator } from '@lib/mutation/SceneView';
 import { SceneDefinition } from '@lib/project/definition';
 import { CameraComponentData, DirectionalLightComponentData, IComposerComponentData, MeshComponentData, PointLightComponentData, ScriptComponentData } from '@lib/project/data/components';
-import { SceneData, GameObjectData, AssetData } from '@lib/project/data';
+import { SceneData, GameObjectData } from '@lib/project/data';
 import { ProjectSceneEventType } from '@lib/project/watcher/scenes';
 import { ProjectFileEventType } from '@lib/project/watcher/project';
 import { SceneDbRecord } from '@lib/project/data/SceneDb';
-import { ComposerSelectionCache } from '../util/ComposerSelectionCache';
+import { ProjectAssetEventType } from '@lib/project/watcher/assets';
+import { ComponentDependencyManager } from '@lib/common/ComponentDependencyManager';
+import { SceneViewSelectionCache } from './SceneViewSelectionCache';
 import { isAssetDependentComponent, ISelectableObject, isSelectableObject, MeshComponent } from './components';
 import { CurrentSelectionTool, SelectionManager } from './SelectionManager';
-import { AssetDependencyCache } from './AssetDependencyCache';
 
 export class SceneViewController {
   private _scene: SceneData;
@@ -46,19 +47,22 @@ export class SceneViewController {
   private readonly engine: Engine;
   private readonly babylonScene: BabylonScene;
   private sceneCamera!: FreeCameraBabylon;
-  private readonly assetDependencyCache: AssetDependencyCache;
+  private readonly componentDependencyManager: ComponentDependencyManager;
   private readonly assetCache: AssetCache;
   private readonly _selectionManager: SelectionManager;
-  private readonly babylonToWorldSelectionCache: ComposerSelectionCache;
+  private readonly selectionCache: SceneViewSelectionCache;
   private readonly unlistenToFileSystemEvents: () => void;
+
+  private _gameObjectInstances: GameObjectRuntime[];
 
   public constructor(scene: SceneData, sceneJson: JsoncContainer<SceneDefinition>, projectController: ProjectController) {
     this._scene = scene;
     this._sceneJson = sceneJson;
     this.projectController = projectController;
     this.assetCache = new AssetCache();
-    this.assetDependencyCache = new AssetDependencyCache(this, projectController.filesWatcher);
-    this.babylonToWorldSelectionCache = new ComposerSelectionCache();
+    this._gameObjectInstances = [];
+    this.componentDependencyManager = new ComponentDependencyManager();
+    this.selectionCache = new SceneViewSelectionCache();
     this._mutator = new SceneViewMutator(
       this,
       projectController,
@@ -69,7 +73,7 @@ export class SceneViewController {
 
     this.engine = new Engine(this.canvas, true, {}, true);
     this.babylonScene = new BabylonScene(this.engine);
-    this._selectionManager = new SelectionManager(this.babylonScene, this.mutator);
+    this._selectionManager = new SelectionManager(this.babylonScene, this);
 
     // Build scene
     void this.buildScene();
@@ -95,10 +99,50 @@ export class SceneViewController {
         // @TODO close scene tab
       }
     });
+    const stopListeningToAssetEvents = projectController.filesWatcher.onAssetChanged((event) => {
+      switch (event.type) {
+        case ProjectAssetEventType.Modify:
+        case ProjectAssetEventType.Delete:
+          /**
+           * Collect all assets that will need to be reloaded.
+           * Updated asset + any assets that depend on it
+           */
+          const allAffectedAssets: string[] = [
+            event.asset.id,
+            ...this.assetCache.getAssetDependents(event.asset.id),
+          ];
+
+          // Remove assets from asset cache, so that reinitializing them will load the new asset
+          for (const assetId of allAffectedAssets) {
+            this.assetCache.delete(assetId);
+          }
+
+          // Find all components that depend on these affected assets
+          const allAffectedComponentData = this.componentDependencyManager.getAllDependentsForAssetIds(allAffectedAssets);
+
+          // Reinitialise all affected components
+          for (const { componentData, gameObjectData, assetIds } of allAffectedComponentData) {
+            if (assetIds.includes(event.asset.id)) {
+              console.log(`[DEBUG] [SceneViewController] (filesWatcher.onAssetChanged) Reinitializing component due to asset change: (assetId='${event.asset.id}') (componentId='${componentData.id}') (gameObjectId='${gameObjectData.id}')`);
+            } else {
+              console.log(`[DEBUG] [SceneViewController] (filesWatcher.onAssetChanged) Reinitializing component due to TRANSITIVE asset change: (source assetId='${event.asset.id}') (componentId='${componentData.id}') (gameObjectId='${gameObjectData.id}')`);
+            }
+
+            void this.reinitializeComponentInstance(componentData, gameObjectData);
+          }
+          break;
+        case ProjectAssetEventType.Create:
+        case ProjectAssetEventType.Rename:
+          break;
+        default:
+          console.error(`[AssetDependencyCache] (onProjectAssetChanged) Unimplemented asset event: `, event);
+      }
+    });
 
     this.unlistenToFileSystemEvents = () => {
       stopListeningToProjectFileEvents();
       stopListeningToSceneFileEvents();
+      stopListeningToAssetEvents();
     };
 
     makeAutoObservable(this);
@@ -129,13 +173,11 @@ export class SceneViewController {
         if (!pointerInfo.pickInfo?.hit) {
           this.selectionManager.deselectAll();
         } else if (pointerInfo.pickInfo && pointerInfo.pickInfo.pickedMesh !== null) {
-          // Resolve GameObjectData from reverse lookup cache
-          const pickedGameObject = this.babylonToWorldSelectionCache.get(pointerInfo.pickInfo.pickedMesh);
-
-          if (pickedGameObject === undefined) {
-            console.error(`Picked mesh but found no corresponding GameObject in cache. Has it been populated or updated? Picked mesh:`, pointerInfo.pickInfo.pickedMesh);
+          const pickedGameObjectId = this.selectionCache.get(pointerInfo.pickInfo.pickedMesh);
+          if (pickedGameObjectId === undefined) {
+            console.error(`Picked mesh but found no corresponding GameObject ID in cache. Has it been populated or updated? Picked mesh:`, pointerInfo.pickInfo.pickedMesh);
           } else {
-            this.selectionManager.select(pickedGameObject);
+            this.selectionManager.select(pickedGameObjectId);
           }
         }
       }
@@ -164,13 +206,15 @@ export class SceneViewController {
 
   public destroy(): void {
     this.assetCache.onDestroy();
-    this.assetDependencyCache.onDestroy();
     this.selectionManager.destroy();
     this.babylonScene.onPointerObservable.clear();
     this.babylonScene.dispose();
     this.engine.dispose();
     this.unlistenToFileSystemEvents();
     this._canvas.remove();
+    for (const gameObjectInstance of this._gameObjectInstances) {
+      gameObjectInstance.destroy();
+    }
   }
 
   private async createScene(): Promise<void> {
@@ -184,25 +228,23 @@ export class SceneViewController {
     ambientLight.groundColor = toColor3Babylon(this.scene.config.lighting.ambient.color);
     ambientLight.specular = Color3Babylon.Black();
 
-    // @TODO store this in a World or something
-    //  - remove need for `sceneInstance`
-    //  - call `destroy` on the objects, lol
-    const _gameObjects = await Promise.all(
+    await Promise.all(
       this.scene.objects.map((sceneObject) =>
         this.createGameObject(sceneObject),
-      ));
+      ),
+    );
   }
 
   public setCurrentTool(tool: CurrentSelectionTool): void {
     this.selectionManager.currentTool = tool;
   }
 
-  public addToSelectionCache(gameObjectData: GameObjectData, component: ISelectableObject): void {
-    this.babylonToWorldSelectionCache.add(gameObjectData, component.allSelectableMeshes);
+  public addToSelectionCache(gameObjectId: string, component: ISelectableObject): void {
+    this.selectionCache.add(gameObjectId, component.allSelectableMeshes);
   }
 
   public removeFromSelectionCache(component: ISelectableObject): void {
-    this.babylonToWorldSelectionCache.remove(component.allSelectableMeshes);
+    this.selectionCache.remove(component.allSelectableMeshes);
   }
 
   // @TODO we probably should try to share this with the runtime in some kind of overridable fashion (?)
@@ -228,9 +270,8 @@ export class SceneViewController {
 
     transform.gameObject = gameObject;
 
-    // Store reverse reference to new instance
-    // @TODO nah I actually don't know if I wanna do this
-    gameObjectData.sceneInstance = gameObject;
+    // Store game object instance in array of all game objects in the scene (flat, no hierarchy)
+    this._gameObjectInstances.push(gameObject);
 
     // Load game object components
     await Promise.all(gameObjectData.components.map((componentData) =>
@@ -279,12 +320,12 @@ export class SceneViewController {
 
     // Store selectable objects in cache (for efficient lookup of model => game object on click)
     if (isSelectableObject(newComponent)) {
-      this.addToSelectionCache(gameObjectData, newComponent);
+      this.addToSelectionCache(gameObjectData.id, newComponent);
     }
 
     // Store asset dependencies in a cache (for reloading components when assets change)
     if (isAssetDependentComponent(newComponent)) {
-      this.assetDependencyCache.registerDependency(newComponent.assetDependencyIds, newComponent, gameObjectData);
+      this.componentDependencyManager.registerDependency(componentData, gameObjectData, newComponent.assetDependencyIds);
     }
 
     gameObject.addComponent(newComponent);
@@ -292,13 +333,14 @@ export class SceneViewController {
 
   /**
    * Reload the instance of a component from its definition for an object loaded in the scene view.
-   * @param componentInstance Current instance of the component. This instance will be destroyed.
+   * @param componentData Data for GameObjectComponent. The previous instance of this component will be destroyed.
    * @param gameObjectData GameObject on which this component lives
    */
-  public async reinitializeComponentInstance(componentInstance: GameObjectComponent, gameObjectData: GameObjectData): Promise<void> {
-    const gameObjectInstance = componentInstance.gameObject as GameObjectRuntime;
-    const componentData = gameObjectData.components.find((component) => component.id === componentInstance.id);
-    if (componentData === undefined) throw new Error(`Cannot reinitialize component. Component with ID '${componentInstance.id}' is not a component of GameObject with ID '${gameObjectData.id}'`);
+  public async reinitializeComponentInstance(componentData: IComposerComponentData, gameObjectData: GameObjectData): Promise<void> {
+    const gameObjectInstance = this.findGameObjectById(gameObjectData.id);
+    if (gameObjectInstance === undefined) throw new Error(`Cannot reinitialize component. No GameObject with id '${gameObjectData.id}' could be found in the scene`);
+    const componentInstance = gameObjectInstance.components.find((component) => component.id === componentData.id);
+    if (componentInstance === undefined) throw new Error(`Cannot reinitialize component. Component with ID '${componentData.id}' is not a component of GameObject with ID '${gameObjectData.id}'`);
 
     // Remove selectable components from selection cache
     if (isSelectableObject(componentInstance)) {
@@ -307,7 +349,7 @@ export class SceneViewController {
 
     // Remove registered asset dependency (since component instance is about to be destroyed)
     if (isAssetDependentComponent(componentInstance)) {
-      this.assetDependencyCache.unregisterDependency(componentInstance);
+      this.componentDependencyManager.unregisterDependency(componentInstance.id);
     }
 
     // Remove (and destroy) component instance
@@ -320,9 +362,9 @@ export class SceneViewController {
   public async reloadSceneData(scene: SceneDbRecord): Promise<void> {
     // Clear out the scene
     this.selectionManager.deselectAll();
-    this.babylonToWorldSelectionCache.clear();
+    this.selectionCache.clear();
     this.assetCache.clear();
-    this.assetDependencyCache.clear();
+    this.componentDependencyManager.clear();
 
     const rootNodes = [...this.babylonScene.rootNodes];
     for (const sceneObject of rootNodes) {
@@ -340,8 +382,8 @@ export class SceneViewController {
     await this.createScene();
   }
 
-  public invalidateAssetCache(assetData: AssetData): void {
-    this.assetCache.delete(assetData);
+  public findGameObjectById(gameObjectId: string): GameObjectRuntime | undefined {
+    return this._gameObjectInstances.find((gameObject) => gameObject.id === gameObjectId);
   }
 
   public get canvas(): HTMLCanvasElement {
@@ -364,8 +406,15 @@ export class SceneViewController {
     return this._mutator;
   }
 
-  public get selectedObject(): GameObjectData | undefined {
-    return this.selectionManager.selectedObject;
+  public get selectedObjectData(): GameObjectData | undefined {
+    if (this.selectedObjectId) {
+      return this.scene.findGameObject(this.selectedObjectId);
+    } else {
+      return undefined;
+    }
+  }
+  public get selectedObjectId(): string | undefined {
+    return this.selectionManager.selectedObjectId;
   }
 
   public get selectionManager(): SelectionManager {
