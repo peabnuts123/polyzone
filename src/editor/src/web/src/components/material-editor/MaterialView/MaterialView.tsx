@@ -25,7 +25,6 @@ export const MaterialView: FunctionComponent<Props> = observer(({ controller }) 
   return (
     <div className="h-full flex flex-col">
       <PanelGroup direction="horizontal" className="grow select-none">
-        <PanelResizeHandle className="drag-separator" />
         <Panel defaultSize={20} minSize={10} className="flex flex-col">
           {/* Inspector */}
           <Inspector materialEditorViewController={controller} />
