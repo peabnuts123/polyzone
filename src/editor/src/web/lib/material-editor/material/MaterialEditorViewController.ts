@@ -126,13 +126,15 @@ export class MaterialEditorViewController {
     this.babylonScene.clearColor = Color3Babylon.Black().toColor4();
 
     /* Set up global ambient lighting */
+    // @TODO Ambient lighting through shader
     const ambientLight = new HemisphericLightBabylon("__ambient", new Vector3Babylon(0, 0, 0), this.babylonScene);
     ambientLight.intensity = 0.3;
-    const sun = new DirectionalLightBabylon("sun", new Vector3Babylon(0, -1, 1), this.babylonScene);
-    sun.diffuse = Color3Babylon.White();
     ambientLight.diffuse = Color3Babylon.White();
     ambientLight.groundColor = Color3Babylon.White();
     ambientLight.specular = Color3Babylon.Black();
+    const sun = new DirectionalLightBabylon("sun", new Vector3Babylon(-0.5, -1, 0.75), this.babylonScene);
+    sun.diffuse = Color3Babylon.White();
+    sun.intensity = 0.7;
 
     /* @NOTE WASD */
     camera.keysUp.push(87);
