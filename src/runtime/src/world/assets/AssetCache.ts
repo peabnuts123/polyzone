@@ -181,6 +181,30 @@ export class AssetCache {
   }
 
   /**
+   * Remove all cached instances of any assets loaded for the given scene.
+   * @param scene
+   */
+  public async disposeSceneInstances(scene: BabylonScene): Promise<void> {
+    // const assetInstanceCache = this.assetInstanceCache.get(assetId);
+    // const instance = await assetInstanceCache?.get(scene);
+    // assetInstanceCache?.delete(scene);
+    // instance?.dispose();
+
+    const disposePromises: Promise<void>[] = [];
+    this.assetInstanceCache.forEach((assetInstanceCache) => {
+      const sceneInstancePromise = assetInstanceCache.get(scene);
+      if (sceneInstancePromise !== undefined) {
+        disposePromises.push(
+          sceneInstancePromise.then((sceneInstance) => sceneInstance.dispose()),
+        );
+        assetInstanceCache.delete(scene);
+      }
+    });
+
+    await Promise.all(disposePromises);
+  }
+
+  /**
    * Get an array of the Asset IDs on which the asset with ID `assetId` depends.
    *
    * NOTE: This will return direct AND transitive dependencies.

@@ -88,7 +88,7 @@ export class MaterialEditorViewController {
 
           // Reload the scene if the material is dependent on one of the assets that changed
           if (allAffectedAssets.includes(this.materialAssetData.id)) {
-            console.log(`[${MaterialEditorViewController.name}] (onAssetChanged) Reinitializing component due to asset change: (assetId='${event.asset.id}')`);
+            console.log(`[${MaterialEditorViewController.name}] (onAssetChanged) Reloading scene due to asset change: (assetId='${event.asset.id}')`);
             this.reloadSceneData();
           }
           break;

@@ -94,9 +94,9 @@ export class ModelEditorViewController {
           if (allAffectedComponentData.length > 0) {
             const { assetIds, componentData, gameObjectData } = allAffectedComponentData[0];
             if (assetIds.includes(event.asset.id)) {
-              console.log(`[${ModelEditorViewController.name}] (onAssetChanged) Reinitializing component due to asset change: (assetId='${event.asset.id}') (componentId='${componentData.id}') (gameObjectId='${gameObjectData.id}')`);
+              console.log(`[${ModelEditorViewController.name}] (onAssetChanged) Reloading scene due to asset change: (assetId='${event.asset.id}') (componentId='${componentData.id}') (gameObjectId='${gameObjectData.id}')`);
             } else {
-              console.log(`[${ModelEditorViewController.name}] (onAssetChanged) Reinitializing component due to TRANSITIVE asset change: (source assetId='${event.asset.id}') (componentId='${componentData.id}') (gameObjectId='${gameObjectData.id}')`);
+              console.log(`[${ModelEditorViewController.name}] (onAssetChanged) Reloading scene due to TRANSITIVE asset change: (source assetId='${event.asset.id}') (componentId='${componentData.id}') (gameObjectId='${gameObjectData.id}')`);
             }
 
             this.reloadSceneData();

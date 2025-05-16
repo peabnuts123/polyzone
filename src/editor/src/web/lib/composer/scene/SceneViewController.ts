@@ -43,7 +43,6 @@ export class SceneViewController {
   private readonly projectController: ProjectController;
   private readonly _mutator: SceneViewMutator;
 
-  private isViewActive: boolean = false;
   private readonly _canvas: HTMLCanvasElement;
   private readonly engine: Engine;
   private readonly babylonScene: BabylonScene;
@@ -78,8 +77,6 @@ export class SceneViewController {
     void this.buildScene();
 
     const stopListeningToProjectFileEvents = projectController.filesWatcher.onProjectFileChanged((event) => {
-      if (this.isViewActive === false) return;
-
       if (event.type === ProjectFileEventType.Modify) {
         const scene = event.project.scenes.getById(this.scene.id);
         if (scene === undefined) {
@@ -91,8 +88,6 @@ export class SceneViewController {
       }
     });
     const stopListeningToSceneFileEvents = projectController.filesWatcher.onSceneChanged((event) => {
-      if (this.isViewActive === false) return;
-
       // Ignore events for other scenes
       if (event.scene.data.id !== this.scene.id) return;
 
@@ -103,8 +98,6 @@ export class SceneViewController {
       }
     });
     const stopListeningToAssetEvents = projectController.filesWatcher.onAssetChanged((event) => {
-      if (this.isViewActive === false) return;
-
       switch (event.type) {
         case ProjectAssetEventType.Modify:
         case ProjectAssetEventType.Delete:
@@ -196,11 +189,8 @@ export class SceneViewController {
     });
     resizeObserver.observe(this.canvas as unknown as Element); // @TODO FUCK YOU REACT!!!!!!
 
-    this.isViewActive = true;
-
     /* Teardown - when scene view is unloaded */
     const onDestroyView = (): void => {
-      this.isViewActive = false;
       resizeObserver.unobserve(this.canvas as unknown as Element); // @TODO FUCK YOU REACT!!!!!!
       this.engine.stopRenderLoop(renderLoop);
     };
@@ -217,7 +207,7 @@ export class SceneViewController {
     for (const gameObjectInstance of this._gameObjectInstances) {
       gameObjectInstance.destroy();
     }
-    // @TODO REmove self from asset cache
+    this.projectController.assetCache.disposeSceneInstances(this.babylonScene);
   }
 
   private async createScene(): Promise<void> {
@@ -367,6 +357,8 @@ export class SceneViewController {
     this.selectionManager.deselectAll();
     this.selectionCache.clear();
     this.componentDependencyManager.clear();
+    this._gameObjectInstances.forEach((instance) => instance.destroy());
+    this._gameObjectInstances = [];
 
     const rootNodes = [...this.babylonScene.rootNodes];
     for (const sceneObject of rootNodes) {
@@ -376,7 +368,6 @@ export class SceneViewController {
     }
 
     // @TODO Do we need to explicitly iterate through, like, materials and textures and stuff?
-    // We could just create a new scene and put the camera back in the same place ...
 
     // Update data
     this._scene = scene.data;
