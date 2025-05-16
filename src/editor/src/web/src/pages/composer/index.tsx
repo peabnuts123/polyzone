@@ -50,7 +50,7 @@ const ComposerPage: FunctionComponent<Props> = observer(({ }) => {
     return () => {
       ComposerController.onExit();
     };
-  });
+  }, []);
 
   // Functions
   const debug_exportScene = async (): Promise<void> => {

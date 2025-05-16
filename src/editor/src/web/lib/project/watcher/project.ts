@@ -132,6 +132,10 @@ export class ProjectFileWatcher {
     const { /* @NOTE No USED props. */ } = event;
 
     const newProject = await this.projectController.reloadProjectFileFromFs();
+
+    // Completely invalidate asset cache - any asset might have been changed
+    this.projectController.assetCache.clear();
+
     return {
       type: ProjectFileEventType.Modify,
       project: newProject,

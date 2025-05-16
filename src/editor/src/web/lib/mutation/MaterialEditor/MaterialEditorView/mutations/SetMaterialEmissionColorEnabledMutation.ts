@@ -1,5 +1,5 @@
 import { RetroMaterial } from "@polyzone/runtime/src/materials/RetroMaterial";
-import { MaterialDefinition } from "@polyzone/runtime/src/world";
+import { MaterialAsset, MaterialDefinition } from "@polyzone/runtime/src/world";
 import { toColor3Babylon, toColor3Core, toColor3Definition } from "@polyzone/runtime/src/util";
 import { resolvePath } from "@lib/util/JsoncContainer";
 import { IMaterialEditorViewMutation } from "../IMaterialEditorViewMutation";
@@ -44,10 +44,21 @@ export class SetMaterialEmissionColorEnabledMutation implements IMaterialEditorV
     const jsonPath = resolvePath((materialDefinition: MaterialDefinition) => materialDefinition.emissionColor);
     if (materialData.emissionColor) {
       MaterialEditorViewController.materialJson.mutate(jsonPath, toColor3Definition(materialData.emissionColor));
-    }
-    else {
+    } else {
       MaterialEditorViewController.materialJson.delete(jsonPath);
     }
+  }
+
+  public async afterPersistChanges({ ProjectController, MaterialEditorViewController }: MaterialEditorViewMutationArguments): Promise<void> {
+    const { materialAssetData, materialData } = MaterialEditorViewController;
+
+    // Update asset in cache
+    ProjectController.assetCache.set(materialAssetData.id, (context) => {
+      return MaterialAsset.fromMaterialData(materialData, materialAssetData, context);
+    });
+
+    // Ensure asset is loaded so that dependencies are up to date
+    await ProjectController.assetCache.loadAsset(materialAssetData, MaterialEditorViewController.scene);
   }
 
   public undo(_args: MaterialEditorViewMutationArguments): void {

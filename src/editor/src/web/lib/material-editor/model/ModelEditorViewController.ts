@@ -11,15 +11,17 @@ import "@babylonjs/loaders/OBJ/objFileLoader";
 import "@babylonjs/loaders/glTF";
 
 import { Vector3 } from '@polyzone/core/src/util/Vector3';
-import { AssetType, TransformData } from '@polyzone/runtime/src/cartridge';
-import { AssetCache, GameObject, LoadedAssetOfType, MeshComponent, Transform } from '@polyzone/runtime/src/world';
+import { AssetType } from '@polyzone/runtime/src/cartridge';
+import { GameObject, Transform } from '@polyzone/runtime/src/world';
 import { RetroMaterial } from '@polyzone/runtime/src/materials/RetroMaterial';
 
 import { ProjectController } from '@lib/project/ProjectController';
-import { AssetDataOfType, MeshAssetData } from '@lib/project/data';
+import { GameObjectData, MeshAssetData, MeshComponentData, TransformData } from '@lib/project/data';
 import { ProjectFileEventType } from '@lib/project/watcher/project';
 import { ProjectAssetEventType } from '@lib/project/watcher/assets';
 import { ModelEditorViewMutator } from '@lib/mutation/MaterialEditor/ModelEditorView';
+import { ComponentDependencyManager } from '@lib/common/ComponentDependencyManager';
+import { MeshComponent } from '@lib/composer/scene/components';
 
 // @NOTE Pretty similar to SceneViewController.ts
 export class ModelEditorViewController {
@@ -31,7 +33,7 @@ export class ModelEditorViewController {
   private readonly engine: Engine;
   private readonly babylonScene: BabylonScene;
   private sceneCamera!: ArcRotateCamera;
-  private readonly _assetCache: AssetCache;
+  private readonly componentDependencyManager: ComponentDependencyManager;
   private readonly unlistenToFileSystemEvents: () => void;
 
   private previewGameObject: GameObject | undefined;
@@ -42,7 +44,7 @@ export class ModelEditorViewController {
   public constructor(model: MeshAssetData, projectController: ProjectController) {
     this._model = model;
     this.projectController = projectController;
-    this._assetCache = new AssetCache();
+    this.componentDependencyManager = new ComponentDependencyManager();
     this._mutator = new ModelEditorViewMutator(
       this,
       projectController,
@@ -69,14 +71,42 @@ export class ModelEditorViewController {
       }
     });
     const stopListeningToAssetFileEvents = projectController.filesWatcher.onAssetChanged((event) => {
-      // Ignore events for other assets
-      /* @TODO Watch for dependencies too */
-      if (event.asset.id !== this.model.id) return;
+      switch (event.type) {
+        case ProjectAssetEventType.Delete:
+          if (event.asset.id === this.model.id) {
+            // @TODO Close tab or something
+            console.error(`[${ModelEditorViewController.name}] (onAssetChanged) Model asset was deleted. Should close tab: ${this.model.path}`);
+            return;
+          }
+        // @NOTE Fall-through
+        case ProjectAssetEventType.Modify:
+          // Collect all assets that are dependent on the asset that updated
+          const allAffectedAssets: string[] = [
+            event.asset.id,
+            ...event.assetDependents,
+          ];
 
-      if (event.type === ProjectAssetEventType.Modify) {
-        void this.reloadSceneData(event.asset as MeshAssetData);
-      } else if (event.type === ProjectAssetEventType.Delete) {
-        // @TODO close scene tab
+          // Find all components that depend on these affected assets
+          const allAffectedComponentData = this.componentDependencyManager.getAllDependentsForAssetIds(allAffectedAssets);
+
+          // Reinitialise all affected components
+          // @NOTE This "scene" only has one component
+          if (allAffectedComponentData.length > 0) {
+            const { assetIds, componentData, gameObjectData } = allAffectedComponentData[0];
+            if (assetIds.includes(event.asset.id)) {
+              console.log(`[${ModelEditorViewController.name}] (onAssetChanged) Reinitializing component due to asset change: (assetId='${event.asset.id}') (componentId='${componentData.id}') (gameObjectId='${gameObjectData.id}')`);
+            } else {
+              console.log(`[${ModelEditorViewController.name}] (onAssetChanged) Reinitializing component due to TRANSITIVE asset change: (source assetId='${event.asset.id}') (componentId='${componentData.id}') (gameObjectId='${gameObjectData.id}')`);
+            }
+
+            this.reloadSceneData();
+          }
+          break;
+        case ProjectAssetEventType.Create:
+        case ProjectAssetEventType.Rename:
+          break;
+        default:
+          console.error(`[${ModelEditorViewController.name}] (onAssetChanged) Unimplemented asset event: `, event);
       }
     });
 
@@ -111,16 +141,18 @@ export class ModelEditorViewController {
     camera.keysRight.push(68);
     camera.keysDown.push(83);
 
-    await this.createScene();
-
     await this.babylonScene.whenReadyAsync();
   }
 
   public startBabylonView(): () => void {
+    void this.reloadSceneData();
+
     const renderLoop = (): void => {
       this.babylonScene.render();
     };
     this.engine.runRenderLoop(renderLoop);
+
+    /* @TODO is view active or something? */
 
     const resizeObserver = new ResizeObserver((entries) => {
       const newSize = entries[0].contentRect;
@@ -149,12 +181,18 @@ export class ModelEditorViewController {
     /* Construct a game object to host the mesh for previewing */
     // @TODO Third copy of this logic... re-use from SceneViewController / Game.ts ?
     const gameObjectName = '__preview';
+
+    /* Transform */
+    const transformData = new TransformData(Vector3.zero(), Vector3.zero(), Vector3.one());
     const transform = new Transform(
       gameObjectName,
       this.babylonScene!,
       undefined,
-      new TransformData(Vector3.zero(), Vector3.zero(), Vector3.one()),
+      transformData,
     );
+
+    /* GameObject */
+    const gameObjectData = new GameObjectData(uuid(), gameObjectName, transformData, [], []);
     const gameObject = this.previewGameObject = new GameObject(
       uuid(),
       gameObjectName,
@@ -162,12 +200,14 @@ export class ModelEditorViewController {
     );
     transform.gameObject = gameObject;
 
+    /* Components */
     // Add mesh component to preview game object
-    const meshAsset = await this.assetCache.loadAsset(this.model, { scene: this.babylonScene, assetDb: this.projectController.project.assets });
-
+    const meshAsset = await this.projectController.assetCache.loadAsset(this.model, this.babylonScene);
     runInAction(() => {
-      const meshComponent = new MeshComponent(uuid(), gameObject, meshAsset);
+      const meshComponentData = new MeshComponentData(uuid(), this.model);
+      const meshComponent = new MeshComponent(meshComponentData, gameObject, meshAsset);
       gameObject.addComponent(meshComponent);
+      this.componentDependencyManager.registerDependency(meshComponentData, gameObjectData, meshComponent.assetDependencyIds);
 
       // Read materials from preview mesh (e.g. for list view)
       this.materialInstances = meshAsset.assetContainer.materials.map((material) => {
@@ -182,13 +222,15 @@ export class ModelEditorViewController {
     });
   }
 
-  public async reloadSceneData(model: MeshAssetData): Promise<void> {
+  public async reloadSceneData(model?: MeshAssetData): Promise<void> {
     // Clear out the scene
     this.previewGameObject?.destroy();
-    this.assetCache.clear();
+    this.componentDependencyManager.clear();
 
     // Update data
-    this._model = model;
+    if (model !== undefined) {
+      this._model = model;
+    }
 
     await this.createScene();
   }
@@ -199,10 +241,6 @@ export class ModelEditorViewController {
       throw new Error(`Cannot get material, no material exists on ModelEditorViewController with name '${materialName}'`);
     }
     return material;
-  }
-
-  public async loadAssetThroughCache<TAssetType extends AssetType>(assetData: AssetDataOfType<TAssetType>): Promise<LoadedAssetOfType<TAssetType>> {
-    return this.assetCache.loadAsset(assetData, { scene: this.babylonScene, assetDb: this.projectController.project.assets });
   }
 
   public selectMaterial(materialName: string): void {
@@ -227,10 +265,6 @@ export class ModelEditorViewController {
 
   public get selectedMaterialName(): string | undefined {
     return this._selectedMaterialName;
-  }
-
-  public get assetCache(): AssetCache {
-    return this._assetCache;
   }
 
   public get scene(): BabylonScene {

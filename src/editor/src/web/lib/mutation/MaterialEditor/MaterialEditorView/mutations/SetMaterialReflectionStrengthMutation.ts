@@ -2,7 +2,7 @@ import { IContinuousMaterialEditorViewMutation } from "../IContinuousMaterialEdi
 import { IMaterialEditorViewMutation } from "../IMaterialEditorViewMutation";
 import { MaterialEditorViewMutationArguments } from "../MaterialEditorViewMutationArguments";
 import { resolvePath } from "@lib/util/JsoncContainer";
-import { MaterialDefinition } from "@polyzone/runtime/src/world";
+import { MaterialAsset, MaterialDefinition } from "@polyzone/runtime/src/world";
 
 export interface SetMaterialReflectionStrengthMutationUpdateArgs {
   reflectionStrength: number;
@@ -57,6 +57,18 @@ export class SetMaterialReflectionStrengthMutation implements IMaterialEditorVie
     } else {
       MaterialEditorViewController.materialJson.delete(jsonPath);
     }
+  }
+
+  public async afterPersistChanges({ ProjectController, MaterialEditorViewController }: MaterialEditorViewMutationArguments): Promise<void> {
+    const { materialAssetData, materialData } = MaterialEditorViewController;
+
+    // Update asset in cache
+    ProjectController.assetCache.set(materialAssetData.id, (context) => {
+      return MaterialAsset.fromMaterialData(materialData, materialAssetData, context);
+    });
+
+    // Ensure asset is loaded so that dependencies are up to date
+    await ProjectController.assetCache.loadAsset(materialAssetData, MaterialEditorViewController.scene);
   }
 
   public undo(_args: MaterialEditorViewMutationArguments): void {

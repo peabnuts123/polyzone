@@ -63,7 +63,11 @@ export abstract class BaseAssetData<TAssetType extends AssetType> implements IBa
    * @NOTE different from {@link path}.
    */
   public get babylonFetchUrl(): string {
-    return `${this.resolverProtocol}${this.path}`;
+    // @NOTE Append a random parameter to asset requests to prevent browser/babylon from caching the data
+    const cacheBustParam = (~~(Math.random() * 0x10000 + 0x10000)).toString(16);
+    const url = new URL(`${this.resolverProtocol}${this.path}`);
+    url.searchParams.set('cache_bust', cacheBustParam);
+    return url.toString();
   }
 
   /**

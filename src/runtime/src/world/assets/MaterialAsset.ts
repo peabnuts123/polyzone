@@ -3,14 +3,13 @@ import { Texture as TextureBabylon } from '@babylonjs/core/Materials/Textures/te
 import { CubeTexture as CubeTextureBabylon } from '@babylonjs/core/Materials/Textures/cubeTexture';
 import { Color3 as Color3Babylon } from '@babylonjs/core/Maths/math.color';
 
-import Resolver from '@polyzone/runtime/src/Resolver';
+import { Color3 } from '@polyzone/core/src/util';
 import { AssetType, ColorDefinition, IAssetDb, IMaterialAssetData, ITextureAssetData, loadReflectionDefinition, MeshAssetMaterialOverrideReflectionData, MeshAssetMaterialOverrideReflectionDefinition } from '@polyzone/runtime/src/cartridge';
 import { toColor3Babylon, toColor3Core } from "@polyzone/runtime/src/util";
 
 import { LoadedAssetBase } from './LoadedAssetBase';
 import type { AssetCacheContext } from './AssetCache';
 import { ReflectionLoading } from './TextureAsset';
-import { Color3 } from '@polyzone/core/src/util';
 
 export class MaterialAsset extends LoadedAssetBase<AssetType.Material> {
   public get type(): AssetType.Material { return AssetType.Material; }
@@ -20,21 +19,23 @@ export class MaterialAsset extends LoadedAssetBase<AssetType.Material> {
   private _emissionColor?: Color3Babylon;
   private _reflectionTexture?: CubeTextureBabylon;
 
-  private constructor() {
-    super();
+  private constructor(id: string) {
+    super(id);
   }
 
-  public static async fromMaterialData(materialData: MaterialData, context: AssetCacheContext): Promise<MaterialAsset> {
-    const { assetCache } = context;
+  public static async fromMaterialData(materialData: IMaterialData, assetData: IMaterialAssetData, context: AssetCacheContext): Promise<MaterialAsset> {
+    const { assetCache, scene } = context;
 
-    const materialAsset = new MaterialAsset();
+    // Construct material asset
+    const materialAsset = new MaterialAsset(assetData.id);
 
     /* Diffuse color */
     materialAsset._diffuseColor = materialData.diffuseColor ? toColor3Babylon(materialData.diffuseColor) : undefined;
 
     /* Diffuse texture */
     if (materialData.diffuseTexture) {
-      const diffuseTexture = await assetCache.loadAsset(materialData.diffuseTexture, context);
+      assetCache.registerDependency(assetData.id, materialData.diffuseTexture.id);
+      const diffuseTexture = await assetCache.loadAsset(materialData.diffuseTexture, scene);
       materialAsset._diffuseTexture = diffuseTexture.texture;
     }
 
@@ -43,8 +44,9 @@ export class MaterialAsset extends LoadedAssetBase<AssetType.Material> {
 
     /* Reflection */
     if (materialData.reflection) {
-      const reflectionTexture = await ReflectionLoading.load(materialData.reflection, context);
-      materialAsset._reflectionTexture = reflectionTexture;
+      const reflection = await ReflectionLoading.load(materialData.reflection, assetCache, scene);
+      materialAsset._reflectionTexture = reflection?.texture;
+      reflection?.textureAssetData.forEach((textureAssetData) => assetCache.registerDependency(assetData.id, textureAssetData.id));
     }
 
     return materialAsset;
@@ -54,12 +56,11 @@ export class MaterialAsset extends LoadedAssetBase<AssetType.Material> {
     const { assetDb } = context;
 
     // Fetch using babylon
-    const response = await fetch(Resolver.resolve(assetData.babylonFetchUrl));
-    const responseText = await response.text();
-    const materialDefinition = parse(responseText) as MaterialDefinition;
+    const assetFile = await assetDb.loadAsset(assetData);
+    const materialDefinition = parse(assetFile.textContent) as MaterialDefinition;
     const materialData = MaterialData.fromDefinition(materialDefinition, assetDb);
 
-    return this.fromMaterialData(materialData, context);
+    return this.fromMaterialData(materialData, assetData, context);
   }
 
   public get diffuseColor(): Color3Babylon | undefined { return this._diffuseColor; }

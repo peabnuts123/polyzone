@@ -37,15 +37,10 @@ export class SetModelMaterialOverrideBaseMaterialEnabledMutation implements IMod
     if (this.baseMaterialEnabled) {
       // Enabling override
       if (materialOverridesData.material !== undefined) {
-        ModelEditorViewController.assetCache.loadAsset(
-          materialOverridesData.material,
-          {
-            scene: ModelEditorViewController.scene,
-            assetDb: ProjectController.project.assets,
-          },
-        ).then((materialAsset) => {
-          material.readOverridesFromMaterial(materialAsset);
-        });
+        ProjectController.assetCache.loadAsset(materialOverridesData.material, ModelEditorViewController.scene)
+          .then((materialAsset) => {
+            material.readOverridesFromMaterial(materialAsset);
+          });
       }
     } else {
       // Disabling override
@@ -54,6 +49,14 @@ export class SetModelMaterialOverrideBaseMaterialEnabledMutation implements IMod
 
     // 3. Update JSONC
     reconcileMaterialOverrideData(meshAssetData, ProjectController);
+  }
+
+  public async afterPersistChanges({ ProjectController, ModelEditorViewController }: ModelEditorViewMutationArguments): Promise<void> {
+    const meshAssetData = ProjectController.project.assets.getById(this.modelAssetId, AssetType.Mesh);
+
+    // - Refresh asset cache (e.g. asset dependencies, etc)
+    ProjectController.assetCache.delete(meshAssetData.id);
+    await ProjectController.assetCache.loadAsset(meshAssetData, ModelEditorViewController.scene);
   }
 
   public undo(_args: ModelEditorViewMutationArguments): void {

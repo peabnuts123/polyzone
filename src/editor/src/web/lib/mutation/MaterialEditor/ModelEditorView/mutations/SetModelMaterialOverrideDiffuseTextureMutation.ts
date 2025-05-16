@@ -1,4 +1,3 @@
-
 import { AssetType } from "@polyzone/runtime/src/cartridge";
 import { IModelEditorViewMutation } from "../IModelEditorViewMutation";
 import { ModelEditorViewMutationArguments } from "../ModelEditorViewMutationArguments";
@@ -36,21 +35,24 @@ export class SetModelMaterialOverrideDiffuseTextureMutation implements IModelEdi
     // 2. Update Babylon state
     materialOverridesData = meshAssetData.getOverridesForMaterial(this.materialName)!;
     if (materialOverridesData.diffuseTexture !== undefined) {
-      ModelEditorViewController.assetCache.loadAsset(
-        materialOverridesData.diffuseTexture,
-        {
-          scene: ModelEditorViewController.scene,
-          assetDb: ProjectController.project.assets,
-        },
-      ).then((textureAsset) => {
-        material.overridesFromAsset.diffuseTexture = textureAsset.texture;
-      });
+      ProjectController.assetCache.loadAsset(materialOverridesData.diffuseTexture, ModelEditorViewController.scene)
+        .then((textureAsset) => {
+          material.overridesFromAsset.diffuseTexture = textureAsset.texture;
+        });
     } else {
       material.overridesFromAsset.diffuseTexture = undefined;
     }
 
     // 3. Update JSONC
     reconcileMaterialOverrideData(meshAssetData, ProjectController);
+  }
+
+  public async afterPersistChanges({ ProjectController, ModelEditorViewController }: ModelEditorViewMutationArguments): Promise<void> {
+    const meshAssetData = ProjectController.project.assets.getById(this.modelAssetId, AssetType.Mesh);
+
+    // - Refresh asset cache (e.g. asset dependencies, etc)
+    ProjectController.assetCache.delete(meshAssetData.id);
+    await ProjectController.assetCache.loadAsset(meshAssetData, ModelEditorViewController.scene);
   }
 
   public undo(_args: ModelEditorViewMutationArguments): void {

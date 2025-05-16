@@ -101,13 +101,9 @@ export class SetModelMaterialOverrideReflectionTypeMutation implements IModelEdi
     // @NOTE This is currently not possible, since we JUST cleared out any texture data or whatever
     // but we leave it here for forward compatibility?
     if (materialOverridesData.reflection !== undefined) {
-      ReflectionLoading.load(materialOverridesData.reflection, {
-        assetCache: ModelEditorViewController.assetCache,
-        scene: ModelEditorViewController.scene,
-        assetDb: ProjectController.project.assets,
-      })
-        .then((reflectionTexture) => {
-          material.overridesFromAsset.reflectionTexture = reflectionTexture;
+      ReflectionLoading.load(materialOverridesData.reflection, ProjectController.assetCache, ModelEditorViewController.scene)
+        .then((reflection) => {
+          material.overridesFromAsset.reflectionTexture = reflection?.texture;
         });
     } else {
       material.overridesFromAsset.reflectionTexture = undefined;
@@ -115,6 +111,14 @@ export class SetModelMaterialOverrideReflectionTypeMutation implements IModelEdi
 
     // 3. Update JSONC
     reconcileMaterialOverrideData(meshAssetData, ProjectController);
+  }
+
+  public async afterPersistChanges({ ProjectController, ModelEditorViewController }: ModelEditorViewMutationArguments): Promise<void> {
+    const meshAssetData = ProjectController.project.assets.getById(this.modelAssetId, AssetType.Mesh);
+
+    // - Refresh asset cache (e.g. asset dependencies, etc)
+    ProjectController.assetCache.delete(meshAssetData.id);
+    await ProjectController.assetCache.loadAsset(meshAssetData, ModelEditorViewController.scene);
   }
 
   public undo(_args: ModelEditorViewMutationArguments): void {

@@ -1,4 +1,3 @@
-
 import { IModelEditorViewMutation } from "../IModelEditorViewMutation";
 import { ModelEditorViewMutationArguments } from "../ModelEditorViewMutationArguments";
 import { AssetType } from "@polyzone/runtime/src/cartridge";
@@ -52,6 +51,14 @@ export class SetModelMaterialOverrideEmissionColorEnabledMutation implements IMo
 
     // 3. Update JSONC
     reconcileMaterialOverrideData(meshAssetData, ProjectController);
+  }
+
+  public async afterPersistChanges({ ProjectController, ModelEditorViewController }: ModelEditorViewMutationArguments): Promise<void> {
+    const meshAssetData = ProjectController.project.assets.getById(this.modelAssetId, AssetType.Mesh);
+
+    // - Refresh asset cache (e.g. asset dependencies, etc)
+    ProjectController.assetCache.delete(meshAssetData.id);
+    await ProjectController.assetCache.loadAsset(meshAssetData, ModelEditorViewController.scene);
   }
 
   public undo(_args: ModelEditorViewMutationArguments): void {

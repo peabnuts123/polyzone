@@ -8,12 +8,12 @@ import type { AssetCacheContext } from './AssetCache';
 export class SoundAsset extends LoadedAssetBase<AssetType.Sound> {
   public get type(): AssetType.Sound { return AssetType.Sound; }
 
-  private constructor() {
-    super();
+  private constructor(id: string) {
+    super(id);
   }
 
-  public static async fromAssetData(_assetData: ISoundAssetData, _context: AssetCacheContext): Promise<SoundAsset> {
+  public static async fromAssetData(assetData: ISoundAssetData, _context: AssetCacheContext): Promise<SoundAsset> {
     /* No data to load at-present */
-    return new SoundAsset();
+    return new SoundAsset(assetData.id);
   }
 }

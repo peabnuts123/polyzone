@@ -102,9 +102,7 @@ export function resolvePathForAssetMutation<TPathTarget>(assetId: string, projec
   }
 
 
-  const result = assetPath.concat(relativePath);
-  console.log(`[resolvePathForAssetMutation] Resolved path: ${pathToString(result)}`);
-  return result;
+  return assetPath.concat(relativePath);
 }
 
 /**

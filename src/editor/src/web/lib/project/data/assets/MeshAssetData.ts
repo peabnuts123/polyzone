@@ -59,7 +59,7 @@ export class MeshAssetMaterialOverrideData implements IMeshAssetMaterialOverride
   }
 
   public isEmpty(): boolean {
-    return this.diffuseColor === undefined && this.diffuseTexture === undefined && this.emissionColor === undefined && this.reflection === undefined;
+    return this.material === undefined && this.diffuseColor === undefined && this.diffuseTexture === undefined && this.emissionColor === undefined && this.reflection === undefined;
   }
 
   public static createNew(): MeshAssetMaterialOverrideData {

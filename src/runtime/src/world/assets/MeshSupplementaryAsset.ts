@@ -7,12 +7,12 @@ import type { AssetCacheContext } from './AssetCache';
 export class MeshSupplementaryAsset extends LoadedAssetBase<AssetType.MeshSupplementary> {
   public get type(): AssetType.MeshSupplementary { return AssetType.MeshSupplementary; }
 
-  private constructor() {
-    super();
+  private constructor(id: string) {
+    super(id);
   }
 
-  public static async fromAssetData(_assetData: IMeshSupplementaryAssetData, _context: AssetCacheContext): Promise<MeshSupplementaryAsset> {
+  public static async fromAssetData(assetData: IMeshSupplementaryAssetData, _context: AssetCacheContext): Promise<MeshSupplementaryAsset> {
     /* No data to load at-present */
-    return new MeshSupplementaryAsset();
+    return new MeshSupplementaryAsset(assetData.id);
   }
 }

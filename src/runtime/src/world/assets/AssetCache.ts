@@ -1,7 +1,7 @@
 import type { Scene as BabylonScene } from "@babylonjs/core/scene";
 
 import { AssetType } from '@polyzone/runtime/src/cartridge/archive';
-import { IAssetData, IAssetDataOfType } from '@polyzone/runtime/src/cartridge/data';
+import { IAssetDataOfType } from '@polyzone/runtime/src/cartridge/data';
 import type { IAssetDb, IMaterialAssetData, IMeshAssetData, IMeshSupplementaryAssetData, IScriptAssetData, ISoundAssetData, ITextureAssetData } from '@polyzone/runtime/src/cartridge/data';
 
 import { LoadedAsset, LoadedAssetOfType } from './LoadedAsset';
@@ -18,13 +18,20 @@ export interface AssetCacheContext {
   scene: BabylonScene;
 }
 
-export type LoadAssetContextParam = Omit<AssetCacheContext, 'assetCache'>;
+export type CachedAssetFactory = (scene: BabylonScene) => Promise<LoadedAsset>;
 
 export class AssetCache {
+  private assetDb: IAssetDb;
+
   /**
-   * Cache of loaded assets, keyed by asset ID.
+   * Cache of asset factories, keyed by asset ID.
    */
-  private cache: Map<string, LoadedAsset>;
+  private assetFactoryCache: Map<string, CachedAssetFactory>;
+  /**
+   * Cache of loaded asset (promises), keyed by [asset ID, scene instance] as a proxy for a unique WebGL context.
+   */
+  private assetInstanceCache: Map<string, Map<BabylonScene, Promise<LoadedAsset>>>;
+
   /**
    * A map of assets' IDs and the IDs of the assets on which those assets depend.
    *
@@ -34,63 +41,105 @@ export class AssetCache {
   private assetDependencies: Map<string, string[]>;
   /**
    * A map of assets' IDs and the asset IDs of the assets that depend on them.
+   *
+   * Key = ID of the asset.
+   * Value = Array of asset IDs that depend on this asset.
    */
   private assetDependents: Map<string, string[]>;
 
-  public constructor() {
-    this.cache = new Map();
+  public constructor(assetDb: IAssetDb) {
+    this.assetDb = assetDb;
+    this.assetFactoryCache = new Map();
+    this.assetInstanceCache = new Map();
     this.assetDependencies = new Map();
     this.assetDependents = new Map();
   }
 
+  // @TODO Function to purge scene instances (including disposing the resources) i.e. SceneViewController.destroy()
+
   /**
-     * Load an asset through a cache.
-     * @param asset Asset to load.
-     * @returns The new asset, or a reference to the existing asset if it existed in the cache.
-     */
-  public async loadAsset<TAssetType extends AssetType>(asset: IAssetDataOfType<TAssetType>, context: LoadAssetContextParam): Promise<LoadedAssetOfType<TAssetType>> {
-    const fullContext: AssetCacheContext = {
-      ...context,
-      assetCache: this,
+   * Manually register the factory for a given asset.
+   * @param assetId ID of the asset for which the factory creates instances.
+   * @param assetFactory Factory function that creates instance of the asset with ID `assetId`.
+   */
+  public set(assetId: string, assetFactory: (context: AssetCacheContext) => Promise<LoadedAsset>): void {
+    this.delete(assetId);
+
+    // Construct cacheable asset factory from provided factory
+    const cachedFactory: CachedAssetFactory = (scene: BabylonScene) => {
+      const fullContext: AssetCacheContext = {
+        assetCache: this,
+        assetDb: this.assetDb,
+        scene,
+      };
+
+      return assetFactory(fullContext);
     };
 
-    try {
+    this.assetFactoryCache.set(assetId, cachedFactory);
+  }
 
-      // @NOTE Why does TypeScript want everything to be type laundered here?
-      const cached = this.cache.get(asset.id);
+  /**
+   * Load an asset through a cache.
+   * @param asset Asset to load.
+   * @param scene Target Babylon scene these assets will be loaded into.
+   * @returns The new asset, or a reference to the existing asset if it existed in the cache.
+   */
+  public async loadAsset<TAssetType extends AssetType>(asset: IAssetDataOfType<TAssetType>, scene: BabylonScene): Promise<LoadedAssetOfType<TAssetType>> {
+    try {
+      const cached = this.assetInstanceCache.get(asset.id)?.get(scene);
       if (cached) {
-        console.log(`[AssetCache] (loadAsset) Asset already loaded, returning cached asset: ${asset.path}`);
-        return cached as LoadedAssetOfType<TAssetType>;
+        console.log(`[${AssetCache.name}] (${this.loadAsset.name}) Asset already loaded, returning cached asset: ${asset.path} (scene='${scene.uid}')`);
+        return cached as Promise<LoadedAssetOfType<TAssetType>>;
       } else {
-        console.log(`[AssetCache] (loadAsset) Loading new asset: ${asset.path}`);
-        let assetPromise: Promise<LoadedAssetOfType<TAssetType>>;
-        switch (asset.type) {
-          case AssetType.Mesh:
-            assetPromise = MeshAsset.fromAssetData(asset as IMeshAssetData, fullContext) as Promise<LoadedAssetOfType<TAssetType>>;
-            break;
-          case AssetType.MeshSupplementary:
-            assetPromise = MeshSupplementaryAsset.fromAssetData(asset as IMeshSupplementaryAssetData, fullContext) as Promise<LoadedAssetOfType<TAssetType>>;
-            break;
-          case AssetType.Script:
-            assetPromise = ScriptAsset.fromAssetData(asset as IScriptAssetData, fullContext) as Promise<LoadedAssetOfType<TAssetType>>;
-            break;
-          case AssetType.Sound:
-            assetPromise = SoundAsset.fromAssetData(asset as ISoundAssetData, fullContext) as Promise<LoadedAssetOfType<TAssetType>>;
-            break;
-          case AssetType.Texture:
-            assetPromise = TextureAsset.fromAssetData(asset as ITextureAssetData, fullContext) as Promise<LoadedAssetOfType<TAssetType>>;
-            break;
-          case AssetType.Material:
-            assetPromise = MaterialAsset.fromAssetData(asset as IMaterialAssetData, fullContext) as Promise<LoadedAssetOfType<TAssetType>>;
-            break;
-          default:
-            throw new Error(`Unimplemented AssetType: ${asset.type}`);
+
+        let cachedFactory = this.assetFactoryCache.get(asset.id);
+
+        if (cachedFactory === undefined) {
+          console.log(`[${AssetCache.name}] (${this.loadAsset.name}) Creating new factory for asset: ${asset.path}`);
+          cachedFactory = (scene: BabylonScene) => {
+            const fullContext: AssetCacheContext = {
+              assetCache: this,
+              assetDb: this.assetDb,
+              scene,
+            };
+
+            console.log(`[${AssetCache.name}] (${this.loadAsset.name}) Loading new instance of asset: ${asset.path} ((scene='${scene.uid}'))`);
+
+            switch (asset.type) {
+              case AssetType.Mesh:
+                return MeshAsset.fromAssetData(asset as IMeshAssetData, fullContext);
+              case AssetType.MeshSupplementary:
+                return MeshSupplementaryAsset.fromAssetData(asset as IMeshSupplementaryAssetData, fullContext);
+              case AssetType.Script:
+                return ScriptAsset.fromAssetData(asset as IScriptAssetData, fullContext);
+              case AssetType.Sound:
+                return SoundAsset.fromAssetData(asset as ISoundAssetData, fullContext);
+              case AssetType.Texture:
+                return TextureAsset.fromAssetData(asset as ITextureAssetData, fullContext);
+              case AssetType.Material:
+                return MaterialAsset.fromAssetData(asset as IMaterialAssetData, fullContext);
+              default:
+                throw new Error(`Unimplemented AssetType: ${asset.type}`);
+            }
+          };
+
+          this.assetFactoryCache.set(asset.id, cachedFactory);
         }
 
-        const result = await assetPromise;
-        this.cache.set(asset.id, result);
+        const newInstancePromise = cachedFactory(scene) as Promise<LoadedAssetOfType<TAssetType>>;
 
-        return result;
+        // Get or initialise asset instance cache (a nested / 2D cache)
+        let assetInstanceCache = this.assetInstanceCache.get(asset.id);
+        if (assetInstanceCache === undefined) {
+          assetInstanceCache = new Map();
+          this.assetInstanceCache.set(asset.id, assetInstanceCache);
+        }
+
+        // Store new instance in cache
+        assetInstanceCache.set(scene, newInstancePromise);
+
+        return newInstancePromise;
       }
     } catch (e) {
       console.error(`[AssetCache] (loadAsset) Error loading asset: ${asset.path}`, e);
@@ -105,7 +154,7 @@ export class AssetCache {
    */
   public registerDependency(assetId: string, dependencyAssetId: string): void {
     const assetDependencies = this.assetDependencies.get(assetId) || [];
-    const assetDependents = this.assetDependents.get(dependencyAssetId) || [];
+    const dependencyDependents = this.assetDependents.get(dependencyAssetId) || [];
 
     // Add the dependency if it doesn't already exist
     if (!assetDependencies.includes(dependencyAssetId)) {
@@ -114,44 +163,116 @@ export class AssetCache {
     this.assetDependencies.set(assetId, assetDependencies);
 
     // Add the dependent if it doesn't already exist
-    if (!assetDependents.includes(assetId)) {
-      assetDependents.push(assetId);
+    if (!dependencyDependents.includes(assetId)) {
+      dependencyDependents.push(assetId);
     }
-    this.assetDependents.set(dependencyAssetId, assetDependents);
+    this.assetDependents.set(dependencyAssetId, dependencyDependents);
+  }
+
+  public unregisterDependency(assetId: string, dependencyAssetId: string): void {
+    const assetDependencies = this.assetDependencies.get(assetId) || [];
+    const dependencyDependents = this.assetDependents.get(dependencyAssetId) || [];
+
+    // Remove dependency from asset's list of dependencies
+    this.assetDependencies.set(assetId, assetDependencies.filter((dependency) => dependency !== dependencyAssetId));
+
+    // Remove asset from dependency's list of dependents
+    this.assetDependents.set(dependencyAssetId, dependencyDependents.filter((dependent) => dependent !== assetId));
   }
 
   /**
    * Get an array of the Asset IDs on which the asset with ID `assetId` depends.
+   *
+   * NOTE: This will return direct AND transitive dependencies.
    * @param assetId The ID of the asset whose dependencies are to be retrieved.
    */
   public getAssetDependencies(assetId: string): string[] {
-    return this.assetDependencies.get(assetId) || [];
+    const allDependencies = new Set<string>();
+
+    // Look up this asset's direct dependencies
+    const directDependencies = this.assetDependencies.get(assetId);
+    if (directDependencies !== undefined) {
+      for (const dependencyId of directDependencies) {
+        // Collect dependencies into a set (to ensure there are no duplicates)
+        allDependencies.add(dependencyId);
+
+        // Recursively collect all of the dependencies of this asset's direct dependencies
+        this.getAssetDependencies(dependencyId)
+          .forEach((transitiveDependencyId) => allDependencies.add(transitiveDependencyId));
+      }
+    }
+
+    return Array.from(allDependencies);
   }
 
   /**
    * Get an array of the IDs of assets which depend on the asset with the ID `assetId`.
+   *
+   * NOTE: This will return direct AND transitive dependents.
    * @param assetId The ID of the asset whose dependents are to be retrieved.
    */
   public getAssetDependents(assetId: string): string[] {
-    return this.assetDependents.get(assetId) || [];
+    const allDependents = new Set<string>();
+
+    // Look up this asset's direct dependents
+    const directDependents = this.assetDependents.get(assetId);
+    if (directDependents !== undefined) {
+      for (const dependentId of directDependents) {
+        // Collect dependents into a set (to ensure there are no duplicates)
+        allDependents.add(dependentId);
+
+        // Recursively collect all of the depends of this asset's direct dependents
+        this.getAssetDependents(dependentId)
+          .forEach((transitiveDependentId) => allDependents.add(transitiveDependentId));
+      }
+    }
+
+    return Array.from(allDependents);
   }
 
+  /**
+   * Remove an asset from the cache.
+   *
+   * NOTE: Any assets that have a direct or transitive dependency on
+   * the asset with ID `assetId` will ALSO be removed from the cache.
+   * @param assetId ID of the asset to remove from the cache.
+   */
   public delete(assetId: string): void {
-    const cached = this.cache.get(assetId);
-    if (cached) {
-      cached.dispose();
-      this.cache.delete(assetId);
+    this.assetFactoryCache.delete(assetId);
+    this.assetInstanceCache.delete(assetId);
+
+    // @NOTE Since `assetId` is being removed from the cache, we kind of have to remove
+    // all of `assetId`'s dependents from the cache too, otherwise their cached value
+    // will load against a stale reference.
+    // Recursively delete `assetId`'s dependents first before adjusting any references to `assetId`
+    const assetDependents = this.assetDependents.get(assetId) || [];
+    for (const assetDependentId of assetDependents) {
+      this.delete(assetDependentId);
     }
+
+    // @NOTE This map will already be empty after calling `delete()` on all dependents
+    this.assetDependents.delete(assetId);
+
+    // Look up asset's dependencies
+    const assetDependencies = this.assetDependencies.get(assetId) || [];
+    // For each dependency
+    for (const assetDependencyId of assetDependencies) {
+      // Look up the list of that dependency's dependents
+      const dependencyDependents = this.assetDependents.get(assetDependencyId);
+      if (dependencyDependents !== undefined) {
+        // Remove the asset from its dependency's list of dependents
+        this.assetDependents.set(assetDependencyId, dependencyDependents.filter((dependentId) => dependentId !== assetId));
+      }
+    }
+
+    // Clear out any known dependencies for this asset
+    this.assetDependencies.delete(assetId);
   }
 
   public clear(): void {
-    this.cache.forEach((asset) => asset.dispose());
-    this.cache.clear();
+    this.assetFactoryCache.clear();
+    this.assetInstanceCache.clear();
     this.assetDependencies.clear();
     this.assetDependents.clear();
-  }
-
-  public onDestroy(): void {
-    this.cache.forEach((asset) => asset.dispose());
   }
 }

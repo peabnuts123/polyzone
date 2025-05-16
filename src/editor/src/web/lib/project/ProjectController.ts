@@ -1,19 +1,19 @@
 import { makeAutoObservable, runInAction } from "mobx";
 import * as path from "@tauri-apps/api/path";
+import { exists } from "@tauri-apps/plugin-fs";
 
 import Resolver from '@polyzone/runtime/src/Resolver';
+import { AssetCache } from "@polyzone/runtime/src/world";
 
 import { TauriFileSystem } from '@lib/filesystem/TauriFileSystem';
 import { JsoncContainer } from "@lib/util/JsoncContainer";
 import { ProjectMutator } from "@lib/mutation/Project";
+import { invoke } from "@lib/util/TauriCommands";
 import { ApplicationDataController } from '../application/ApplicationDataController';
 import { ProjectDefinition } from "./definition";
-import { invoke } from "@lib/util/TauriCommands";
 import { ProjectFilesWatcher } from "./watcher/ProjectFilesWatcher";
 import { ProblemScanner } from "./problems/ProblemScanner";
 import { ProjectData } from "./data/ProjectData";
-import { exists } from "@tauri-apps/plugin-fs";
-
 
 export class ProjectController {
   private _isLoadingProject: boolean = false;
@@ -24,6 +24,7 @@ export class ProjectController {
   private _fileSystem: TauriFileSystem | undefined = undefined;
   private _filesWatcher: ProjectFilesWatcher | undefined = undefined;
   private problemScanner: ProblemScanner | undefined = undefined;
+  private _assetCache: AssetCache | undefined;
 
   public constructor(ApplicationDataController: ApplicationDataController) {
     this._mutator = new ProjectMutator(this);
@@ -67,6 +68,8 @@ export class ProjectController {
       definition: projectJson.value,
       fileSystem,
     });
+
+    this._assetCache = new AssetCache(project.assets);
 
     // Update app data
     await this.ApplicationDataController.mutateAppData((appData) => {
@@ -176,6 +179,13 @@ export class ProjectController {
       throw new ProjectNotLoadedError();
     }
     return this._filesWatcher;
+  }
+
+  public get assetCache(): AssetCache {
+    if (this._assetCache === undefined) {
+      throw new Error(`AssetCache has not been initialised yet - no project is loaded`);
+    }
+    return this._assetCache;
   }
 }
 

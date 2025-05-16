@@ -52,16 +52,9 @@ export class SetModelMaterialOverrideReflectionSeparateTextureMutation implement
     // 2. Update Babylon state
     if (reflectionTextureAssetData) {
       /* @NOTE Will only return a defined texture when all 6 textures are defined */
-      ReflectionLoading.loadSeparate(
-        materialOverridesData.reflection as MeshAssetMaterialOverrideReflectionSeparateData,
-        {
-          assetCache: ModelEditorViewController.assetCache,
-          scene: ModelEditorViewController.scene,
-          assetDb: ProjectController.project.assets,
-        },
-      )
-        .then((reflectionTexture) => {
-          material.overridesFromAsset.reflectionTexture = reflectionTexture;
+      ReflectionLoading.loadSeparate(materialOverridesData.reflection, ProjectController.assetCache, ModelEditorViewController.scene)
+        .then((reflection) => {
+          material.overridesFromAsset.reflectionTexture = reflection?.texture;
         });
     } else {
       material.overridesFromAsset.reflectionTexture = undefined;
@@ -69,6 +62,14 @@ export class SetModelMaterialOverrideReflectionSeparateTextureMutation implement
 
     // 3. Update JSONC
     reconcileMaterialOverrideData(meshAssetData, ProjectController);
+  }
+
+  public async afterPersistChanges({ ProjectController, ModelEditorViewController }: ModelEditorViewMutationArguments): Promise<void> {
+    const meshAssetData = ProjectController.project.assets.getById(this.modelAssetId, AssetType.Mesh);
+
+    // - Refresh asset cache (e.g. asset dependencies, etc)
+    ProjectController.assetCache.delete(meshAssetData.id);
+    await ProjectController.assetCache.loadAsset(meshAssetData, ModelEditorViewController.scene);
   }
 
   public undo(_args: ModelEditorViewMutationArguments): void {

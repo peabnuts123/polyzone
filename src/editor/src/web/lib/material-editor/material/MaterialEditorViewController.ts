@@ -11,7 +11,7 @@ import "@babylonjs/loaders/OBJ/objFileLoader";
 import "@babylonjs/loaders/glTF";
 
 import { AssetType } from '@polyzone/runtime/src/cartridge';
-import { AssetCache, MaterialDefinition } from '@polyzone/runtime/src/world';
+import { MaterialAsset, MaterialDefinition } from '@polyzone/runtime/src/world';
 import { RetroMaterial } from '@polyzone/runtime/src/materials/RetroMaterial';
 
 import { ProjectController } from '@lib/project/ProjectController';
@@ -34,7 +34,6 @@ export class MaterialEditorViewController {
   private readonly engine: Engine;
   private readonly babylonScene: BabylonScene;
   private sceneCamera!: ArcRotateCamera;
-  private readonly _assetCache: AssetCache;
   private readonly unlistenToFileSystemEvents: () => void;
 
   private _materialInstance: RetroMaterial | undefined = undefined;
@@ -42,7 +41,6 @@ export class MaterialEditorViewController {
   public constructor(material: MaterialAssetData, projectController: ProjectController) {
     this._materialAssetData = material;
     this.projectController = projectController;
-    this._assetCache = new AssetCache();
     this._mutator = new MaterialEditorViewMutator(
       this,
       projectController,
@@ -73,13 +71,32 @@ export class MaterialEditorViewController {
       }
     });
     const stopListeningToAssetFileEvents = projectController.filesWatcher.onAssetChanged((event) => {
-      // Ignore events for other assets
-      if (event.asset.id !== this.materialAssetData.id) return;
+      switch (event.type) {
+        case ProjectAssetEventType.Delete:
+          if (event.asset.id === this.materialAssetData.id) {
+            // @TODO Close tab or something
+            console.error(`[${MaterialEditorViewController.name}] (onAssetChanged) Material asset was deleted. Should close tab: ${this.materialAssetData.path}`);
+            return;
+          }
+        // @NOTE Fall-through
+        case ProjectAssetEventType.Modify:
+          // Collect all assets that are dependent on the asset that updated
+          const allAffectedAssets: string[] = [
+            event.asset.id,
+            ...event.assetDependents,
+          ];
 
-      if (event.type === ProjectAssetEventType.Modify) {
-        void this.reloadSceneData(event.asset as MaterialAssetData);
-      } else if (event.type === ProjectAssetEventType.Delete) {
-        // @TODO close scene tab
+          // Reload the scene if the material is dependent on one of the assets that changed
+          if (allAffectedAssets.includes(this.materialAssetData.id)) {
+            console.log(`[${MaterialEditorViewController.name}] (onAssetChanged) Reinitializing component due to asset change: (assetId='${event.asset.id}')`);
+            this.reloadSceneData();
+          }
+          break;
+        case ProjectAssetEventType.Create:
+        case ProjectAssetEventType.Rename:
+          break;
+        default:
+          console.error(`[${MaterialEditorViewController.name}] (onAssetChanged) Unimplemented asset event: `, event);
       }
     });
 
@@ -94,7 +111,10 @@ export class MaterialEditorViewController {
   private async loadMaterial(): Promise<void> {
     const materialAssetFile = await this.projectController.fileSystem.readFile(this.materialAssetData.path);
     this._materialJson = new JsoncContainer(materialAssetFile.textContent);
-    this._materialData = MaterialData.fromDefinition(this._materialJson.value, this.projectController.project.assets);
+    const materialData = this._materialData = MaterialData.fromDefinition(this._materialJson.value, this.projectController.project.assets);
+
+    // Since we've already loaded the data - might as well proactively populate the asset cache
+    this.projectController.assetCache.set(this.materialAssetData.id, (context) => MaterialAsset.fromMaterialData(materialData, this._materialAssetData, context));
   }
 
   private async buildScene(): Promise<void> {
@@ -126,6 +146,10 @@ export class MaterialEditorViewController {
   }
 
   public startBabylonView(): () => void {
+    void this.reloadSceneData();
+
+    // @TODO Is view active stuff? Like in SceneViewController?
+
     const renderLoop = (): void => {
       this.babylonScene.render();
     };
@@ -156,20 +180,21 @@ export class MaterialEditorViewController {
 
   private async createScene(): Promise<void> {
     const material = this._materialInstance = new RetroMaterial('preview', this.babylonScene);
-    const materialAsset = await this.assetCache.loadAsset(this.materialAssetData, { scene: this.babylonScene, assetDb: this.projectController.project.assets });
+    const materialAsset = await this.projectController.assetCache.loadAsset(this.materialAssetData, this.babylonScene);
     material.readOverridesFromMaterial(materialAsset);
 
     const box = MeshBuilder.CreateBox("__previewObject", { size: 1 }, this.babylonScene);
     box.material = material;
   }
 
-  public async reloadSceneData(material: MaterialAssetData): Promise<void> {
+  public async reloadSceneData(material?: MaterialAssetData): Promise<void> {
     // Clear out the scene
     this.materialInstance?.dispose();
-    this.assetCache.clear();
 
     // Update data
-    this._materialAssetData = material;
+    if (material !== undefined) {
+      this._materialAssetData = material;
+    }
 
     await this.createScene();
   }
@@ -209,10 +234,6 @@ export class MaterialEditorViewController {
 
   public get mutator(): MaterialEditorViewMutator {
     return this._mutator;
-  }
-
-  public get assetCache(): AssetCache {
-    return this._assetCache;
   }
 
   public get scene(): BabylonScene {

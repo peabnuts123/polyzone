@@ -64,12 +64,20 @@ export interface ProjectAssetCreatedEvent {
 export interface ProjectAssetDeletedEvent {
   type: ProjectAssetEventType.Delete;
   asset: AssetData;
+  /** Direct and transitive dependents of the asset related to this event */
+  assetDependents: string[];
+  /** Direct and transitive dependencies of the asset related to this event */
+  assetDependencies: string[];
 }
 /** Frontend event that an asset has been modified. */
 export interface ProjectAssetModifiedEvent {
   type: ProjectAssetEventType.Modify;
   asset: AssetData;
   oldHash: string;
+  /** Direct and transitive dependents of the asset related to this event */
+  assetDependents: string[];
+  /** Direct and transitive dependencies of the asset related to this event */
+  assetDependencies: string[];
 }
 /** Frontend event that an asset has been renamed. */
 export interface ProjectAssetRenamedEvent {
@@ -191,9 +199,18 @@ export class ProjectAssetsWatcher {
     const jsonPath = resolvePath((project: ProjectDefinition) => project.assets[jsonIndex]);
     this.projectController.projectJson.delete(jsonPath);
 
+    // Look up dependencies
+    const assetDependencies = this.projectController.assetCache.getAssetDependencies(assetId);
+    const assetDependents = this.projectController.assetCache.getAssetDependents(assetId);
+
+    // Invalidate asset (and dependents) in asset cache
+    this.projectController.assetCache.delete(assetId);
+
     return {
       type: ProjectAssetEventType.Delete,
       asset,
+      assetDependencies,
+      assetDependents,
     };
   }
 
@@ -214,10 +231,19 @@ export class ProjectAssetsWatcher {
     const jsonPath = resolvePath((project: ProjectDefinition) => project.assets[jsonIndex].hash);
     this.projectController.projectJson.mutate(jsonPath, newHash);
 
+    // Look up dependencies
+    const assetDependencies = this.projectController.assetCache.getAssetDependencies(assetId);
+    const assetDependents = this.projectController.assetCache.getAssetDependents(assetId);
+
+    // Invalidate asset (and dependents) in asset cache
+    this.projectController.assetCache.delete(assetId);
+
     return {
       type: ProjectAssetEventType.Modify,
       asset,
       oldHash,
+      assetDependencies,
+      assetDependents,
     };
   }
 

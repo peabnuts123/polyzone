@@ -1,7 +1,7 @@
 import { Color3 as Color3Babylon } from '@babylonjs/core/Maths/math.color';
 import { Color3 } from "@polyzone/core/src/util";
 import { toColor3Babylon, toColor3Definition } from "@polyzone/runtime/src/util";
-import { MaterialDefinition } from "@polyzone/runtime/src/world";
+import { MaterialAsset, MaterialDefinition } from "@polyzone/runtime/src/world";
 import { resolvePath } from "@lib/util/JsoncContainer";
 import { IContinuousMaterialEditorViewMutation } from "../IContinuousMaterialEditorViewMutation";
 import { IMaterialEditorViewMutation } from "../IMaterialEditorViewMutation";
@@ -43,10 +43,21 @@ export class SetMaterialDiffuseColorMutation implements IMaterialEditorViewMutat
     const jsonPath = resolvePath((materialDefinition: MaterialDefinition) => materialDefinition.diffuseColor);
     if (materialData.diffuseColor !== undefined) {
       MaterialEditorViewController.materialJson.mutate(jsonPath, toColor3Definition(materialData.diffuseColor));
-    }
-    else {
+    } else {
       MaterialEditorViewController.materialJson.delete(jsonPath);
     }
+  }
+
+  public async afterPersistChanges({ ProjectController, MaterialEditorViewController }: MaterialEditorViewMutationArguments): Promise<void> {
+    const { materialAssetData, materialData } = MaterialEditorViewController;
+
+    // Update asset in cache
+    ProjectController.assetCache.set(materialAssetData.id, (context) => {
+      return MaterialAsset.fromMaterialData(materialData, materialAssetData, context);
+    });
+
+    // Ensure asset is loaded so that dependencies are up to date
+    await ProjectController.assetCache.loadAsset(materialAssetData, MaterialEditorViewController.scene);
   }
 
   public undo(_args: MaterialEditorViewMutationArguments): void {

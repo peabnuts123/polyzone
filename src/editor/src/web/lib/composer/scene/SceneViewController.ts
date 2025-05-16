@@ -20,7 +20,7 @@ import {
   PointLightComponent as PointLightComponentRuntime,
 } from '@polyzone/runtime/src/world';
 import { toColor3Babylon } from '@polyzone/runtime/src/util';
-import { MeshAsset, AssetCache } from '@polyzone/runtime/src/world/assets';
+import { MeshAsset } from '@polyzone/runtime/src/world/assets';
 
 import { JsoncContainer } from '@lib/util/JsoncContainer';
 import { ProjectController } from '@lib/project/ProjectController';
@@ -43,12 +43,12 @@ export class SceneViewController {
   private readonly projectController: ProjectController;
   private readonly _mutator: SceneViewMutator;
 
+  private isViewActive: boolean = false;
   private readonly _canvas: HTMLCanvasElement;
   private readonly engine: Engine;
   private readonly babylonScene: BabylonScene;
   private sceneCamera!: FreeCameraBabylon;
   private readonly componentDependencyManager: ComponentDependencyManager;
-  private readonly assetCache: AssetCache;
   private readonly _selectionManager: SelectionManager;
   private readonly selectionCache: SceneViewSelectionCache;
   private readonly unlistenToFileSystemEvents: () => void;
@@ -59,7 +59,6 @@ export class SceneViewController {
     this._scene = scene;
     this._sceneJson = sceneJson;
     this.projectController = projectController;
-    this.assetCache = new AssetCache();
     this._gameObjectInstances = [];
     this.componentDependencyManager = new ComponentDependencyManager();
     this.selectionCache = new SceneViewSelectionCache();
@@ -79,6 +78,8 @@ export class SceneViewController {
     void this.buildScene();
 
     const stopListeningToProjectFileEvents = projectController.filesWatcher.onProjectFileChanged((event) => {
+      if (this.isViewActive === false) return;
+
       if (event.type === ProjectFileEventType.Modify) {
         const scene = event.project.scenes.getById(this.scene.id);
         if (scene === undefined) {
@@ -90,6 +91,8 @@ export class SceneViewController {
       }
     });
     const stopListeningToSceneFileEvents = projectController.filesWatcher.onSceneChanged((event) => {
+      if (this.isViewActive === false) return;
+
       // Ignore events for other scenes
       if (event.scene.data.id !== this.scene.id) return;
 
@@ -100,6 +103,8 @@ export class SceneViewController {
       }
     });
     const stopListeningToAssetEvents = projectController.filesWatcher.onAssetChanged((event) => {
+      if (this.isViewActive === false) return;
+
       switch (event.type) {
         case ProjectAssetEventType.Modify:
         case ProjectAssetEventType.Delete:
@@ -109,13 +114,8 @@ export class SceneViewController {
            */
           const allAffectedAssets: string[] = [
             event.asset.id,
-            ...this.assetCache.getAssetDependents(event.asset.id),
+            ...event.assetDependents,
           ];
-
-          // Remove assets from asset cache, so that reinitializing them will load the new asset
-          for (const assetId of allAffectedAssets) {
-            this.assetCache.delete(assetId);
-          }
 
           // Find all components that depend on these affected assets
           const allAffectedComponentData = this.componentDependencyManager.getAllDependentsForAssetIds(allAffectedAssets);
@@ -196,8 +196,11 @@ export class SceneViewController {
     });
     resizeObserver.observe(this.canvas as unknown as Element); // @TODO FUCK YOU REACT!!!!!!
 
+    this.isViewActive = true;
+
     /* Teardown - when scene view is unloaded */
     const onDestroyView = (): void => {
+      this.isViewActive = false;
       resizeObserver.unobserve(this.canvas as unknown as Element); // @TODO FUCK YOU REACT!!!!!!
       this.engine.stopRenderLoop(renderLoop);
     };
@@ -205,7 +208,6 @@ export class SceneViewController {
   }
 
   public destroy(): void {
-    this.assetCache.onDestroy();
     this.selectionManager.destroy();
     this.babylonScene.onPointerObservable.clear();
     this.babylonScene.dispose();
@@ -215,6 +217,7 @@ export class SceneViewController {
     for (const gameObjectInstance of this._gameObjectInstances) {
       gameObjectInstance.destroy();
     }
+    // @TODO REmove self from asset cache
   }
 
   private async createScene(): Promise<void> {
@@ -288,7 +291,7 @@ export class SceneViewController {
       /* Mesh component */
       let meshAsset: MeshAsset | undefined = undefined;
       if (componentData.meshAsset !== undefined) {
-        meshAsset = await this.assetCache.loadAsset(componentData.meshAsset, { scene: this.babylonScene, assetDb: this.projectController.project.assets });
+        meshAsset = await this.projectController.assetCache.loadAsset(componentData.meshAsset, this.babylonScene);
       }
       const meshComponent = newComponent = new MeshComponent(componentData, gameObject, meshAsset);
       // Store reverse reference to new instance for managing instance later (e.g. autoload)
@@ -363,15 +366,15 @@ export class SceneViewController {
     // Clear out the scene
     this.selectionManager.deselectAll();
     this.selectionCache.clear();
-    this.assetCache.clear();
     this.componentDependencyManager.clear();
 
     const rootNodes = [...this.babylonScene.rootNodes];
     for (const sceneObject of rootNodes) {
       if (sceneObject !== this.sceneCamera) {
-        sceneObject.dispose(false, true);
+        sceneObject.dispose();
       }
     }
+
     // @TODO Do we need to explicitly iterate through, like, materials and textures and stuff?
     // We could just create a new scene and put the camera back in the same place ...
 

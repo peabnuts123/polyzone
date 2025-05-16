@@ -37,13 +37,9 @@ export class SetModelMaterialOverrideReflectionEnabledMutation implements IModel
     if (materialOverridesData.reflection !== undefined) {
       // Enabling override
       // Set the material's reflection texture IF one is fully defined in the override data
-      ReflectionLoading.load(materialOverridesData.reflection, {
-        assetCache: ModelEditorViewController.assetCache,
-        scene: ModelEditorViewController.scene,
-        assetDb: ProjectController.project.assets,
-      })
-        .then((reflectionTexture) => {
-          material.overridesFromAsset.reflectionTexture = reflectionTexture;
+      ReflectionLoading.load(materialOverridesData.reflection, ProjectController.assetCache, ModelEditorViewController.scene)
+        .then((reflection) => {
+          material.overridesFromAsset.reflectionTexture = reflection?.texture;
         });
     } else {
       // Disabling override
@@ -52,6 +48,14 @@ export class SetModelMaterialOverrideReflectionEnabledMutation implements IModel
 
     // 3. Update JSONC
     reconcileMaterialOverrideData(meshAssetData, ProjectController);
+  }
+
+  public async afterPersistChanges({ ProjectController, ModelEditorViewController }: ModelEditorViewMutationArguments): Promise<void> {
+    const meshAssetData = ProjectController.project.assets.getById(this.modelAssetId, AssetType.Mesh);
+
+    // - Refresh asset cache (e.g. asset dependencies, etc)
+    ProjectController.assetCache.delete(meshAssetData.id);
+    await ProjectController.assetCache.loadAsset(meshAssetData, ModelEditorViewController.scene);
   }
 
   public undo(_args: ModelEditorViewMutationArguments): void {

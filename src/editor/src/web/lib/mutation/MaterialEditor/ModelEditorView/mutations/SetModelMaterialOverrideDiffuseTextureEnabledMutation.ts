@@ -36,15 +36,10 @@ export class SetModelMaterialOverrideDiffuseTextureEnabledMutation implements IM
     materialOverridesData = meshAssetData.getOverridesForMaterial(this.materialName)!;
     if (materialOverridesData.diffuseTexture !== undefined) {
       // Enabling override
-      ModelEditorViewController.assetCache.loadAsset(
-        materialOverridesData.diffuseTexture,
-        {
-          scene: ModelEditorViewController.scene,
-          assetDb: ProjectController.project.assets,
-        },
-      ).then((textureAsset) => {
-        material.overridesFromAsset.diffuseTexture = textureAsset.texture;
-      });
+      ProjectController.assetCache.loadAsset(materialOverridesData.diffuseTexture, ModelEditorViewController.scene)
+        .then((textureAsset) => {
+          material.overridesFromAsset.diffuseTexture = textureAsset.texture;
+        });
     } else {
       // Disabling override
       material.overridesFromAsset.diffuseTexture = undefined;
@@ -52,6 +47,14 @@ export class SetModelMaterialOverrideDiffuseTextureEnabledMutation implements IM
 
     // 3. Update JSONC
     reconcileMaterialOverrideData(meshAssetData, ProjectController);
+  }
+
+  public async afterPersistChanges({ ProjectController, ModelEditorViewController }: ModelEditorViewMutationArguments): Promise<void> {
+    const meshAssetData = ProjectController.project.assets.getById(this.modelAssetId, AssetType.Mesh);
+
+    // - Refresh asset cache (e.g. asset dependencies, etc)
+    ProjectController.assetCache.delete(meshAssetData.id);
+    await ProjectController.assetCache.loadAsset(meshAssetData, ModelEditorViewController.scene);
   }
 
   public undo(_args: ModelEditorViewMutationArguments): void {

@@ -43,14 +43,13 @@ export class Game {
   private cartridge: Cartridge | undefined;
   private babylonScene: BabylonScene;
   private worldState: WorldState;
-  private assetCache: AssetCache;
+  private _assetCache: AssetCache | undefined;
   private scriptLoader: ScriptLoader;
   private ambientLight: HemisphericLight | undefined;
 
   constructor(babylonScene: BabylonScene) {
     this.babylonScene = babylonScene;
     this.worldState = {};
-    this.assetCache = new AssetCache();
     this.scriptLoader = new ScriptLoader();
 
     Modules.onInit();
@@ -61,7 +60,6 @@ export class Game {
   }
 
   public dispose(): void {
-    this.assetCache.onDestroy();
     Modules.dispose();
   }
 
@@ -72,6 +70,7 @@ export class Game {
   public async loadCartridge(cartridge: Cartridge): Promise<void> {
     // @TODO unload previous cartridge
     this.cartridge = cartridge;
+    this._assetCache = new AssetCache(cartridge.assetDb);
 
     // Load all scripts from the cartridge
     // We do this proactively because scripts can depend on other scripts
@@ -158,7 +157,7 @@ export class Game {
         /* Mesh component */
         let meshAsset: MeshAsset | undefined = undefined;
         if (componentData.meshAsset !== undefined) {
-          meshAsset = await this.assetCache.loadAsset(componentData.meshAsset, { scene: this.babylonScene, assetDb: this.cartridge!.assetDb });
+          meshAsset = await this.assetCache.loadAsset(componentData.meshAsset, this.babylonScene);
         }
         gameObject.addComponent(new MeshComponent(componentData.id, gameObject, meshAsset));
       } else if (componentData instanceof ScriptComponentData) {
@@ -170,7 +169,7 @@ export class Game {
           // Script "asset" itself which may contain metadata about the asset rather than the script data itself
           // @TODO Where can this go? What can reference it? It currently doesn't have any data, so, ignore for now.
           // I guess the code here will reference it?
-          // const scriptAsset = await this.assetCache.loadAsset(componentData.scriptAsset, {scene: this.babylonScene, assetDb: this.cartridge!.assetDb});
+          // const scriptAsset = await this.assetCache.loadAsset(componentData.scriptAsset, this.babylonScene);
 
           const scriptModule = this.scriptLoader.getModule(componentData.scriptAsset);
           if (
@@ -221,5 +220,12 @@ export class Game {
     }
 
     return gameObject;
+  }
+
+  private get assetCache(): AssetCache {
+    if (this._assetCache === undefined) {
+      throw new Error(`AssetCache has not been initialised yet - no cartridge loaded`);
+    }
+    return this._assetCache;
   }
 }

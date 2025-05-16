@@ -7,12 +7,12 @@ import type { AssetCacheContext } from './AssetCache';
 export class ScriptAsset extends LoadedAssetBase<AssetType.Script> {
   public get type(): AssetType.Script { return AssetType.Script; }
 
-  private constructor() {
-    super();
+  private constructor(id: string) {
+    super(id);
   }
 
-  public static async fromAssetData(_assetData: IScriptAssetData, _context: AssetCacheContext): Promise<ScriptAsset> {
+  public static async fromAssetData(assetData: IScriptAssetData, _context: AssetCacheContext): Promise<ScriptAsset> {
     /* No data to load at-present */
-    return new ScriptAsset();
+    return new ScriptAsset(assetData.id);
   }
 }

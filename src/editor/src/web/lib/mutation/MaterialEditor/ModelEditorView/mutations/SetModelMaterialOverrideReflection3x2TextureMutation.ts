@@ -40,16 +40,9 @@ export class SetModelMaterialOverrideReflection3x2TextureMutation implements IMo
 
     // 2. Update Babylon state
     if (reflectionTextureAssetData) {
-      ReflectionLoading.load3x2(
-        materialOverridesData.reflection as MeshAssetMaterialOverrideReflection3x2Data,
-        {
-          assetCache: ModelEditorViewController.assetCache,
-          scene: ModelEditorViewController.scene,
-          assetDb: ProjectController.project.assets,
-        },
-      )
-        .then((reflectionTexture) => {
-          material.overridesFromAsset.reflectionTexture = reflectionTexture;
+      ReflectionLoading.load3x2(materialOverridesData.reflection, ProjectController.assetCache, ModelEditorViewController.scene)
+        .then((reflection) => {
+          material.overridesFromAsset.reflectionTexture = reflection?.texture;
         });
     } else {
       material.overridesFromAsset.reflectionTexture = undefined;
@@ -57,6 +50,14 @@ export class SetModelMaterialOverrideReflection3x2TextureMutation implements IMo
 
     // 3. Update JSONC
     reconcileMaterialOverrideData(meshAssetData, ProjectController);
+  }
+
+  public async afterPersistChanges({ ProjectController, ModelEditorViewController }: ModelEditorViewMutationArguments): Promise<void> {
+    const meshAssetData = ProjectController.project.assets.getById(this.modelAssetId, AssetType.Mesh);
+
+    // - Refresh asset cache (e.g. asset dependencies, etc)
+    ProjectController.assetCache.delete(meshAssetData.id);
+    await ProjectController.assetCache.loadAsset(meshAssetData, ModelEditorViewController.scene);
   }
 
   public undo(_args: ModelEditorViewMutationArguments): void {

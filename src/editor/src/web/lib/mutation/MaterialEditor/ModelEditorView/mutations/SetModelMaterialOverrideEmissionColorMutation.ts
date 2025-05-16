@@ -1,4 +1,3 @@
-
 import { Color3 } from "@polyzone/core/src/util";
 import { Color3 as Color3Babylon } from '@babylonjs/core/Maths/math.color';
 import { IContinuousModelEditorViewMutation } from "../IContinuousModelEditorViewMutation";
@@ -59,6 +58,14 @@ export class SetModelMaterialOverrideEmissionColorMutation implements IModelEdit
 
     // 3. Update JSONC
     reconcileMaterialOverrideData(meshAssetData, ProjectController);
+  }
+
+  public async afterPersistChanges({ ProjectController, ModelEditorViewController }: ModelEditorViewMutationArguments): Promise<void> {
+    const meshAssetData = ProjectController.project.assets.getById(this.modelAssetId, AssetType.Mesh);
+
+    // - Refresh asset cache (e.g. asset dependencies, etc)
+    ProjectController.assetCache.delete(meshAssetData.id);
+    await ProjectController.assetCache.loadAsset(meshAssetData, ModelEditorViewController.scene);
   }
 
   public undo(_args: ModelEditorViewMutationArguments): void {

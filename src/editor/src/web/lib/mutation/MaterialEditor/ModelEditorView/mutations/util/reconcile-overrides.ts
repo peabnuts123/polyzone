@@ -24,6 +24,15 @@ export function reconcileMaterialOverrideData(meshAssetData: MeshAssetData, Proj
     // Asset has SOME non-empty material overrides
     // Reconcile each property for all material overrides
 
+    /* Base material */
+    reconcileMaterialOverridesForProperty(
+      meshAssetData,
+      ProjectController,
+      /* Is enabled and defined */(materialOverrideData) => materialOverrideData.material !== undefined,
+      /* Asset definition path */(materialOverrideDefinition) => materialOverrideDefinition.materialAssetId!,
+      /* Updated value */(materialOverrideData) => materialOverrideData.material!.id,
+    );
+
     /* Diffuse color */
     reconcileMaterialOverridesForProperty(
       meshAssetData,

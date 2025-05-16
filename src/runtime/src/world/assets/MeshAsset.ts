@@ -6,21 +6,21 @@ import { CubeTexture } from '@babylonjs/core/Materials/Textures/cubeTexture';
 
 import { AssetType, IMeshAssetData } from '@polyzone/runtime/src/cartridge';
 import { debug_modTexture } from "@polyzone/runtime/src";
-import { areUrisCanonicallyEquivalent, canonicalisePath, extractProtocolFromUri, toColor3Babylon } from "@polyzone/runtime/src/util";
+import { areUrisCanonicallyEquivalent, toColor3Babylon } from "@polyzone/runtime/src/util";
 import { RetroMaterial } from "@polyzone/runtime/src/materials/RetroMaterial";
 
 import { LoadedAssetBase } from './LoadedAssetBase';
 import type { AssetCacheContext } from './AssetCache';
 import { ReflectionLoading } from './TextureAsset';
-
+import { BaseTexture } from '@babylonjs/core/Materials/Textures/baseTexture';
 
 export class MeshAsset extends LoadedAssetBase<AssetType.Mesh> {
   public get type(): AssetType.Mesh { return AssetType.Mesh; }
 
   private _assetContainer: AssetContainer;
 
-  private constructor(assetContainer: AssetContainer) {
-    super();
+  private constructor(id: string, assetContainer: AssetContainer) {
+    super(id);
     this._assetContainer = assetContainer;
   }
 
@@ -33,19 +33,23 @@ export class MeshAsset extends LoadedAssetBase<AssetType.Mesh> {
 
     // @TODO Store textures (and other assets) in assetCache
 
-    for (const texture of assetContainer.textures) {
-      debug_modTexture(texture);
-
-      // @TODO How can I see if there's a reference to a MeshSupplementary asset?
-
+    function registerDependencyForTexture(texture: BaseTexture): void {
       const textureAsset = assetDb.assets.find((asset) => {
         return areUrisCanonicallyEquivalent(asset.babylonFetchUrl, texture.name) && asset.type === AssetType.Texture;
       });
+
       if (textureAsset === undefined) {
         console.error(`[MeshAsset] (fromAssetData) Mesh has reference to non-tracked asset: '${texture.name}'`);
       } else {
         assetCache.registerDependency(assetData.id, textureAsset.id);
       }
+    }
+
+    for (const texture of assetContainer.textures) {
+      debug_modTexture(texture);
+      registerDependencyForTexture(texture);
+
+      // @TODO How can I see if there's a reference to a MeshSupplementary asset?
     }
 
     // Replace every material with custom PolyZone material
@@ -78,12 +82,21 @@ export class MeshAsset extends LoadedAssetBase<AssetType.Mesh> {
         // We do this so that we guarantee every mesh has our material.
       }
 
+      // Register dependencies on original material textures
+      if (newMaterial.diffuseTexture) {
+        registerDependencyForTexture(newMaterial.diffuseTexture);
+      }
+      if (newMaterial.reflectionTexture) {
+        registerDependencyForTexture(newMaterial.reflectionTexture);
+      }
+
       // Set overrides
       const materialOverrideData = assetData.getOverridesForMaterial(oldMaterial.name);
       if (materialOverrideData !== undefined) {
         // BASE MATERIAL OVERRIDES
         if (materialOverrideData.material !== undefined) {
-          const material = await assetCache.loadAsset(materialOverrideData.material, context);
+          assetCache.registerDependency(assetData.id, materialOverrideData.material.id);
+          const material = await assetCache.loadAsset(materialOverrideData.material, scene);
           newMaterial.readOverridesFromMaterial(material);
         }
 
@@ -95,7 +108,8 @@ export class MeshAsset extends LoadedAssetBase<AssetType.Mesh> {
 
         /* Diffuse texture */
         if (materialOverrideData.diffuseTexture !== undefined) {
-          const textureAsset = await assetCache.loadAsset(materialOverrideData.diffuseTexture, context);
+          assetCache.registerDependency(assetData.id, materialOverrideData.diffuseTexture.id);
+          const textureAsset = await assetCache.loadAsset(materialOverrideData.diffuseTexture, scene);
           newMaterial.overridesFromAsset.diffuseTexture = textureAsset.texture;
         }
 
@@ -106,7 +120,9 @@ export class MeshAsset extends LoadedAssetBase<AssetType.Mesh> {
 
         /* Reflection */
         if (materialOverrideData.reflection !== undefined) {
-          newMaterial.overridesFromAsset.reflectionTexture = await ReflectionLoading.load(materialOverrideData.reflection, context);
+          const reflection = await ReflectionLoading.load(materialOverrideData.reflection, assetCache, scene);
+          reflection?.textureAssetData.forEach((textureAssetData) => assetCache.registerDependency(assetData.id, textureAssetData.id));
+          newMaterial.overridesFromAsset.reflectionTexture = reflection?.texture;
         }
       }
 
@@ -126,7 +142,7 @@ export class MeshAsset extends LoadedAssetBase<AssetType.Mesh> {
       oldMaterial.dispose();
     }
 
-    return new MeshAsset(assetContainer);
+    return new MeshAsset(assetData.id, assetContainer);
   }
 
   public override dispose(): void {

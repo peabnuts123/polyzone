@@ -133,15 +133,22 @@ export abstract class Mutator<TMutationArgs> {
     }
 
     // Apply mutation
+    const mutationArgs = this.getMutationArgs();
     runInAction(() => {
-      mutation.apply(this.getMutationArgs());
+      mutation.apply(mutationArgs);
     });
 
     // @TODO @DEBUG REMOVE
     console.log(`Mutation stack: `, this.mutationStack.map((mutation) => mutation.description));
 
     // Save to disk
-    void this.persistChanges();
+    void this.persistChanges()
+      .then(() => {
+        // @TODO (after mutation system is async) Does the order of all this stuff still make sense?
+        if (mutation.afterPersistChanges) {
+          return mutation.afterPersistChanges(mutationArgs);
+        }
+      });
   }
 
   public undo(): void {

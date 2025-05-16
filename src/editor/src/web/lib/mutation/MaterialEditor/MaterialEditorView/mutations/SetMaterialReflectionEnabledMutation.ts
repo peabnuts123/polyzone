@@ -1,4 +1,4 @@
-import { MaterialDefinition, ReflectionLoading } from "@polyzone/runtime/src/world";
+import { MaterialAsset, MaterialDefinition, ReflectionLoading } from "@polyzone/runtime/src/world";
 import { IMaterialEditorViewMutation } from "../IMaterialEditorViewMutation";
 import { MaterialEditorViewMutationArguments } from "../MaterialEditorViewMutationArguments";
 import { resolvePath } from "@lib/util/JsoncContainer";
@@ -28,13 +28,9 @@ export class SetMaterialReflectionEnabledMutation implements IMaterialEditorView
     if (materialData.reflection !== undefined) {
       // Enabling override
       // Set the material's reflection texture IF one is fully defined in the override data
-      ReflectionLoading.load(materialData.reflection, {
-        assetCache: MaterialEditorViewController.assetCache,
-        scene: MaterialEditorViewController.scene,
-        assetDb: ProjectController.project.assets,
-      })
-        .then((reflectionTexture) => {
-          materialInstance.overridesFromMaterial.reflectionTexture = reflectionTexture;
+      ReflectionLoading.load(materialData.reflection, ProjectController.assetCache, MaterialEditorViewController.scene)
+        .then((reflection) => {
+          materialInstance.overridesFromMaterial.reflectionTexture = reflection?.texture;
         });
     } else {
       // Disabling override
@@ -46,10 +42,21 @@ export class SetMaterialReflectionEnabledMutation implements IMaterialEditorView
     if (materialData.reflection !== undefined) {
       const reflectionDefinition = reflectionDataToDefinition(materialData.reflection);
       MaterialEditorViewController.materialJson.mutate(jsonPath, reflectionDefinition);
-    }
-    else {
+    } else {
       MaterialEditorViewController.materialJson.delete(jsonPath);
     }
+  }
+
+  public async afterPersistChanges({ ProjectController, MaterialEditorViewController }: MaterialEditorViewMutationArguments): Promise<void> {
+    const { materialAssetData, materialData } = MaterialEditorViewController;
+
+    // Update asset in cache
+    ProjectController.assetCache.set(materialAssetData.id, (context) => {
+      return MaterialAsset.fromMaterialData(materialData, materialAssetData, context);
+    });
+
+    // Ensure asset is loaded so that dependencies are up to date
+    await ProjectController.assetCache.loadAsset(materialAssetData, MaterialEditorViewController.scene);
   }
 
   public undo(_args: MaterialEditorViewMutationArguments): void {

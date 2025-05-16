@@ -42,9 +42,11 @@ export class TauriFileSystem extends IFileSystem {
   }
 
   public getUrlForPath(path: string): string {
-    // @NOTE Append a random parameter to asset requests to prevent browser from caching the data
+    // @NOTE Append a random parameter to asset requests to prevent browser/babylon from caching the data
     const cacheBustParam = (~~(Math.random() * 0x10000 + 0x10000)).toString(16);
-    return convertFileSrc(this.resolvePathFromProjectRoot(path)) + `?cache_bust=${cacheBustParam}`;
+    const url = new URL(convertFileSrc(this.resolvePathFromProjectRoot(path)));
+    url.searchParams.set('cache_bust', cacheBustParam);
+    return url.toString();
   }
 
   public async readFile(path: string): Promise<VirtualFile> {

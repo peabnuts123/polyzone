@@ -1,4 +1,3 @@
-
 import { AssetType } from "@polyzone/runtime/src/cartridge";
 import { IModelEditorViewMutation } from "../IModelEditorViewMutation";
 import { ModelEditorViewMutationArguments } from "../ModelEditorViewMutationArguments";
@@ -37,15 +36,10 @@ export class SetModelMaterialOverrideBaseMaterialMutation implements IModelEdito
     materialOverridesData = meshAssetData.getOverridesForMaterial(this.materialName)!;
     if (baseMaterialAssetData) {
       if (materialOverridesData.material !== undefined) {
-        ModelEditorViewController.assetCache.loadAsset(
-          materialOverridesData.material,
-          {
-            scene: ModelEditorViewController.scene,
-            assetDb: ProjectController.project.assets,
-          },
-        ).then((materialAsset) => {
-          material.readOverridesFromMaterial(materialAsset);
-        });
+        ProjectController.assetCache.loadAsset(materialOverridesData.material, ModelEditorViewController.scene)
+          .then((materialAsset) => {
+            material.readOverridesFromMaterial(materialAsset);
+          });
       }
     } else {
       material.readOverridesFromMaterial(undefined);
@@ -53,6 +47,14 @@ export class SetModelMaterialOverrideBaseMaterialMutation implements IModelEdito
 
     // 3. Update JSONC
     reconcileMaterialOverrideData(meshAssetData, ProjectController);
+  }
+
+  public async afterPersistChanges({ ProjectController, ModelEditorViewController }: ModelEditorViewMutationArguments): Promise<void> {
+    const meshAssetData = ProjectController.project.assets.getById(this.modelAssetId, AssetType.Mesh);
+
+    // - Refresh asset cache (e.g. asset dependencies, etc)
+    ProjectController.assetCache.delete(meshAssetData.id);
+    await ProjectController.assetCache.loadAsset(meshAssetData, ModelEditorViewController.scene);
   }
 
   public undo(_args: ModelEditorViewMutationArguments): void {

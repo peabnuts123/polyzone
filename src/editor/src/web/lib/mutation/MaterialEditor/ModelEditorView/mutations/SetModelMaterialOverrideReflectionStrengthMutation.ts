@@ -58,6 +58,14 @@ export class SetModelMaterialOverrideReflectionStrengthMutation implements IMode
     reconcileMaterialOverrideData(meshAssetData, ProjectController);
   }
 
+  public async afterPersistChanges({ ProjectController, ModelEditorViewController }: ModelEditorViewMutationArguments): Promise<void> {
+    const meshAssetData = ProjectController.project.assets.getById(this.modelAssetId, AssetType.Mesh);
+
+    // - Refresh asset cache (e.g. asset dependencies, etc)
+    ProjectController.assetCache.delete(meshAssetData.id);
+    await ProjectController.assetCache.loadAsset(meshAssetData, ModelEditorViewController.scene);
+  }
+
   public undo(_args: ModelEditorViewMutationArguments): void {
     // @TODO
     // - Apply undo values

@@ -96,7 +96,6 @@ export class ComponentDependencyManager {
   }
 
   public getAllDependentsForAssetIds(assetIds: string[]): ComponentDependency[] {
-    // return this.assetDependents.get(assetId) || [];
     const allDependents: ComponentDependency[] = [];
     for (const assetId of assetIds) {
       // Look up dependent data for asset ID
