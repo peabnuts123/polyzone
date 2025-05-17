@@ -33,7 +33,7 @@ import { Constants } from "@babylonjs/core/Engines/constants";
 import { EffectFallbacks } from "@babylonjs/core/Materials/effectFallbacks";
 import type { /* Effect, */ IEffectCreationOptions, IShaderPath } from "@babylonjs/core/Materials/effect";
 // import { DetailMapConfiguration } from "@babylonjs/core/Materials/material.detailMapConfiguration";
-import { addClipPlaneUniforms, bindClipPlane } from "@babylonjs/core/Materials/clipPlaneMaterialHelper";
+import { AddClipPlaneUniforms, BindClipPlane } from "@babylonjs/core/Materials/clipPlaneMaterialHelper";
 import {
   BindBonesParameters,
   BindFogParameters,
@@ -381,7 +381,7 @@ export class RetroMaterialDefines extends MaterialDefines implements IImageProce
     ];
 
     for (const mode of modes) {
-      (<any>this)[mode] = mode === modeToEnable;
+      this[mode] = mode === modeToEnable;
     }
   }
 }
@@ -1633,7 +1633,7 @@ export class RetroMaterial extends PushMaterial {
         maxSimultaneousLights: RetroMaterial.MaxSimultaneousLights,
       });
 
-      addClipPlaneUniforms(uniforms);
+      AddClipPlaneUniforms(uniforms);
 
       // const csnrOptions: ICustomShaderNameResolveOptions = {};
 
@@ -2003,7 +2003,7 @@ export class RetroMaterial extends PushMaterial {
       this._callbackPluginEventBindForSubMesh(this._eventInfo);
 
       // Clip plane
-      bindClipPlane(effect, this, scene);
+      BindClipPlane(effect, this, scene);
 
       // Colors
       this.bindEyePosition(effect);

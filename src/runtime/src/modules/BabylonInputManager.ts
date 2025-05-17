@@ -76,7 +76,7 @@ export class BabylonInputManager implements NativeInputManager {
           console.log(`Device connected: "DualSense"`, eventData);
           break;
         default:
-          console.error(`Unknown device type: ${(eventData as any).deviceType}`);
+          console.error(`Unknown device type: ${(eventData as { deviceType: DeviceType }).deviceType}`);
       }
     });
   }

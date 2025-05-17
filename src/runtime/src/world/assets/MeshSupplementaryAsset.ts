@@ -11,8 +11,8 @@ export class MeshSupplementaryAsset extends LoadedAssetBase<AssetType.MeshSupple
     super(id);
   }
 
-  public static async fromAssetData(assetData: IMeshSupplementaryAssetData, _context: AssetCacheContext): Promise<MeshSupplementaryAsset> {
+  public static fromAssetData(assetData: IMeshSupplementaryAssetData, _context: AssetCacheContext): Promise<MeshSupplementaryAsset> {
     /* No data to load at-present */
-    return new MeshSupplementaryAsset(assetData.id);
+    return Promise.resolve(new MeshSupplementaryAsset(assetData.id));
   }
 }

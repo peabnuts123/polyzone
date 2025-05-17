@@ -3,7 +3,6 @@
 import eslint from '@eslint/js';
 import tseslint from 'typescript-eslint';
 
-
 // Simple constants for configuring rules
 const DISABLED = 'off';
 const WARNING = 'warn';
@@ -11,11 +10,18 @@ const ERROR = 'error';
 
 export default tseslint.config(
   eslint.configs.recommended,
-  tseslint.configs.recommended,
+  tseslint.configs.recommendedTypeChecked,
   {
+    languageOptions: {
+      parserOptions: {
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
     rules: {
       // Rules that are explicitly disabled
       '@typescript-eslint/no-explicit-any': DISABLED, // Too restrictive, you need `any` in certain situations
+      '@typescript-eslint/unbound-method': DISABLED, // Doesn't like imports from WorldQuery
 
       // Rules that are explicitly a warning
       '@typescript-eslint/no-unused-vars': [WARNING, {

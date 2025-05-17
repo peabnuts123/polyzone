@@ -60,6 +60,7 @@ export class ScriptLoader {
 
     let moduleDefinition: ModuleDefinition = undefined!;
     // @NOTE use magic "source map" keyword `sourceURL` to make script show up in devtools sources under `cartridge/`
+    // eslint-disable-next-line @typescript-eslint/no-implied-eval, @typescript-eslint/no-unsafe-call
     new Function('define', `"use strict";\n${file.textContent}\n//# sourceURL=cartridge/${scriptAsset.path}`)(this.defineModule.bind(this, (result) => {
       moduleDefinition = result;
     }));
@@ -157,6 +158,7 @@ export class ScriptLoader {
     let moduleName: string | undefined;
     let dependencies: string[];
     let moduleFn: ModuleGetterFn;
+    /* eslint-disable @typescript-eslint/no-unsafe-assignment */
     if (args.length == 2) {
       // @NOTE @ASSUMPTION params are (dependencies, definition)
       dependencies = args[0];
@@ -167,6 +169,7 @@ export class ScriptLoader {
       dependencies = args[1];
       moduleFn = args[2];
     }
+    /* eslint-enable @typescript-eslint/no-unsafe-assignment */
 
     callback({
       id: moduleName || "<undefined>",

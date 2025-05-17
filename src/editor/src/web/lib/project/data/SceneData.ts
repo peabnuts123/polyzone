@@ -34,6 +34,7 @@ export class SceneData implements ISceneData {
    * @param gameObjectId ID of the GameObject to find.
    * @throws Error if no GameObject exists with the given ID.
    */
+  // @TODO Rename this function, DAMN (to `getGameObjectData`) - any others?
   public getGameObject(gameObjectId: string): GameObjectData {
     const result = this.findGameObject(gameObjectId);
     if (result === undefined) {

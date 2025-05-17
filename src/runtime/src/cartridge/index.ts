@@ -51,7 +51,7 @@ export async function fetchCartridge(url: string): Promise<CartridgeArchive> {
  * can be loaded into the game.
  * @param cartridgeArchive {@link CartridgeArchive} file to load.
  */
-export async function loadCartridge(cartridgeArchive: CartridgeArchive): Promise<Cartridge> {
+export function loadCartridge(cartridgeArchive: CartridgeArchive): Cartridge {
   // @TODO validate DTO
   const cartridgeManifest = cartridgeArchive.manifest;
 

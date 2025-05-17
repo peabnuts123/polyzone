@@ -1,7 +1,7 @@
 import { toVector3Core, toColor3Core, isDefined } from "@polyzone/runtime/src/util";
 import { Color3 } from "@polyzone/core/src/util";
 
-import { SceneDefinition, CameraComponentDefinition, ComponentDefinitionType, MeshComponentDefinition, ScriptComponentDefinition, DirectionalLightComponentDefinition, PointLightComponentDefinition, GameObjectDefinition, AssetType } from "../../archive";
+import { SceneDefinition, ComponentDefinitionType, GameObjectDefinition, AssetType } from "../../archive";
 import { IAssetDb } from "../assets/AssetDb";
 import { IGameObjectData, GameObjectData } from "../GameObjectData";
 import { CameraComponentData, IComponentData, DirectionalLightComponentData, MeshComponentData, PointLightComponentData, ScriptComponentData } from "../components";
@@ -64,7 +64,7 @@ export function loadObjectDefinition(objectDefinition: GameObjectDefinition, ass
   for (const componentDefinition of objectDefinition.components) {
     switch (componentDefinition.type) {
       case ComponentDefinitionType.Mesh: {
-        const meshComponentDefinition = componentDefinition as MeshComponentDefinition;
+        const meshComponentDefinition = componentDefinition;
         let meshAsset: IMeshAssetData | undefined = undefined;
         if (isDefined(meshComponentDefinition.meshFileId)) {
           meshAsset = assetDb.getById(meshComponentDefinition.meshFileId, AssetType.Mesh);
@@ -73,7 +73,7 @@ export function loadObjectDefinition(objectDefinition: GameObjectDefinition, ass
         break;
       }
       case ComponentDefinitionType.Script: {
-        const scriptComponentDefinition = componentDefinition as ScriptComponentDefinition;
+        const scriptComponentDefinition = componentDefinition;
         let scriptAsset: IScriptAssetData | undefined = undefined;
         if (isDefined(scriptComponentDefinition.scriptFileId)) {
           scriptAsset = assetDb.getById(scriptComponentDefinition.scriptFileId, AssetType.Script);
@@ -82,18 +82,18 @@ export function loadObjectDefinition(objectDefinition: GameObjectDefinition, ass
         break;
       }
       case ComponentDefinitionType.Camera: {
-        const cameraComponentDefinition = componentDefinition as CameraComponentDefinition;
+        const cameraComponentDefinition = componentDefinition;
         components.push(new CameraComponentData(cameraComponentDefinition.id));
         break;
       }
       case ComponentDefinitionType.DirectionalLight: {
-        const directionalLightComponentDefinition = componentDefinition as DirectionalLightComponentDefinition;
+        const directionalLightComponentDefinition = componentDefinition;
         const color = toColor3Core(directionalLightComponentDefinition.color);
         components.push(new DirectionalLightComponentData(directionalLightComponentDefinition.id, directionalLightComponentDefinition.intensity, color));
         break;
       }
       case ComponentDefinitionType.PointLight: {
-        const pointLightComponentDefinition = componentDefinition as PointLightComponentDefinition;
+        const pointLightComponentDefinition = componentDefinition;
         const color = toColor3Core(pointLightComponentDefinition.color);
         components.push(new PointLightComponentData(pointLightComponentDefinition.id, pointLightComponentDefinition.intensity, color));
         break;

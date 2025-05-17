@@ -11,8 +11,8 @@ export class ScriptAsset extends LoadedAssetBase<AssetType.Script> {
     super(id);
   }
 
-  public static async fromAssetData(assetData: IScriptAssetData, _context: AssetCacheContext): Promise<ScriptAsset> {
+  public static fromAssetData(assetData: IScriptAssetData, _context: AssetCacheContext): Promise<ScriptAsset> {
     /* No data to load at-present */
-    return new ScriptAsset(assetData.id);
+    return Promise.resolve(new ScriptAsset(assetData.id));
   }
 }

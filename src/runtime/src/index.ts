@@ -67,7 +67,7 @@ export class Runtime {
 
     // Bind resolver to cartridge asset DB
     Resolver.registerFileSystem(cartridgeArchive.fileSystem);
-    this.cartridge = await loadCartridge(cartridgeArchive);
+    this.cartridge = loadCartridge(cartridgeArchive);
     console.log(`Loaded cartridge in ${(performance.now() - timerStart).toFixed(1)}ms`);
   }
 

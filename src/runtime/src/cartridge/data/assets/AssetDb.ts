@@ -45,6 +45,7 @@ export class AssetDb implements IAssetDb {
       /* @NOTE Type laundering. We know that the Definition is paired with the Data type,
        * as it was just created from it.
        */
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       asset.loadDefinition(assetDefinitions[index] as any, this);
     });
   }

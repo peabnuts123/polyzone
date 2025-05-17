@@ -1,12 +1,13 @@
 import { UserConfigExport, defineConfig } from 'vite';
 
 // https://vitejs.dev/config/
-export default defineConfig(async (env) => {
+export default defineConfig((env) => {
   const config: UserConfigExport = {
     clearScreen: false,
     esbuild: {
       target: "es2020",
     },
+    assetsInclude: ["**/*.fx"],
     server: {
       port: 1420,
     },

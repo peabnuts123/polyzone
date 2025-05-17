@@ -12,8 +12,8 @@ export class SoundAsset extends LoadedAssetBase<AssetType.Sound> {
     super(id);
   }
 
-  public static async fromAssetData(assetData: ISoundAssetData, _context: AssetCacheContext): Promise<SoundAsset> {
+  public static fromAssetData(assetData: ISoundAssetData, _context: AssetCacheContext): Promise<SoundAsset> {
     /* No data to load at-present */
-    return new SoundAsset(assetData.id);
+    return Promise.resolve(new SoundAsset(assetData.id));
   }
 }

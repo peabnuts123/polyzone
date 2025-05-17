@@ -4,7 +4,6 @@ import eslint from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import globals from 'globals';
 
-
 // Simple constants for configuring rules
 const DISABLED = 'off';
 const WARNING = 'warn';
@@ -12,14 +11,21 @@ const ERROR = 'error';
 
 export default tseslint.config(
   eslint.configs.recommended,
-  tseslint.configs.recommended,
+  tseslint.configs.recommendedTypeChecked,
   {
+    languageOptions: {
+      parserOptions: {
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
     ignores: [
-      'dist/',
+      'dist/**/*',
     ],
     rules: {
       // Rules that are explicitly disabled
       '@typescript-eslint/no-explicit-any': DISABLED, // Too restrictive, you need `any` in certain situations
+      '@typescript-eslint/restrict-template-expressions': DISABLED, // Implicitly calling `toString()` is nice
 
       // Rules that are explicitly a warning
       '@typescript-eslint/no-unused-vars': [WARNING, {
