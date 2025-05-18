@@ -61,121 +61,87 @@ import {
 import { MaterialHelperGeometryRendering } from "@babylonjs/core/Materials/materialHelper.geometryrendering";
 // import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 
-// import { defaultPixelShader } from '@babylonjs/core/Materials/';
-// import "@babylonjs/core/Shaders/ShadersInclude/defaultFragmentDeclaration";
-import "@babylonjs/core/Shaders/ShadersInclude/defaultUboDeclaration";
-import "@babylonjs/core/Shaders/ShadersInclude/uvAttributeDeclaration";
-// [Error] Failed to load resource: the server responded with a status of 404 (Not Found) (uvAttributeDeclaration.fx, line 0)
-// import "@babylonjs/core/Shaders/ShadersInclude/prePassDeclaration";
-// import "@babylonjs/core/Shaders/ShadersInclude/oitDeclaration";
-// import "@babylonjs/core/Shaders/ShadersInclude/mainUVVaryingDeclaration";
 
 /* @TODO LITERALLY WTF LOL */
-import "@babylonjs/core/Shaders/ShadersInclude/prePassVertexDeclaration";
-import "@babylonjs/core/Shaders/ShadersInclude/helperFunctions";
-import "@babylonjs/core/Shaders/ShadersInclude/mainUVVaryingDeclaration";
-import "@babylonjs/core/Shaders/ShadersInclude/samplerVertexDeclaration";
-import "@babylonjs/core/Shaders/ShadersInclude/bumpVertexDeclaration";
-import "@babylonjs/core/Shaders/ShadersInclude/lightVxUboDeclaration";
-import "@babylonjs/core/Shaders/ShadersInclude/morphTargetsVertexGlobalDeclaration";
-import "@babylonjs/core/Shaders/ShadersInclude/morphTargetsVertexDeclaration";
-import "@babylonjs/core/Shaders/ShadersInclude/logDepthDeclaration";
-import "@babylonjs/core/Shaders/ShadersInclude/morphTargetsVertexGlobal";
-import "@babylonjs/core/Shaders/ShadersInclude/morphTargetsVertex";
-import "@babylonjs/core/Shaders/ShadersInclude/prePassVertex";
-import "@babylonjs/core/Shaders/ShadersInclude/uvVariableDeclaration";
-import "@babylonjs/core/Shaders/ShadersInclude/samplerVertexImplementation";
-import "@babylonjs/core/Shaders/ShadersInclude/bumpVertex";
-import "@babylonjs/core/Shaders/ShadersInclude/shadowsVertex";
-import "@babylonjs/core/Shaders/ShadersInclude/pointCloudVertex";
-import "@babylonjs/core/Shaders/ShadersInclude/logDepthVertex";
-import "@babylonjs/core/Shaders/ShadersInclude/oitDeclaration";
-import "@babylonjs/core/Shaders/ShadersInclude/lightUboDeclaration";
-import "@babylonjs/core/Shaders/ShadersInclude/lightsFragmentFunctions";
-import "@babylonjs/core/Shaders/ShadersInclude/shadowsFragmentFunctions";
-import "@babylonjs/core/Shaders/ShadersInclude/samplerFragmentDeclaration";
-import "@babylonjs/core/Shaders/ShadersInclude/fresnelFunction";
-import "@babylonjs/core/Shaders/ShadersInclude/reflectionFunction";
+
+/* NEEDED? */
+/* __decl__default(Fragment|Vertex) */
+import "@babylonjs/core/Shaders/ShadersInclude/defaultUboDeclaration";
 import "@babylonjs/core/Shaders/ShadersInclude/defaultVertexDeclaration";
-import "@babylonjs/core/Shaders/ShadersInclude/lightVxFragmentDeclaration";
 import "@babylonjs/core/Shaders/ShadersInclude/defaultFragmentDeclaration";
-import "@babylonjs/core/Shaders/ShadersInclude/prePassDeclaration";
+
+/* __decl__lightVxFragment */
+import "@babylonjs/core/Shaders/ShadersInclude/lightVxUboDeclaration";
+import "@babylonjs/core/Shaders/ShadersInclude/lightVxFragmentDeclaration";
+
+/* __decl__lightFragment */
+import "@babylonjs/core/Shaders/ShadersInclude/lightUboDeclaration";
 import "@babylonjs/core/Shaders/ShadersInclude/lightFragmentDeclaration";
-import "@babylonjs/core/Shaders/ShadersInclude/imageProcessingDeclaration";
-import "@babylonjs/core/Shaders/ShadersInclude/imageProcessingFunctions";
-import "@babylonjs/core/Shaders/ShadersInclude/bumpFragmentMainFunctions";
-import "@babylonjs/core/Shaders/ShadersInclude/bumpFragmentFunctions";
-import "@babylonjs/core/Shaders/ShadersInclude/bumpFragment";
-import "@babylonjs/core/Shaders/ShadersInclude/decalFragment";
-import "@babylonjs/core/Shaders/ShadersInclude/depthPrePass";
-import "@babylonjs/core/Shaders/ShadersInclude/lightFragment";
-import "@babylonjs/core/Shaders/ShadersInclude/logDepthFragment";
-import "@babylonjs/core/Shaders/ShadersInclude/oitFragment";
+
+
+// NEEDED
+import "@babylonjs/core/Shaders/ShadersInclude/mainUVVaryingDeclaration";
+import "@babylonjs/core/Shaders/ShadersInclude/helperFunctions";
+/* Vertex-only */
+import "@babylonjs/core/Shaders/ShadersInclude/uvAttributeDeclaration";
+import "@babylonjs/core/Shaders/ShadersInclude/uvVariableDeclaration";
 import "@babylonjs/core/Shaders/ShadersInclude/bonesDeclaration";
-import "@babylonjs/core/Shaders/ShadersInclude/bakedVertexAnimationDeclaration";
-import "@babylonjs/core/Shaders/ShadersInclude/instancesDeclaration";
-import "@babylonjs/core/Shaders/ShadersInclude/clipPlaneVertexDeclaration";
 import "@babylonjs/core/Shaders/ShadersInclude/fogVertexDeclaration";
-import "@babylonjs/core/Shaders/ShadersInclude/instancesVertex";
 import "@babylonjs/core/Shaders/ShadersInclude/bonesVertex";
-import "@babylonjs/core/Shaders/ShadersInclude/bakedVertexAnimation";
-import "@babylonjs/core/Shaders/ShadersInclude/clipPlaneVertex";
 import "@babylonjs/core/Shaders/ShadersInclude/fogVertex";
 import "@babylonjs/core/Shaders/ShadersInclude/vertexColorMixing";
-import "@babylonjs/core/Shaders/ShadersInclude/clipPlaneFragmentDeclaration";
+/* Fragment-only */
+import "@babylonjs/core/Shaders/ShadersInclude/samplerFragmentDeclaration"; // @TODO Inline
 import "@babylonjs/core/Shaders/ShadersInclude/fogFragmentDeclaration";
-import "@babylonjs/core/Shaders/ShadersInclude/clipPlaneFragment";
+import "@babylonjs/core/Shaders/ShadersInclude/lightsFragmentFunctions";
+import "@babylonjs/core/Shaders/ShadersInclude/reflectionFunction";
+import "@babylonjs/core/Shaders/ShadersInclude/lightFragment";
 import "@babylonjs/core/Shaders/ShadersInclude/fogFragment";
-// import "@babylonjs/core/Shaders/default.vertex.js";
-// import "@babylonjs/core/ShadersWGSL/default.vertex.js";
-// import "@babylonjs/core/Shaders/default.fragment.js";
-// import "@babylonjs/core/ShadersWGSL/default.fragment.js";
 
 
-
-
-
-
-
-
-// import "@babylonjs/core/Shaders/ShadersInclude/lightFragmentDeclaration";
-// import "@babylonjs/core/Shaders/ShadersInclude/lightUboDeclaration";
-// import "@babylonjs/core/Shaders/ShadersInclude/lightsFragmentFunctions";
+// import "@babylonjs/core/Shaders/ShadersInclude/prePassVertexDeclaration"; /* @NOTE UNNEEDED */
+// import "@babylonjs/core/Shaders/ShadersInclude/samplerVertexDeclaration"; /* @NOTE UNNEEDED */
+// import "@babylonjs/core/Shaders/ShadersInclude/bumpVertexDeclaration"; /* @NOTE UNNEEDED */
+// import "@babylonjs/core/Shaders/ShadersInclude/morphTargetsVertexGlobalDeclaration"; /* @NOTE UNNEEDED */
+// import "@babylonjs/core/Shaders/ShadersInclude/morphTargetsVertexDeclaration"; /* @NOTE UNNEEDED */
+// import "@babylonjs/core/Shaders/ShadersInclude/logDepthDeclaration"; /* @NOTE UNNEEDED */
+// import "@babylonjs/core/Shaders/ShadersInclude/morphTargetsVertexGlobal"; /* @NOTE UNNEEDED */
+// import "@babylonjs/core/Shaders/ShadersInclude/morphTargetsVertex"; /* @NOTE UNNEEDED */
+// import "@babylonjs/core/Shaders/ShadersInclude/prePassVertex"; /* @NOTE UNNEEDED */
+// import "@babylonjs/core/Shaders/ShadersInclude/samplerVertexImplementation"; /* @NOTE UNNEEDED */
+// import "@babylonjs/core/Shaders/ShadersInclude/bumpVertex"; /* @NOTE UNNEEDED */
+// import "@babylonjs/core/Shaders/ShadersInclude/shadowsVertex"; /* @NOTE UNNEEDED */
+// import "@babylonjs/core/Shaders/ShadersInclude/pointCloudVertex"; /* @NOTE UNNEEDED */
+// import "@babylonjs/core/Shaders/ShadersInclude/logDepthVertex"; /* @NOTE UNNEEDED */
+// import "@babylonjs/core/Shaders/ShadersInclude/oitDeclaration";
 // import "@babylonjs/core/Shaders/ShadersInclude/shadowsFragmentFunctions";
-// import "@babylonjs/core/Shaders/ShadersInclude/samplerFragmentDeclaration";
 // import "@babylonjs/core/Shaders/ShadersInclude/fresnelFunction";
-// import "@babylonjs/core/Shaders/ShadersInclude/reflectionFunction";
+// import "@babylonjs/core/Shaders/ShadersInclude/prePassDeclaration";
 // import "@babylonjs/core/Shaders/ShadersInclude/imageProcessingDeclaration";
 // import "@babylonjs/core/Shaders/ShadersInclude/imageProcessingFunctions";
 // import "@babylonjs/core/Shaders/ShadersInclude/bumpFragmentMainFunctions";
 // import "@babylonjs/core/Shaders/ShadersInclude/bumpFragmentFunctions";
-// import "@babylonjs/core/Shaders/ShadersInclude/clipPlaneFragmentDeclaration";
-// import "@babylonjs/core/Shaders/ShadersInclude/logDepthDeclaration";
-// import "@babylonjs/core/Shaders/ShadersInclude/fogFragmentDeclaration";
-// import "@babylonjs/core/Shaders/ShadersInclude/clipPlaneFragment";
 // import "@babylonjs/core/Shaders/ShadersInclude/bumpFragment";
 // import "@babylonjs/core/Shaders/ShadersInclude/decalFragment";
 // import "@babylonjs/core/Shaders/ShadersInclude/depthPrePass";
-// import "@babylonjs/core/Shaders/ShadersInclude/lightFragment";
 // import "@babylonjs/core/Shaders/ShadersInclude/logDepthFragment";
-// import "@babylonjs/core/Shaders/ShadersInclude/fogFragment";
 // import "@babylonjs/core/Shaders/ShadersInclude/oitFragment";
+// import "@babylonjs/core/Shaders/ShadersInclude/bakedVertexAnimationDeclaration"; /* @NOTE UNNEEDED */
+// import "@babylonjs/core/Shaders/ShadersInclude/instancesDeclaration"; /* @NOTE UNNEEDED */
+// import "@babylonjs/core/Shaders/ShadersInclude/clipPlaneVertexDeclaration"; /* @NOTE UNNEEDED */
+// import "@babylonjs/core/Shaders/ShadersInclude/instancesVertex"; /* @NOTE UNNEEDED */
+// import "@babylonjs/core/Shaders/ShadersInclude/bakedVertexAnimation"; /* @NOTE UNNEEDED */
+// import "@babylonjs/core/Shaders/ShadersInclude/clipPlaneVertex"; /* @NOTE UNNEEDED */
+// import "@babylonjs/core/Shaders/ShadersInclude/clipPlaneFragmentDeclaration";
+// import "@babylonjs/core/Shaders/ShadersInclude/clipPlaneFragment";
+
+import { defaultVertexShader } from "@babylonjs/core/Shaders/default.vertex.js";
+import { defaultPixelShader } from "@babylonjs/core/Shaders/default.fragment.js";
+
 import MasterVertexShaderSource from './shaders/master.vertex.fx';
 import MasterFragmentShaderSource from './shaders/master.fragment.fx';
 import { MaterialAsset } from "../world";
 
-
-/*
-  @TODO Features
-    // - Ambient color (from lighting?)
-    - Diffuse texture (alpha is opacity) - optional
-    - Diffuse color (tint) (including alpha)
-    - Reflection texture
-    // - Reflection color (covered by diffuse color?)
-    - Emission color
- */
-
-// const onCreatedEffectParameters = { effect: null as unknown as Effect, subMesh: null as unknown as Nullable<SubMesh> };
 
 /** @internal */
 export class RetroMaterialDefines extends MaterialDefines implements IImageProcessingConfigurationDefines {
@@ -1644,10 +1610,11 @@ export class RetroMaterial extends PushMaterial {
       const join = defines.toString();
 
       const previousEffect = subMesh.effect;
+      const debug_UseDefaultShader = false;
       let effect = scene.getEngine().createEffect(
         {
-          vertexSource: MasterVertexShaderSource,
-          fragmentSource: MasterFragmentShaderSource,
+          vertexSource: debug_UseDefaultShader ? defaultVertexShader.shader : MasterVertexShaderSource,
+          fragmentSource: debug_UseDefaultShader ? defaultPixelShader.shader : MasterFragmentShaderSource,
         } satisfies IShaderPath,
         {
           attributes: attribs,
@@ -1661,7 +1628,7 @@ export class RetroMaterial extends PushMaterial {
           indexParameters,
           // processFinalCode: csnrOptions.processFinalCode,
           processFinalCode: (type, code, _defines) => {
-            // console.log(`[${this.name}] (processFinalCode) (type='${type}')`, code);
+            console.log(`[${this.name}] (processFinalCode) (type='${type}')`, code);
             return code;
           },
           multiTarget: defines.PREPASS,
