@@ -34,6 +34,7 @@ import Modules from './modules';
 import { toColor3Babylon } from "./util";
 import { AssetCache } from "./world/assets/AssetCache";
 import { MeshAsset } from "./world/assets/MeshAsset";
+import { RetroMaterial } from "./materials/RetroMaterial";
 
 /**
  * Top-level system containing the entire game and all content
@@ -71,6 +72,9 @@ export class Game {
     // @TODO unload previous cartridge
     this.cartridge = cartridge;
     this._assetCache = new AssetCache(cartridge.assetDb);
+
+    // @DEBUG Just for fun right now
+    RetroMaterial.DEBUG_DITHERING_ENABLED = true;
 
     // Load all scripts from the cartridge
     // We do this proactively because scripts can depend on other scripts

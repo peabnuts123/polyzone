@@ -1,22 +1,29 @@
-// #define CUSTOM_VERTEX_EXTENSION
-
 // @TODO inline?
 #include<__decl__defaultVertex>
+
+// @TODO is there a better define for this? Something like UBO_SUPPORTED?
+// @TODO in the declaration and put this in the non-UBO version 🤷‍♀️
 #if !defined(WORLD_UBO)
-  uniform mat4 world;
+// Stuff that is automatically defined by the UBO declaration
+// but not by the vertex declaration
+uniform mat4 world;
+uniform vec4 vEyePosition;
+uniform vec3 vEmissiveColor;
 #endif
 
+/*
+  @TODO Shader backlog
+    - Tidy code up?
+    - Is `NORMAL` always defined?
+    - Test vertex colors
+    - Inline declarations / move into project
+ */
+
 // Attributes
-
-// #define CUSTOM_VERTEX_BEGIN
-
 attribute vec3 position;
 #ifdef NORMAL
 attribute vec3 normal;
 #endif
-// #ifdef TANGENT
-// attribute vec4 tangent;
-// #endif
 #ifdef UV1
 attribute vec2 uv;
 #endif
@@ -26,181 +33,92 @@ attribute vec4 color;
 #endif
 
 #include<helperFunctions>
-
 #include<bonesDeclaration>
-// #xinclude<bakedVertexAnimationDeclaration>
 
 // Uniforms
-// #xinclude<instancesDeclaration>
-// #xinclude<prePassVertexDeclaration>
-
 #include<mainUVVaryingDeclaration>[1..7]
-
-// #xinclude<samplerVertexDeclaration>(_DEFINENAME_,DIFFUSE,_VARYINGNAME_,Diffuse)
-// #xinclude<samplerVertexDeclaration>(_DEFINENAME_,DETAIL,_VARYINGNAME_,Detail)
-// #xinclude<samplerVertexDeclaration>(_DEFINENAME_,AMBIENT,_VARYINGNAME_,Ambient)
-// #xinclude<samplerVertexDeclaration>(_DEFINENAME_,OPACITY,_VARYINGNAME_,Opacity)
-// #xinclude<samplerVertexDeclaration>(_DEFINENAME_,EMISSIVE,_VARYINGNAME_,Emissive)
-// #xinclude<samplerVertexDeclaration>(_DEFINENAME_,LIGHTMAP,_VARYINGNAME_,Lightmap)
-// #if defined(SPECULARTERM)
-// #xinclude<samplerVertexDeclaration>(_DEFINENAME_,SPECULAR,_VARYINGNAME_,Specular)
-// #endif
-// #xinclude<samplerVertexDeclaration>(_DEFINENAME_,BUMP,_VARYINGNAME_,Bump)
-// #xinclude<samplerVertexDeclaration>(_DEFINENAME_,DECAL,_VARYINGNAME_,Decal)
 
 // Output
 varying vec3 vPositionW;
 #ifdef NORMAL
 varying vec3 vNormalW;
 #endif
-
-#if defined(VERTEXCOLOR) // || defined(INSTANCESCOLOR) && defined(INSTANCES)
+#if defined(VERTEXCOLOR)
 varying vec4 vColor;
 #endif
-
-// #xinclude<bumpVertexDeclaration>
-
-// #xinclude<clipPlaneVertexDeclaration>
+varying vec3 vLightingColor;
 
 #include<fogVertexDeclaration>
-#include<__decl__lightVxFragment>[0..maxSimultaneousLights]
 
-// #xinclude<morphTargetsVertexGlobalDeclaration>
-// #xinclude<morphTargetsVertexDeclaration>[0..maxSimultaneousMorphTargets]
+// Lighting
+// @NOTE Must be below `vPositionW`
+#include<__decl__lightFragment>[0..maxSimultaneousLights]
+#include<lightsFragmentFunctions>
 
-// #ifdef REFLECTIONMAP_SKYBOX
-// varying vec3 vPositionUVW;
-// #endif
-
-// #if defined(REFLECTIONMAP_EQUIRECTANGULAR_FIXED) || defined(REFLECTIONMAP_MIRROREDEQUIRECTANGULAR_FIXED)
-// varying vec3 vDirectionW;
-// #endif
-
-// #xinclude<logDepthDeclaration>
-// #define CUSTOM_VERTEX_DEFINITIONS
-
-void main(void) {
-
-	// #define CUSTOM_VERTEX_MAIN_BEGIN
-
-	vec3 positionUpdated = position;
+void main(void)
+{
+  vec3 positionUpdated = position;
 #ifdef NORMAL
-	vec3 normalUpdated = normal;
+  vec3 normalUpdated = normal;
 #endif
-// #ifdef TANGENT
-// 	vec4 tangentUpdated = tangent;
-// #endif
 #ifdef UV1
-	vec2 uvUpdated = uv;
+  vec2 uvUpdated = uv;
 #endif
 #ifdef UV2
-    vec2 uv2Updated = uv2;
+  vec2 uv2Updated = uv2;
 #endif
 #ifdef VERTEXCOLOR
-    vec4 colorUpdated = color;
+  vec4 colorUpdated = color;
 #endif
-
-// #xinclude<morphTargetsVertexGlobal>
-// #xinclude<morphTargetsVertex>[0..maxSimultaneousMorphTargets]
-
-// #ifdef REFLECTIONMAP_SKYBOX
-// 	vPositionUVW = positionUpdated;
-// #endif
-
-// #define CUSTOM_VERTEX_UPDATE_POSITION
-
-// #define CUSTOM_VERTEX_UPDATE_NORMAL
-
-// #xinclude<instancesVertex>
-    mat4 finalWorld = world; // @NOTE From `instancesVertex`
-
-
-// #if defined(PREPASS) && ((defined(PREPASS_VELOCITY) || defined(PREPASS_VELOCITY_LINEAR)) && !defined(BONES_VELOCITY_ENABLED)
-//     // Compute velocity before bones computation
-//     vCurrentPosition = viewProjection * finalWorld * vec4(positionUpdated, 1.0);
-//     vPreviousPosition = previousViewProjection * finalPreviousWorld * vec4(positionUpdated, 1.0);
-// #endif
+  mat4 finalWorld = world; // @TODO Remove
 
 #include<bonesVertex>
-// #xinclude<bakedVertexAnimation>
 
-	vec4 worldPos = finalWorld * vec4(positionUpdated, 1.0);
+  vec4 worldPos = finalWorld * vec4(positionUpdated, 1.0);
 
 #ifdef NORMAL
-	mat3 normalWorld = mat3(finalWorld);
+  mat3 normalWorld = mat3(finalWorld);
 
-    // #if defined(INSTANCES) && defined(THIN_INSTANCES)
-    //     vNormalW = normalUpdated / vec3(dot(normalWorld[0], normalWorld[0]), dot(normalWorld[1], normalWorld[1]), dot(normalWorld[2], normalWorld[2]));
-    //     vNormalW = normalize(normalWorld * vNormalW);
-    // #else
-    //     #ifdef NONUNIFORMSCALING
-    //         normalWorld = transposeMat3(inverseMat3(normalWorld));
-    //     #endif
-
-        vNormalW = normalize(normalWorld * normalUpdated);
-    // #endif
+  vNormalW = normalize(normalWorld * normalUpdated);
 #endif
-
-// #define CUSTOM_VERTEX_UPDATE_WORLDPOS
-
-// #ifdef MULTIVIEW
-// 	if (gl_ViewID_OVR == 0u) {
-// 		gl_Position = viewProjection * worldPos;
-// 	} else {
-// 		gl_Position = viewProjectionR * worldPos;
-// 	}
-// #else
-//   gl_Position = viewProjection * worldPos;
-// #endif
 
   gl_Position = viewProjection * worldPos; // @NOTE From block above
-	vPositionW = vec3(worldPos);
+  vPositionW = vec3(worldPos);
 
-// #ifdef PREPASS
-//     #xinclude<prePassVertex>
-// #endif
-
-// #if defined(REFLECTIONMAP_EQUIRECTANGULAR_FIXED) || defined(REFLECTIONMAP_MIRROREDEQUIRECTANGULAR_FIXED)
-// 	vDirectionW = normalize(vec3(finalWorld * vec4(positionUpdated, 0.0)));
-// #endif
-
-	// Texture coordinates
+  // Texture coordinates
 #ifndef UV1
-	vec2 uvUpdated = vec2(0., 0.);
+  vec2 uvUpdated = vec2(0., 0.);
 #endif
 #ifndef UV2
-    vec2 uv2Updated = vec2(0., 0.);
+  vec2 uv2Updated = vec2(0., 0.);
 #endif
 #ifdef MAINUV1
-	vMainUV1 = uvUpdated;
+  vMainUV1 = uvUpdated;
 #endif
 #ifdef MAINUV2
-    vMainUV2 = uv2Updated;
+  vMainUV2 = uv2Updated;
 #endif
-    #include<uvVariableDeclaration>[3..7]
+#include<uvVariableDeclaration>[3..7]
 
-    // #xinclude<samplerVertexImplementation>(_DEFINENAME_,DIFFUSE,_VARYINGNAME_,Diffuse,_MATRIXNAME_,diffuse,_INFONAME_,DiffuseInfos.x)
-    // #xinclude<samplerVertexImplementation>(_DEFINENAME_,DETAIL,_VARYINGNAME_,Detail,_MATRIXNAME_,detail,_INFONAME_,DetailInfos.x)
-    // #xinclude<samplerVertexImplementation>(_DEFINENAME_,AMBIENT,_VARYINGNAME_,Ambient,_MATRIXNAME_,ambient,_INFONAME_,AmbientInfos.x)
-    // #xinclude<samplerVertexImplementation>(_DEFINENAME_,OPACITY,_VARYINGNAME_,Opacity,_MATRIXNAME_,opacity,_INFONAME_,OpacityInfos.x)
-    // #xinclude<samplerVertexImplementation>(_DEFINENAME_,EMISSIVE,_VARYINGNAME_,Emissive,_MATRIXNAME_,emissive,_INFONAME_,EmissiveInfos.x)
-    // #xinclude<samplerVertexImplementation>(_DEFINENAME_,LIGHTMAP,_VARYINGNAME_,Lightmap,_MATRIXNAME_,lightmap,_INFONAME_,LightmapInfos.x)
-    // #if defined(SPECULARTERM)
-    // #xinclude<samplerVertexImplementation>(_DEFINENAME_,SPECULAR,_VARYINGNAME_,Specular,_MATRIXNAME_,specular,_INFONAME_,SpecularInfos.x)
-    // #endif
-    // #xinclude<samplerVertexImplementation>(_DEFINENAME_,BUMP,_VARYINGNAME_,Bump,_MATRIXNAME_,bump,_INFONAME_,BumpInfos.x)
-    // #xinclude<samplerVertexImplementation>(_DEFINENAME_,DECAL,_VARYINGNAME_,Decal,_MATRIXNAME_,decal,_INFONAME_,DecalInfos.x)
-
-// #xinclude<bumpVertex>
-// #xinclude<clipPlaneVertex>
 #include<fogVertex>
-// #xinclude<shadowsVertex>[0..maxSimultaneousLights]
 
 #include<vertexColorMixing>
 
-// #xinclude<pointCloudVertex>
-// #xinclude<logDepthVertex>
+  // Lighting
+  /* <Dependencies> */
+  vec3 viewDirectionW = normalize(vEyePosition.xyz - vPositionW);
+  vec3 normalW = normalize(vNormalW);
+  float glossiness = 0.0;
+  /* </Dependencies> */
+  vec3 diffuseBase = vec3(0.0, 0.0, 0.0);
+  lightingInfo info;
+  float shadow = 1.0;
+  float aggShadow = 0.0;
+  float numLights = 0.0;
 
-// #define CUSTOM_VERTEX_MAIN_END
+#include<lightFragment>[0..maxSimultaneousLights]
 
+  aggShadow = aggShadow / numLights;
+
+  vLightingColor = diffuseBase + vEmissiveColor;
 }

@@ -135,8 +135,8 @@ import "@babylonjs/core/Shaders/ShadersInclude/fogFragment";
 // import "@babylonjs/core/Shaders/ShadersInclude/clipPlaneFragmentDeclaration";
 // import "@babylonjs/core/Shaders/ShadersInclude/clipPlaneFragment";
 
-import { defaultVertexShader } from "@babylonjs/core/Shaders/default.vertex.js";
-import { defaultPixelShader } from "@babylonjs/core/Shaders/default.fragment.js";
+// import { defaultVertexShader } from "@babylonjs/core/Shaders/default.vertex.js";
+// import { defaultPixelShader } from "@babylonjs/core/Shaders/default.fragment.js";
 
 import MasterVertexShaderSource from './shaders/master.vertex.fx';
 import MasterFragmentShaderSource from './shaders/master.fragment.fx';
@@ -207,8 +207,8 @@ export class RetroMaterialDefines extends MaterialDefines implements IImageProce
   public INSTANCESCOLOR = false;
   public GLOSSINESS = false;
   public ROUGHNESS = false;
-  public EMISSIVEASILLUMINATION = false;
-  public LINKEMISSIVEWITHDIFFUSE = false;
+  // public EMISSIVEASILLUMINATION = false;
+  // public LINKEMISSIVEWITHDIFFUSE = false;
   public REFLECTIONFRESNELFROMSPECULAR = false;
   public LIGHTMAP = false;
   public LIGHTMAPDIRECTUV = 0;
@@ -371,6 +371,7 @@ export class RetroMaterialOverrides {
   public set diffuseTexture(value: BaseTexture | undefined) {
     this._diffuseTexture = value;
     this.retroMaterial.markAsDirty(Material.TextureDirtyFlag);
+    void this.retroMaterial.recalculateTransparencyMode();
   }
   /**
    * Define the texture used to display the reflection.
@@ -396,6 +397,8 @@ export class RetroMaterial extends PushMaterial {
     diffuseColor: Color3.White(),
     emissiveColor: Color3.Black(),
   };
+
+  public static DEBUG_DITHERING_ENABLED = false;
 
   /**
    * Force all the standard materials to compile to glsl even on WebGPU engines.
@@ -444,6 +447,60 @@ export class RetroMaterial extends PushMaterial {
   public set diffuseTexture(value: BaseTexture | undefined) {
     this._diffuseTexture = value;
     this.markAsDirty(Material.TextureDirtyFlag);
+    void this.recalculateTransparencyMode();
+  }
+
+  /**
+   * Recalculate whether the texture has transparency, based on the current `diffuseTexture`.
+   */
+  public async recalculateTransparencyMode(): Promise<void> {
+    this.transparencyMode = Material.MATERIAL_OPAQUE;
+
+    // Since transparency is based on diffuse texture, if there is no
+    // diffuse texture defined on the material, then it is opaque by default
+    if (this.diffuseTexture === undefined) {
+      return;
+    }
+
+    // Ensure texture has loaded first
+    if (!this.diffuseTexture.isReady()) {
+      if (this.diffuseTexture instanceof Texture) {
+        await new Promise((resolve, _reject) => {
+          // @NOTE It doesn't seem like this can fail … ?
+          (this.diffuseTexture as Texture).onLoadObservable.addOnce(resolve);
+        });
+      } else {
+        // @TODO Could make the type of `DiffuseTexture` 'Texture'
+        console.error(`[${RetroMaterial.name}}] (${this.recalculateTransparencyMode.name}) Could not wait for texture to be ready: Diffuse texture is not instance of 'Texture'`, this.diffuseTexture);
+        return;
+      }
+    }
+
+    /* Sanity check */
+    if (!this.diffuseTexture.isReady()) {
+      console.error(`[${RetroMaterial.name}] (${this.recalculateTransparencyMode.name}) (${this.name}) Couldn't recalculate texture transparency. Texture not-yet-ready: `, this.diffuseTexture);
+      return;
+    }
+
+    // Read texture data into a buffer
+    const textureSize = this.diffuseTexture.getSize();
+    // @TODO Can't tell if this is naive - will all texture data return 4-byte RGBA data?
+    const dataBuffer = new Uint8Array(textureSize.width * textureSize.height * 4/* @NOTE RGBA encoding */);
+    /* Sanity check */
+    if (dataBuffer.length === 0) {
+      console.error(`[${RetroMaterial.name}] (${this.recalculateTransparencyMode.name}) (${this.name}) Couldn't recalculate texture transparency. Texture size is 0x0: `, this.diffuseTexture);
+      return;
+    }
+    await this.diffuseTexture.readPixels(undefined, undefined, dataBuffer);
+
+    // Iterate buffer until we find at least 1 pixel with alpha < 0xFF
+    for (let i = 0; i < dataBuffer.length; i += 4) {
+      if (dataBuffer[i + 3] < 0xFF) {
+        console.log(`[DEBUG] [${RetroMaterial.name}] (${this.recalculateTransparencyMode.name}) Material '${this.name}' is transparent because its diffuse texture has at least 1 transparent pixel.`);
+        this.transparencyMode = Material.MATERIAL_ALPHABLEND;
+        return;
+      }
+    }
   }
   /**
    * Define the texture used to display the reflection.
@@ -1078,6 +1135,9 @@ export class RetroMaterial extends PushMaterial {
 
     const engine = scene.getEngine();
 
+    // @DEBUG Dithering, just vibes for now
+    defines.DITHER = RetroMaterial.DEBUG_DITHERING_ENABLED;
+
     // Lights
     defines._needNormals = PrepareDefinesForLights(scene, mesh, defines, false, RetroMaterial.MaxSimultaneousLights, this.disableLighting);
 
@@ -1151,14 +1211,16 @@ export class RetroMaterial extends PushMaterial {
             defines.REFLECTION = true;
 
             // defines.ROUGHNESS = this.roughness > 0;
+            // @TODO Bring this back?
             // defines.REFLECTIONOVERALPHA = this.useReflectionOverAlpha;
+
             defines.INVERTCUBICMAP = this.reflectionTexture.coordinatesMode === Texture.INVCUBIC_MODE;
             defines.REFLECTIONMAP_3D = this.reflectionTexture.isCube;
-            defines.REFLECTIONMAP_OPPOSITEZ = defines.REFLECTIONMAP_3D &&
-              this.getScene().useRightHandedSystem
-              ? !this.reflectionTexture.invertZ
-              : this.reflectionTexture.invertZ;
-            defines.RGBDREFLECTION = this.reflectionTexture.isRGBD;
+            // defines.REFLECTIONMAP_OPPOSITEZ = defines.REFLECTIONMAP_3D &&
+            //   this.getScene().useRightHandedSystem
+            //   ? !this.reflectionTexture.invertZ
+            //   : this.reflectionTexture.invertZ;
+            // defines.RGBDREFLECTION = this.reflectionTexture.isRGBD;
 
             switch (this.reflectionTexture.coordinatesMode) {
               case Texture.EXPLICIT_MODE:
@@ -1280,12 +1342,11 @@ export class RetroMaterial extends PushMaterial {
       }
 
       // defines.ALPHAFROMDIFFUSE = this._shouldUseAlphaFromDiffuseTexture();
-      // @TODO how does transparency work?
-      defines.ALPHAFROMDIFFUSE = this.diffuseTexture?.hasAlpha || false;
+      defines.ALPHAFROMDIFFUSE = true; // this.diffuseTexture?.hasAlpha || false;
 
       // defines.EMISSIVEASILLUMINATION = this.useEmissiveAsIllumination; // @TODO is true
-      /* @TODO Yay or nay? for these two settings */
-      defines.EMISSIVEASILLUMINATION = true; // @TODO how does emmission work?
+      // @NOTE Emission is custom now - these settings are obsolete
+      // defines.EMISSIVEASILLUMINATION = true; // @TODO how does emmission work?
       // defines.LINKEMISSIVEWITHDIFFUSE = false; // @TODO what does this do in code?
 
       // defines.SPECULAROVERALPHA = this.useSpecularOverAlpha;
@@ -1294,7 +1355,7 @@ export class RetroMaterial extends PushMaterial {
 
       defines.ALPHATEST_AFTERALLALPHACOMPUTATIONS = this.transparencyMode !== null;
 
-      defines.ALPHABLEND = this.transparencyMode === null || this.needAlphaBlendingForMesh(mesh); // check on null for backward compatibility
+      defines.ALPHABLEND = this.needAlphaBlendingForMesh(mesh);
     }
 
     this._eventInfo.isReadyForSubMesh = true;
@@ -1610,11 +1671,10 @@ export class RetroMaterial extends PushMaterial {
       const join = defines.toString();
 
       const previousEffect = subMesh.effect;
-      const debug_UseDefaultShader = false;
       let effect = scene.getEngine().createEffect(
         {
-          vertexSource: debug_UseDefaultShader ? defaultVertexShader.shader : MasterVertexShaderSource,
-          fragmentSource: debug_UseDefaultShader ? defaultPixelShader.shader : MasterFragmentShaderSource,
+          vertexSource: MasterVertexShaderSource,
+          fragmentSource: MasterFragmentShaderSource,
         } satisfies IShaderPath,
         {
           attributes: attribs,
@@ -2022,13 +2082,13 @@ export class RetroMaterial extends PushMaterial {
     ubo.update();
   }
 
-  public override get transparencyMode(): number {
-    if (this.diffuseTexture?.hasAlpha) {
-      return Material.MATERIAL_ALPHABLEND;
-    } else {
-      return Material.MATERIAL_OPAQUE;
-    }
-  }
+  // public override get transparencyMode(): number {
+  //   if (this.diffuseTexture?.hasAlpha) {
+  //     return Material.MATERIAL_ALPHABLEND;
+  //   } else {
+  //     return Material.MATERIAL_OPAQUE;
+  //   }
+  // }
 
   /**
    * Get the list of animatables in the material.
