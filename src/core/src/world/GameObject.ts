@@ -50,5 +50,4 @@ export abstract class GameObject {
   public abstract get transform(): Transform;
 
   public abstract get position(): Vector3;
-  public abstract set position(value: Vector3);
 }

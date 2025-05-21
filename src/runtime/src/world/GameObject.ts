@@ -118,5 +118,4 @@ export class GameObject extends GameObjectCore {
   public get transform(): Transform { return this._transform; }
   // @TODO Should I get rid of this or propagate this?
   public get position(): Vector3 { return this.transform.position; }
-  public set position(value: Vector3) { this.transform.position = value; }
 }

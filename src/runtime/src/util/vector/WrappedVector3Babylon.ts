@@ -1,6 +1,7 @@
 import { Vector3 as Vector3Babylon } from '@babylonjs/core/Maths/math.vector';
 
 import { Vector3 as Vector3Core } from '@polyzone/core/src/util/Vector3';
+import { toVector3Babylon } from '@polyzone/runtime/src/util/vector';
 
 /**
 * A Vector3 that is implemented around wrapping a Babylon Vector3 internally.
@@ -24,40 +25,35 @@ export class WrappedVector3Babylon extends Vector3Core {
 
   public override get x(): number { return this.getValue().x; }
   public override set x(value: number) {
-    super.x = value;
-    this._setValue(new Vector3Babylon(super.x, super.y, super.z));
+    const vector = this.getValue();
+    this._setValue(new Vector3Babylon(
+      value,
+      vector.y,
+      vector.z,
+    ));
   }
 
   public override get y(): number { return this.getValue().y; }
   public override set y(value: number) {
-    super.y = value;
-    this._setValue(new Vector3Babylon(super.x, super.y, super.z));
+    const vector = this.getValue();
+    this._setValue(new Vector3Babylon(
+      vector.x,
+      value,
+      vector.z,
+    ));
   }
 
   public override get z(): number { return this.getValue().z; }
   public override set z(value: number) {
-    super.z = value;
-    this._setValue(new Vector3Babylon(super.x, super.y, super.z));
+    const vector = this.getValue();
+    this._setValue(new Vector3Babylon(
+      vector.x,
+      vector.y,
+      value,
+    ));
   }
 
-  public setValue(value: Vector3Babylon): void {
-    super.x = value.x;
-    super.y = value.y;
-    super.z = value.z;
-    this._setValue(value);
-  }
-
-  public toString(): string {
-    return `[${this.x}, ${this.y}, ${this.z}]`;
-  }
-
-  // @TODO We should probably stop relying on `super.x/y/z`
-  // being the same as the underlying value
-  // If we could just issue partial updates or always
-  // reference the underlying value instead then we wouldn't
-  // have to initialise + would prevent a category of bugs
-  public initialise(value: Vector3Babylon | undefined = undefined): void {
-    value ??= this.getValue().clone();
-    this.setValue(value);
+  public override setValue(value: Vector3Core): void {
+    this._setValue(toVector3Babylon(value));
   }
 }

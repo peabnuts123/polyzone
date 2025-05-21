@@ -160,12 +160,14 @@ export class SelectionManager {
           const fakeParent = new TransformNode(`SelectionManager_fakeTransformParent`, this.babylonScene);
           fakeParent.position = realParent.absolutePosition.clone();
           fakeParent.rotationQuaternion = realParent.absoluteRotationQuaternion.clone();
+          fakeParent.scaling = realParent.absoluteScaling.clone();
           this.fakeTransformTarget.parent = fakeParent;
         } else {
           // Re-using an existing fake transform parent
           const fakeParent = this.fakeTransformTarget.parent as TransformNode;
           fakeParent.position = realParent.absolutePosition.clone();
           fakeParent.rotationQuaternion = realParent.absoluteRotationQuaternion.clone();
+          fakeParent.scaling = realParent.absoluteScaling.clone();
         }
       } else {
         // No fake transform parent

@@ -6,7 +6,7 @@ import { Vector3 } from '@polyzone/core/src/util/Vector3';
 import { Transform as TransformCore } from '@polyzone/core/src/world';
 
 import type { ITransformData } from '../cartridge';
-import { toVector3Babylon, WrappedVector3Babylon } from '../util';
+import { WrappedVector3Babylon } from '../util';
 import type { GameObject } from './GameObject';
 
 
@@ -73,8 +73,7 @@ export class Transform extends TransformCore {
           this.node.rotationQuaternion = this.node.rotation.toQuaternion();
         }
 
-        // @TODO multiplySelf?
-        this.node.rotationQuaternion = this.node.rotationQuaternion.multiply(rotationDelta);
+        this.node.rotationQuaternion.multiplyInPlace(rotationDelta);
       },
     );
     this._localRotation = new WrappedVector3Babylon(
@@ -99,7 +98,6 @@ export class Transform extends TransformCore {
         this.node.scaling = Vector3Babylon.One();
         this.node.computeWorldMatrix(); // @NOTE Force-recompute absolute scale
         const parentScale = this.node.absoluteScaling;
-
 
         /*
           For each axis, we have to check whether the object's parent(s) are producing a scale of 0.
@@ -151,32 +149,19 @@ export class Transform extends TransformCore {
     );
 
     // Initialise wrapped vectors
-    // - Set values first
-    this._localPosition.initialise(toVector3Babylon(transform.position));
-    this._localRotation.initialise(toVector3Babylon(transform.rotation));
-    this._localScale.initialise(toVector3Babylon(transform.scale));
-    // - Initialise absolute values based on new local values
-    // We do this so that the internal state matches
-    // @TODO We should probably not have to do this.
-    this._position.initialise();
-    this._rotation.initialise();
-    this._scale.initialise();
+    this._localPosition.setValue(transform.position);
+    this._localRotation.setValue(transform.rotation);
+    this._localScale.setValue(transform.scale);
   }
 
   public get position(): Vector3 { return this._position; }
-  public set position(value: Vector3) { this._position.setValue(toVector3Babylon(value)); }
   public get localPosition(): Vector3 { return this._localPosition; }
-  public set localPosition(value: Vector3) { this._localPosition.setValue(toVector3Babylon(value)); }
 
   public get rotation(): Vector3 { return this._rotation; }
-  public set rotation(value: Vector3) { this._rotation.setValue(toVector3Babylon(value)); }
   public get localRotation(): Vector3 { return this._localRotation; }
-  public set localRotation(value: Vector3) { this._localRotation.setValue(toVector3Babylon(value)); }
 
   public get scale(): Vector3 { return this._scale; }
-  public set scale(value: Vector3) { this._scale.setValue(toVector3Babylon(value)); }
   public get localScale(): Vector3 { return this._localScale; }
-  public set localScale(value: Vector3) { this._localScale.setValue(toVector3Babylon(value)); }
 
   public get parent(): TransformCore | undefined { return this._parent; }
   public set parent(valueCore: TransformCore | undefined) {

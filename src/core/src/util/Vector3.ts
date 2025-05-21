@@ -11,6 +11,12 @@ export class Vector3 {
     this._z = z;
   }
 
+  public setValue(value: Vector3): void {
+    this.x = value.x;
+    this.y = value.y;
+    this.z = value.z;
+  }
+
   public addSelf(value: AnyVector): Vector3 {
     this.x += value.x;
     this.y += value.y;
@@ -168,7 +174,7 @@ export class Vector3 {
   }
 
   public toString(): string {
-    return `(${this.x}, ${this.y}, ${this.z})`;
+    return `Vector3(${this.x}, ${this.y}, ${this.z})`;
   }
 
   public get x(): number { return this._x; }

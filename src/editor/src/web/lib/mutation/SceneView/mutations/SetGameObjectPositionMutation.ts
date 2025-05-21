@@ -44,7 +44,7 @@ export class SetGameObjectPositionMutation implements ISceneMutation, IContinuou
     // - 1. Update data
     gameObjectData.transform.position = position;
     // - 2. Update scene
-    gameObject.transform.localPosition = position;
+    gameObject.transform.localPosition.setValue(position);
     if (resetGizmo) {
       SceneViewController.selectionManager.updateGizmos();
     }

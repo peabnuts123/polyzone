@@ -56,7 +56,7 @@ export class SetGameObjectScaleMutation implements ISceneMutation, IContinuousSc
       // - 1. Update Data
       gameObjectData.transform.scale = scale;
       // - 2. Update Scene
-      gameObject.transform.localScale = scale;
+      gameObject.transform.localScale.setValue(scale);
     }
 
     if (updateArgs.resetGizmo) {

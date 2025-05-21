@@ -43,9 +43,9 @@ export class CreateBlankGameObjectMutation implements ISceneMutation {
       if (parentGameObject === undefined) throw new Error(`Cannot apply mutation - no game object exists in the scene with id '${this.parentGameObjectId}'`);
       SceneViewController.createGameObject(newGameObjectData).then((newGameObject) => {
         newGameObject.transform.parent = parentGameObject.transform;
-        newGameObject.transform.localPosition = toVector3Core(newObjectDefinition.transform.position);
-        newGameObject.transform.localRotation = toVector3Core(newObjectDefinition.transform.rotation);
-        newGameObject.transform.localScale = toVector3Core(newObjectDefinition.transform.scale);
+        newGameObject.transform.localPosition.setValue(toVector3Core(newObjectDefinition.transform.position));
+        newGameObject.transform.localRotation.setValue(toVector3Core(newObjectDefinition.transform.rotation));
+        newGameObject.transform.localScale.setValue(toVector3Core(newObjectDefinition.transform.scale));
       });
 
       // 3. Update JSONC

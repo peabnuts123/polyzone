@@ -43,7 +43,7 @@ export class SetGameObjectRotationMutation implements ISceneMutation, IContinuou
     // - 1. Update Data
     gameObjectData.transform.rotation = rotation;
     // - 2. Update Scene
-    gameObject.transform.localRotation = rotation;
+    gameObject.transform.localRotation.setValue(rotation);
     if (resetGizmo) {
       SceneViewController.selectionManager.updateGizmos();
     }

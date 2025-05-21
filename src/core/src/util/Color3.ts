@@ -32,6 +32,10 @@ export class Color3 {
     return new Color4(this, alpha);
   }
 
+  public toString(): string {
+    return `Color3(${this.r}, ${this.g}, ${this.b})`;
+  }
+
   public get r(): number { return this._r; }
   public set r(value: number) { this._r = value; }
 

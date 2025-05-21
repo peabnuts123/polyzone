@@ -1,6 +1,6 @@
 import { Color3 as Color3Babylon } from "@babylonjs/core/Maths/math.color";
 import { Color3 as Color3Core } from "@polyzone/core/src/util";
-
+import { toColor3Babylon } from '@polyzone/runtime/src/util/color';
 
 /**
 * A Color3 that is implemented around wrapping a Babylon Color3 internally.
@@ -24,40 +24,35 @@ export class WrappedColor3Babylon extends Color3Core {
 
   public override get r(): number { return this.getValue().r; }
   public override set r(value: number) {
-    super.r = value;
-    this._setValue(new Color3Babylon(super.r, super.g, super.b));
+    const color = this.getValue();
+    this._setValue(new Color3Babylon(
+      value,
+      color.g,
+      color.b,
+    ));
   }
 
   public override get g(): number { return this.getValue().g; }
   public override set g(value: number) {
-    super.g = value;
-    this._setValue(new Color3Babylon(super.r, super.g, super.b));
+    const color = this.getValue();
+    this._setValue(new Color3Babylon(
+      color.r,
+      value,
+      color.b,
+    ));
   }
 
   public override get b(): number { return this.getValue().b; }
   public override set b(value: number) {
-    super.b = value;
-    this._setValue(new Color3Babylon(super.r, super.g, super.b));
+    const color = this.getValue();
+    this._setValue(new Color3Babylon(
+      color.r,
+      color.g,
+      value,
+    ));
   }
 
-  public setValue(value: Color3Babylon): void {
-    super.r = value.r;
-    super.g = value.g;
-    super.b = value.b;
-    this._setValue(value);
-  }
-
-  public toString(): string {
-    return `[${this.r}, ${this.g}, ${this.b}]`;
-  }
-
-  // @TODO We should probably stop relying on `super.r/g/b`
-  // being the same as the underlying value
-  // If we could just issue partial updates or always
-  // reference the underlying value instead then we wouldn't
-  // have to initialise + would prevent a category of bugs
-  public initialise(value: Color3Babylon | undefined = undefined): void {
-    value ??= this.getValue().clone();
-    this.setValue(value);
+  public setValue(value: Color3Core): void {
+    this._setValue(toColor3Babylon(value));
   }
 }
