@@ -1,0 +1,194 @@
+{
+  "config": {
+    "clearColor": {
+      "r": 230,
+      "g": 255,
+      "b": 51
+    },
+    "lighting": {
+      "ambient": {
+        "intensity": 0.3,
+        "color": {
+          "r": 230,
+          "g": 255,
+          "b": 51
+        }
+      }
+    }
+  },
+  "objects": [
+    {
+      "id": "3107d880-4127-4618-8b95-72d9d7875450",
+      "name": "Main Camera",
+      "transform": {
+        "position": { "x": 0, "y": 0, "z": -5 },
+        "rotation": { "x": 0, "y": 0, "z": 0 },
+        "scale": { "x": 1, "y": 1, "z": 1 },
+      },
+      "children": [],
+      "components": [
+        {
+          "id": "69f8697d-92d6-4224-a8d7-f545158d90ae",
+          "type": "camera",
+        }
+      ]
+    },
+    {
+      "id": "8c3c9d34-d20a-4f33-aa5f-2fa4b1a9aec4",
+      "name": "Sun",
+      "transform": {
+        "position": {
+          "x": 0,
+          "y": 0.5,
+          "z": 0
+        },
+        "rotation": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "scale": {
+          "x": 1,
+          "y": 1,
+          "z": 1
+        }
+      },
+      "components": [
+        {
+          "id": "6d0c108b-74df-436b-ab6a-09664143abe0",
+          "type": "light_directional",
+          "intensity": 0.2,
+          "color": {
+            "r": 204,
+            "g": 255,
+            "b": 230
+          }
+        },
+      ]
+    },
+    {
+      "id": "f52bfa64-9e98-4384-9e46-be2aea89b710",
+      "name": "Ball",
+      "transform": {
+        "position": {
+          "x": 2.13468337059021,
+          "y": 0.08018926531076431,
+          "z": 0
+        },
+        "rotation": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "scale": {
+          "x": 1,
+          "y": 1,
+          "z": 1
+        }
+      },
+      "components": [
+        {
+          "id": "3cb76802-fa54-498a-93ae-a0bd428ff9d8",
+          "type": "mesh",
+          "meshFileId": "dba91ca4-6ab9-4336-ac9b-b758e59e881e"
+        },
+        {
+          "id": "b5cbbff3-dfad-4ee5-b628-5661b1794a6a",
+          "type": "script",
+          "scriptFileId": "58189dec-56a3-44db-b7a5-c8171abfb3aa"
+        },
+      ]
+    },
+    {
+      "id": "56580401-6ddd-4129-9cce-90a67a0d0e10",
+      "name": "Ball 2",
+      "transform": {
+        "position": {
+          "x": 5,
+          "y": 0,
+          "z": 0
+        },
+        "rotation": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "scale": {
+          "x": 1,
+          "y": 1,
+          "z": 1
+        }
+      },
+      "components": [
+        {
+          "id": "2009895e-10b0-41f2-9b8b-aad8c1ecdd89",
+          "type": "mesh",
+          "meshFileId": "dba91ca4-6ab9-4336-ac9b-b758e59e881e"
+        },
+      ]
+    },
+    {
+      "id": "0a12b8e6-704e-4b1d-a167-c3c298ce00f4",
+      "name": "New Object",
+      "transform": {
+        "position": {
+          "x": 3.461728096008301,
+          "y": -0.03446590527892113,
+          "z": -1.409824252128601
+        },
+        "rotation": {
+          "x": 0,
+          "y": -0.05789536494631028,
+          "z": 0
+        },
+        "scale": {
+          "x": 1,
+          "y": 1,
+          "z": 1
+        }
+      },
+      "children": [],
+      "components": [
+        {
+          "id": "1254eef7-1334-46cf-9c38-fe0c2293218c",
+          "type": "mesh",
+          "meshFileId": "a0bfe951-b0e3-449c-a9ef-37734a81a6e6"
+        }
+      ]
+    },
+    {
+      "id": "bcf401de-1382-4386-a8c5-52a1bfcb1ce7",
+      "name": "Sun",
+      "transform": {
+        "position": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "rotation": {
+          "x": 0,
+          "y": 0,
+          "z": -0.49033707057534065
+        },
+        "scale": {
+          "x": 1,
+          "y": 1,
+          "z": 1
+        }
+      },
+      "children": [],
+      "components": [
+        {
+          "id": "056385fc-ff1e-439e-a688-5f0acadc1eb6",
+          "type": "light_directional",
+          "color": {
+            "r": 46,
+            "g": 93,
+            "b": 255
+          },
+          "intensity": 1
+        }
+      ]
+    },
+  ]
+}

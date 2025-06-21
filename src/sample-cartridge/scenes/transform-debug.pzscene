@@ -1,0 +1,171 @@
+{
+  "config": {
+    "clearColor": {
+      "r": 0,
+      "g": 0,
+      "b": 40
+    },
+    "lighting": {
+      "ambient": {
+        "color": {
+          "r": 255,
+          "g": 255,
+          "b": 255
+        },
+        "intensity": 0.3
+      }
+    }
+  },
+  "objects": [
+    {
+      "id": "e31bcd8f-b4de-43f1-9d21-f07b7a7a714c",
+      "name": "Main camera",
+      "transform": {
+        "position": {
+          "x": 0,
+          "y": 0,
+          "z": -5
+        },
+        "rotation": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "scale": {
+          "x": 1,
+          "y": 1,
+          "z": 1
+        }
+      },
+      "children": [],
+      "components": [
+        {
+          "id": "322abaca-4ef1-4014-ba2e-f45ea898377f",
+          "type": "camera"
+        }
+      ]
+    },
+    {
+      "id": "92adc88f-9b84-411f-b8b6-b09b627ca3eb",
+      "name": "Sun",
+      "transform": {
+        "position": {
+          "x": 0,
+          "y": 10,
+          "z": 0
+        },
+        "rotation": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "scale": {
+          "x": 1,
+          "y": 1,
+          "z": 1
+        }
+      },
+      "children": [],
+      "components": [
+        {
+          "id": "45b83aaf-d671-4d70-a964-799b7dd44b20",
+          "type": "light_directional",
+          "color": {
+            "r": 255,
+            "g": 255,
+            "b": 255
+          },
+          "intensity": 1
+        }
+      ]
+    },
+    {
+      "id": "3b49decc-e445-469e-a2f8-c11b42d4bd5e",
+      "name": "Burger 1",
+      "transform": {
+        "position": {
+          "x": 0,
+          "y": 0,
+          "z": 1
+        },
+        "rotation": {
+          "x": 0.3041358097271336,
+          "y": 0,
+          "z": 0
+        },
+        "scale": {
+          "x": 2,
+          "y": 2,
+          "z": 2
+        }
+      },
+      "children": [
+        {
+          "id": "e8e4ed0c-2390-400a-9459-0a0f5163d557",
+          "name": "Dumpster",
+          "transform": {
+            "position": {
+              "x": 0,
+              "y": 0.3742625415325165,
+              "z": 0
+            },
+            "rotation": {
+              "x": -0.7271344449752903,
+              "y": 3.141592653589791,
+              "z": 3.141592653589793
+            },
+            "scale": {
+              "x": 1,
+              "y": 1,
+              "z": 1
+            }
+          },
+          "children": [],
+          "components": [
+            {
+              "id": "648aa625-8104-414b-8785-455ebf7bc981",
+              "type": "mesh",
+              "meshFileId": "a0bfe951-b0e3-449c-a9ef-37734a81a6e6"
+            }
+          ]
+        }
+      ],
+      "components": [
+        {
+          "id": "d7993345-fc5f-4b55-bf1c-2b72ce8e49e3",
+          "type": "mesh",
+          "meshFileId": "59e2bfad-f6f0-471a-a0a4-7b25b76152dc"
+        }
+      ]
+    },
+    {
+      "id": "1319d06c-4e45-4df7-b945-6957303566c5",
+      "name": "Burger 2",
+      "transform": {
+        "position": {
+          "x": 1,
+          "y": 0,
+          "z": 0
+        },
+        "rotation": {
+          "x": 0.3038438543100876,
+          "y": 4.956321193369826e-10,
+          "z": 0.38893304565505943
+        },
+        "scale": {
+          "x": 1,
+          "y": 1,
+          "z": 1
+        }
+      },
+      "children": [],
+      "components": [
+        {
+          "id": "0155e64b-f435-4ec8-a758-8d2c9f6201dd",
+          "type": "mesh",
+          "meshFileId": "59e2bfad-f6f0-471a-a0a4-7b25b76152dc"
+        }
+      ]
+    }
+  ]
+}

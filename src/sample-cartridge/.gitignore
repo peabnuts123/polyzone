@@ -1,2 +1,3 @@
 content/cartridge/scripts/*
 !content/cartridge/scripts/.gitkeep
+*.blend1

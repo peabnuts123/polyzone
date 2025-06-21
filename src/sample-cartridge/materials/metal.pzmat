@@ -1,0 +1,18 @@
+{
+  "reflection": {
+    "type": "3x2",
+    "textureAssetId": "c87ddc93-4247-44d4-9f60-d0625e186efa",
+    "strength": 0.3
+  },
+  "diffuseColor": {
+    "r": 255,
+    "g": 255,
+    "b": 255
+  },
+  "emissionColor": {
+    "r": 255,
+    "g": 0,
+    "b": 0
+  },
+  "diffuseTextureAssetId": "b4256ba4-c7a5-4fd0-846b-7fed7113cb59"
+}
