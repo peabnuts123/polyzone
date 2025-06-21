@@ -37,7 +37,7 @@ export class SetGameObjectScaleMutation implements ISceneMutation, IContinuousSc
 
     // - Store undo values
     this.oldDataScale = gameObjectData.transform.scale;
-    this.oldSceneScale = gameObject.transform.scale;
+    this.oldSceneScale = gameObject.transform.localScale;
   }
 
   update({ SceneViewController }: SceneViewMutationArguments, updateArgs: SetGameObjectScaleMutationUpdateArgs): void {

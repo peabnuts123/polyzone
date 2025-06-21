@@ -9,9 +9,11 @@ import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { RotationGizmo } from "@babylonjs/core/Gizmos/rotationGizmo";
 import { ScaleGizmo } from "@babylonjs/core/Gizmos/scaleGizmo";
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
-import { Vector3 as Vector3Babylon } from "@babylonjs/core/Maths/math.vector";
+import { Quaternion as QuaternionBabylon, Vector3 as Vector3Babylon } from "@babylonjs/core/Maths/math.vector";
 
 import { toVector3Core } from "@polyzone/runtime/src/util";
+import { Vector3 as Vector3Core } from "@polyzone/core/src";
+import { toQuaternionCore } from "@polyzone/runtime/src/util/quaternion";
 
 import { SetGameObjectPositionMutation, SetGameObjectRotationMutation, SetGameObjectScaleMutation } from "@lib/mutation/SceneView/mutations";
 import { SceneViewController } from "./SceneViewController";
@@ -56,8 +58,26 @@ export class SelectionManager {
     });
     this.moveGizmo.onDragObservable.add((_eventData) => {
       if (this.selectedObjectId !== undefined) {
+        const selectedObjectInstance = this.sceneViewController.findGameObjectById(this.selectedObjectId);
+        if (selectedObjectInstance === undefined) throw new Error(`Cannot update position, no game object exists in the scene with id '${this.selectedObjectId}'`);
+
+        const newPosition = selectedObjectInstance.transform.localPosition.clone();
+
+        // Invert parent scale so that objects move exactly with the gizmo
+        let parentScale = Vector3Core.one();
+        if (selectedObjectInstance.transform.parent !== undefined) {
+          parentScale = selectedObjectInstance.transform.parent.localScale; // @TODO Absolute scale?
+        }
+
+        if (parentScale.x <= Number.EPSILON) console.warn(`[${SelectionManager.name}] (moveGizmo.onDragObservable) Moving object whose parentScale.x is 0. x coordinate can not be extrapolated and will remain unmodified`);
+        else newPosition.x = this.fakeTransformTarget!.position.x / parentScale.x;
+        if (parentScale.y <= Number.EPSILON) console.warn(`[${SelectionManager.name}] (moveGizmo.onDragObservable) Moving object whose parentScale.y is 0. y coordinate can not be extrapolated and will remain unmodified`);
+        else newPosition.y = this.fakeTransformTarget!.position.y / parentScale.y;
+        if (parentScale.z <= Number.EPSILON) console.warn(`[${SelectionManager.name}] (moveGizmo.onDragObservable) Moving object whose parentScale.z is 0. z coordinate can not be extrapolated and will remain unmodified`);
+        else newPosition.z = this.fakeTransformTarget!.position.z / parentScale.z;
+
         sceneViewController.mutator.updateContinuous(this.currentMoveMutation!, {
-          position: toVector3Core(this.fakeTransformTarget!.position),
+          position: newPosition,
         });
       }
     });
@@ -76,17 +96,13 @@ export class SelectionManager {
       if (this.selectedObjectId !== undefined) {
         // Sometimes the rotation comes down as a quaternion, and sometimes not.
         // At this stage, I don't really know why ¯\_(ツ)_/¯
-        let rotation: Vector3Babylon;
-        if (this.fakeTransformTarget!.rotationQuaternion !== null) {
-          // console.log(`[SelectionManager] (rotateGizmo.onDragObservable) Using quaternion rotation.`);
-          rotation = this.fakeTransformTarget!.rotationQuaternion.toEulerAngles();
-        } else {
-          // console.log(`[SelectionManager] (rotateGizmo.onDragObservable) Using euler rotation.`);
-          rotation = this.fakeTransformTarget!.rotation;
+        const rotation = this.fakeTransformTarget!.rotationQuaternion!;
+        if (this.fakeTransformTarget!.rotationQuaternion === null) {
+          throw new Error(`Rotation quaternion is undefined somehow`);
         }
 
         sceneViewController.mutator.updateContinuous(this.currentRotateMutation!, {
-          rotation: toVector3Core(rotation),
+          rotation: toQuaternionCore(rotation),
         });
       }
     });
@@ -149,6 +165,7 @@ export class SelectionManager {
       // Construct a new dummy transform target if we need one and it doesn't exist
       if (this.fakeTransformTarget === undefined) {
         this.fakeTransformTarget = new TransformNode("SelectionManager_fakeTransformTarget", this.babylonScene);
+        this.fakeTransformTarget.rotationQuaternion = QuaternionBabylon.Identity();
       }
 
       // Ensure fake transform target's local coordinates match the local coordinates of the

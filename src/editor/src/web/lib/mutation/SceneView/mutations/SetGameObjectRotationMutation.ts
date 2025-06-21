@@ -1,5 +1,6 @@
 import { Vector3Definition as ArchiveVector3 } from "@polyzone/runtime/src/cartridge/archive/util";
 import { Vector3 } from "@polyzone/core/src/util";
+import { Quaternion } from "@polyzone/core/src/util/Quaternion";
 
 import { resolvePathForSceneObjectMutation } from "@lib/mutation/util";
 import { ISceneMutation } from "../ISceneMutation";
@@ -7,7 +8,7 @@ import { SceneViewMutationArguments } from "../SceneViewMutationArguments";
 import { IContinuousSceneMutation } from "../IContinuousSceneMutation";
 
 export interface SetGameObjectRotationMutationUpdateArgs {
-  rotation: Vector3;
+  rotation: Quaternion;
   resetGizmo?: boolean;
 }
 
@@ -18,8 +19,7 @@ export class SetGameObjectRotationMutation implements ISceneMutation, IContinuou
 
   // Undo state
   private oldDataRotation: Vector3 | undefined = undefined;
-  private oldSceneRotation: Vector3 | undefined = undefined;
-
+  private oldSceneRotation: Quaternion | undefined = undefined;
 
   public constructor(gameObjectId: string) {
     this.gameObjectId = gameObjectId;
@@ -32,7 +32,7 @@ export class SetGameObjectRotationMutation implements ISceneMutation, IContinuou
 
     // - Store undo values
     this.oldDataRotation = gameObjectData.transform.rotation;
-    this.oldSceneRotation = gameObject.transform.rotation;
+    this.oldSceneRotation = gameObject.transform.localRotation;
   }
 
   update({ SceneViewController }: SceneViewMutationArguments, { rotation, resetGizmo }: SetGameObjectRotationMutationUpdateArgs): void {
@@ -41,7 +41,7 @@ export class SetGameObjectRotationMutation implements ISceneMutation, IContinuou
     if (gameObject === undefined) throw new Error(`Cannot update mutation - no game object exists in the scene with id '${this.gameObjectId}'`);
 
     // - 1. Update Data
-    gameObjectData.transform.rotation = rotation;
+    gameObjectData.transform.rotation = rotation.toEuler();
     // - 2. Update Scene
     gameObject.transform.localRotation.setValue(rotation);
     if (resetGizmo) {

@@ -1,14 +1,15 @@
-import { Quaternion, Vector3 as Vector3Babylon } from '@babylonjs/core/Maths/math.vector';
-import { TransformNode } from '@babylonjs/core/Meshes/transformNode';
+import { Quaternion as QuaternionBabylon } from '@babylonjs/core/Maths/math.vector';
 import type { Scene as BabylonScene } from '@babylonjs/core/scene';
 
 import { Vector3 } from '@polyzone/core/src/util/Vector3';
 import { Transform as TransformCore } from '@polyzone/core/src/world';
+import { Quaternion } from '@polyzone/core/src/util/Quaternion';
 
 import type { ITransformData } from '../cartridge';
 import { WrappedVector3Babylon } from '../util';
+import { WrappedQuaternionBabylon } from '../util/quaternion';
 import type { GameObject } from './GameObject';
-
+import { BetterTransformNode } from './BetterTransformNode';
 
 const debugLog = (_: string): void => { };
 // const debugLog = console.log;
@@ -16,152 +17,106 @@ const debugLog = (_: string): void => { };
 
 /**
  * Implementation of the `ITransform` interface wrapped around
- * a Babylon `TransformNode`.
+ * a Babylon `BetterTransformNode`.
  */
 export class Transform extends TransformCore {
-  public readonly node: TransformNode;
+  public readonly node: BetterTransformNode;
   private _parent: Transform | undefined;
   private _gameObject!: GameObject;
   private _children: Transform[];
-  private readonly _position: WrappedVector3Babylon;
+  private readonly _absolutePosition: WrappedVector3Babylon;
   private readonly _localPosition: WrappedVector3Babylon;
-  private readonly _rotation: WrappedVector3Babylon;
-  private readonly _localRotation: WrappedVector3Babylon;
-  private readonly _scale: WrappedVector3Babylon;
+  private readonly _absoluteRotation: WrappedQuaternionBabylon;
+  private readonly _localRotation: WrappedQuaternionBabylon;
+  private readonly _absoluteScale: WrappedVector3Babylon;
   private readonly _localScale: WrappedVector3Babylon;
 
   public constructor(name: string, scene: BabylonScene, parent: Transform | undefined, transform: ITransformData) {
     super();
     /* Construct new babylon transform (which this type wraps) */
-    this.node = new TransformNode(name, scene);
-    this.node.reIntegrateRotationIntoRotationQuaternion = true;
+    this.node = new BetterTransformNode(name, scene);
+    this.node.rotationQuaternion = QuaternionBabylon.Identity();
     this.parent = parent;
     this._children = [];
 
     /*
-      @NOTE Wrap babylon vectors in a wrapper.
-      The wrapper does not internalise the vector, it operates on it by reference,
+      @NOTE Wrap babylon types in a wrapper.
+      The wrapper does not internalise the underlying value, it operates on it by reference,
       using the getter / setter lambdas provided.
     */
     /* Position */
-    this._position = new WrappedVector3Babylon(
-      () => this.node.absolutePosition,
+    this._absolutePosition = new WrappedVector3Babylon(
+      () => this.node.getAbsolutePosition(),
       (value) => {
-        debugLog(`[Transform] (position.set): ${value}`);
+        debugLog(`[Transform] (absolutePosition.set) (${name}): ${value}`);
         this.node.setAbsolutePosition(value);
       },
     );
     this._localPosition = new WrappedVector3Babylon(
       () => this.node.position,
       (value) => {
-        debugLog(`[Transform] (localPosition.set): ${value}`);
+        debugLog(`[Transform] (localPosition.set) (${name}): ${value}`);
         this.node.position = value;
       },
     );
     /* Rotation */
-    this._rotation = new WrappedVector3Babylon(
-      () => this.node.absoluteRotationQuaternion.toEulerAngles(),
+    this._absoluteRotation = new WrappedQuaternionBabylon(
+      () => this.node.absoluteRotationQuaternion,
       (value) => {
-        debugLog(`[Transform] (rotation.set): ${value}`);
-        const currentAbsoluteRotation = this.node.absoluteRotationQuaternion;
-        const newAbsoluteRotation = Quaternion.FromEulerVector(value);
-        const rotationDelta = currentAbsoluteRotation.invert().multiply(newAbsoluteRotation);
-
-        // Ensure rotationQuaternion is defined
-        // Once a quaternion is used, you never go back to using euler angles
-        if (this.node.rotationQuaternion === null) {
-          this.node.rotationQuaternion = this.node.rotation.toQuaternion();
-        }
-
-        this.node.rotationQuaternion.multiplyInPlace(rotationDelta);
+        debugLog(`[Transform] (absoluteRotation.set) (${name}): ${value}`);
+        this.node.absoluteRotationQuaternion = value;
       },
     );
-    this._localRotation = new WrappedVector3Babylon(
-      () => {
-        if (this.node.rotationQuaternion === null) {
-          return this.node.rotation;
-        } else {
-          return this.node.rotationQuaternion.toEulerAngles();
-        }
-      },
+    this._localRotation = new WrappedQuaternionBabylon(
+      () => this.node.rotationQuaternion!,
       (value) => {
-        debugLog(`[Transform] (localRotation.set): ${value}`);
-        this.node.rotationQuaternion = Quaternion.FromEulerVector(value);
+        debugLog(`[Transform] (localRotation.set) (${name}): ${value}`);
+        this.node.rotationQuaternion = value;
       },
     );
     /* Scale */
-    this._scale = new WrappedVector3Babylon(
+    this._absoluteScale = new WrappedVector3Babylon(
       () => this.node.absoluteScaling,
       (value) => {
-        debugLog(`[Transform] (scale.set): ${value}`);
-        // Temporarily set scale to 1 so that: absolute scale = parent scale
-        this.node.scaling = Vector3Babylon.One();
-        this.node.computeWorldMatrix(); // @NOTE Force-recompute absolute scale
-        const parentScale = this.node.absoluteScaling;
-
-        /*
-          For each axis, we have to check whether the object's parent(s) are producing a scale of 0.
-          If this is the case, we can't set our local scale to produce a result that equals `value`
-          without setting the scale to infinity.
-          When this happens, we log a warning and leave the scale value at 1 (an arbitrary non-zero value).
-          If the parent(s) scale(s) are then set back to a non-zero value, this will leave our object
-          in an unexpected state
-
-          e.g.
-          > Parent scale = 0
-          > Local scale = 3;
-          > Absolute scale = 0 x 3 = 0
-
-          > Set absolute scale to 4
-          > Local scale is set to 1 by default because parent scale = 0
-          > Absolute scale = 0 x 1 = 0 (absolute scale unchanged)
-
-          > Set parent scale to 1
-          > Local scale = 3
-          > Absolute scale = 1 x 3 = 3
-          > Absolute scale of this object is 3 which is unexpected.
-         */
-        if (parentScale.x <= Number.EPSILON) console.warn(`Cannot set world scale to '${value}' for object '${this.gameObject?.name}' as its parent(s) scale.x is currently 0. Its local scale.x will be set to 1. This will produce unexpected results if this object's parent(s) are scaled back to a non-zero value.`);
-        else {
-          this.node.scaling.x = value.x / parentScale.x;
-        }
-        if (parentScale.y <= Number.EPSILON) console.warn(`Cannot set world scale to '${value}' for object '${this.gameObject?.name}' as its parent(s) scale.y is currently 0. Its local scale.y will be set to 1. This will produce unexpected results if this object's parent(s) are scaled back to a non-zero value.`);
-        else {
-          this.node.scaling.y = value.y / parentScale.y;
-        }
-        if (parentScale.z <= Number.EPSILON) console.warn(`Cannot set world scale to '${value}' for object '${this.gameObject?.name}' as its parent(s) scale.z is currently 0. Its local scale.z will be set to 1. This will produce unexpected results if this object's parent(s) are scaled back to a non-zero value.`);
-        else {
-          this.node.scaling.z = value.z / parentScale.z;
-        }
-
-        // @TODO Could we do this more efficiently?
-        // eslint-disable-next-line no-self-assign
-        this.node.scaling = this.node.scaling; // @NOTE mark as dirty
-        this.node.computeWorldMatrix(); // @NOTE force re-compute absolute scale
+        debugLog(`[Transform] (absoluteScale.set) (${name}): ${value}`);
+        this.node.absoluteScaling = value;
       },
     );
     this._localScale = new WrappedVector3Babylon(
       () => this.node.scaling,
       (value) => {
-        debugLog(`[Transform] (localScale.set): ${value}`);
+        debugLog(`[Transform] (localScale.set) (${name}): ${value}`);
         this.node.scaling = value;
       },
     );
 
     // Initialise wrapped vectors
     this._localPosition.setValue(transform.position);
-    this._localRotation.setValue(transform.rotation);
+    this._localRotation.setValue(Quaternion.fromEuler(transform.rotation));
     this._localScale.setValue(transform.scale);
   }
 
-  public get position(): Vector3 { return this._position; }
+  /* Position */
+  public get absolutePosition(): Vector3 { return this._absolutePosition; }
+  public set absolutePosition(value: Vector3) { this._absolutePosition.setValue(value); }
   public get localPosition(): Vector3 { return this._localPosition; }
+  public set localPosition(value: Vector3) { this._localPosition.setValue(value); }
 
-  public get rotation(): Vector3 { return this._rotation; }
-  public get localRotation(): Vector3 { return this._localRotation; }
+  /* Rotation */
+  public get absoluteRotation(): Quaternion { return this._absoluteRotation; }
+  public set absoluteRotation(value: Quaternion) { this._absoluteRotation.setValue(value); }
+  public get localRotation(): Quaternion { return this._localRotation; }
+  public set localRotation(value: Quaternion) { this._localRotation.setValue(value); }
+  public rotate(value: Vector3): void {
+    const rotation = Quaternion.fromEuler(value);
+    this._localRotation.setValue(this._localRotation.multiply(rotation));
+  }
 
-  public get scale(): Vector3 { return this._scale; }
+  /* Scale */
+  public get absoluteScale(): Vector3 { return this._absoluteScale; }
+  public set absoluteScale(value: Vector3) { this._absoluteScale.setValue(value); }
   public get localScale(): Vector3 { return this._localScale; }
+  public set localScale(value: Vector3) { this._localScale.setValue(value); }
 
   public get parent(): TransformCore | undefined { return this._parent; }
   public set parent(valueCore: TransformCore | undefined) {

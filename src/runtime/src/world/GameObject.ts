@@ -117,5 +117,5 @@ export class GameObject extends GameObjectCore {
   public get components(): GameObjectComponent[] { return this._components; }
   public get transform(): Transform { return this._transform; }
   // @TODO Should I get rid of this or propagate this?
-  public get position(): Vector3 { return this.transform.position; }
+  public get position(): Vector3 { return this.transform.localPosition; }
 }

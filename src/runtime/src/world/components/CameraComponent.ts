@@ -1,11 +1,9 @@
 import { FreeCamera } from "@babylonjs/core/Cameras/freeCamera";
-import { Quaternion } from "@babylonjs/core/Maths/math.vector";
 
 import { CameraComponent as CameraComponentCore } from "@polyzone/core/src/world/components";
-import { Vector3 } from "@polyzone/core/src/util";
+import { Quaternion, Vector3 } from "@polyzone/core/src/util";
 
 import { GameObject } from "../GameObject";
-import { toVector3Babylon } from "../../util";
 
 
 export class CameraComponent extends CameraComponentCore {
@@ -24,15 +22,15 @@ export class CameraComponent extends CameraComponentCore {
   }
 
   public pointAt(target: Vector3): void {
-    const direction = toVector3Babylon(target.subtract(this.gameObject.transform.position)).normalize();
-    const quaternion = Quaternion.RotationYawPitchRoll(
-      Math.atan2(direction.x, direction.z),
-      Math.atan2(-direction.y, Math.sqrt(direction.x * direction.x + direction.z * direction.z)),
-      0,
-    );
+    const direction = target.subtract(this.gameObject.transform.absolutePosition).normalize();
 
     // @NOTE Set the rotation of the GameObject itself
-    this.gameObject.transform.node.rotationQuaternion = quaternion;
+    // @TODO should not use Babylon interface
+    this.gameObject.transform.absoluteRotation = Quaternion.fromEuler(
+      Math.atan2(-direction.y, Math.sqrt(direction.x * direction.x + direction.z * direction.z)),
+      Math.atan2(direction.x, direction.z),
+      0,
+    );
   }
 
   public override onDestroy(): void {

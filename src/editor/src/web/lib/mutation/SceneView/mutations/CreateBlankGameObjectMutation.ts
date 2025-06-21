@@ -1,12 +1,13 @@
 import { v4 as uuid } from 'uuid';
 
 import { GameObjectDefinition } from "@polyzone/runtime/src/cartridge";
+import { toVector3Core } from '@polyzone/runtime/src/util';
+import { Quaternion } from '@polyzone/core/src/util/Quaternion';
 
 import { GameObjectData, loadObjectDefinition } from "@lib/project/data";
-import { ISceneMutation } from '../ISceneMutation';
-import { SceneViewMutationArguments } from "../SceneViewMutationArguments";
 import { resolvePathForSceneObjectMutation } from '@lib/mutation/util';
-import { toVector3Core } from '@polyzone/runtime/src/util';
+import { SceneViewMutationArguments } from "../SceneViewMutationArguments";
+import { ISceneMutation } from '../ISceneMutation';
 
 export class CreateBlankGameObjectMutation implements ISceneMutation {
   // Mutation state
@@ -43,8 +44,9 @@ export class CreateBlankGameObjectMutation implements ISceneMutation {
       if (parentGameObject === undefined) throw new Error(`Cannot apply mutation - no game object exists in the scene with id '${this.parentGameObjectId}'`);
       SceneViewController.createGameObject(newGameObjectData).then((newGameObject) => {
         newGameObject.transform.parent = parentGameObject.transform;
+        // @NOTE Kind of entirely un-necessary 🤷‍♀️
         newGameObject.transform.localPosition.setValue(toVector3Core(newObjectDefinition.transform.position));
-        newGameObject.transform.localRotation.setValue(toVector3Core(newObjectDefinition.transform.rotation));
+        newGameObject.transform.localRotation.setValue(Quaternion.fromEuler(toVector3Core(newObjectDefinition.transform.rotation)));
         newGameObject.transform.localScale.setValue(toVector3Core(newObjectDefinition.transform.scale));
       });
 

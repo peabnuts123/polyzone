@@ -2,6 +2,7 @@ import { useRef, type FunctionComponent } from "react";
 import { observer } from "mobx-react-lite";
 
 import { ComponentDefinitionType } from "@polyzone/runtime/src/cartridge";
+import { Quaternion } from "@polyzone/core/src/util/Quaternion";
 
 import {
   SetGameObjectPositionMutation,
@@ -117,7 +118,7 @@ export const Inspector: FunctionComponent<Props> = observer(({ sceneViewControll
                   SetGameObjectRotationMutation,
                   selectedObjectData,
                   () => new SetGameObjectRotationMutation(selectedObjectData.id),
-                  () => ({ rotation: newValue, resetGizmo: true }),
+                  () => ({ rotation: Quaternion.fromEuler(newValue), resetGizmo: true }),
                 )}
               />
 

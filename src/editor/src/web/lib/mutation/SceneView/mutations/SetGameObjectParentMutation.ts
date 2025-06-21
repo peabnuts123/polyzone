@@ -118,7 +118,7 @@ export class SetGameObjectParentMutation implements ISceneMutation {
 
     // 1B. Update transform with new absolute values
     const newLocalPosition = gameObject.transform.localPosition;
-    const newLocalRotation = gameObject.transform.localRotation;
+    const newLocalRotation = gameObject.transform.localRotation.toEuler();
     const newLocalScale = gameObject.transform.localScale;
 
     gameObjectData.transform.position = newLocalPosition;

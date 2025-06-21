@@ -33,7 +33,7 @@ export class SetGameObjectPositionMutation implements ISceneMutation, IContinuou
 
     // - Store undo values
     this.oldDataPosition = gameObjectData.transform.position;
-    this.oldScenePosition = gameObject.transform.position;
+    this.oldScenePosition = gameObject.transform.localPosition;
   }
 
   public update({ SceneViewController }: SceneViewMutationArguments, { position, resetGizmo }: SetGameObjectPositionMutationUpdateArgs): void {

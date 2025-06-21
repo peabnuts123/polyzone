@@ -1688,7 +1688,7 @@ export class RetroMaterial extends PushMaterial {
           indexParameters,
           // processFinalCode: csnrOptions.processFinalCode,
           processFinalCode: (type, code, _defines) => {
-            console.log(`[${this.name}] (processFinalCode) (type='${type}')`, code);
+            // console.log(`[${this.name}] (processFinalCode) (type='${type}')`, code);
             return code;
           },
           multiTarget: defines.PREPASS,

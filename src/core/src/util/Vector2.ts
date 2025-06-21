@@ -105,6 +105,11 @@ export class Vector2 {
   public withY(value: number): Vector2 {
     return new Vector2(this.x, value);
   }
+
+  public toString(): string {
+    return `Vector2(${this.x}, ${this.y})`;
+  }
+
   public get x(): number { return this._x; }
   public set x(value: number) { this._x = value; }
 

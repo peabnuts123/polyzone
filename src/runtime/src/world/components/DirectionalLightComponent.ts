@@ -35,7 +35,7 @@ export class DirectionalLightComponent extends DirectionalLightComponentCore {
   }
 
   public override get color(): Color3 { return this._color; }
-  public override set color(value: Color3) { this._color.setValue(toColor3Babylon(value)); }
+  public override set color(value: Color3) { this._color.setValue(value); }
   public override get intensity(): number { return this.light.intensity; }
   public override set intensity(value: number) { this.light.intensity = value; }
 }
