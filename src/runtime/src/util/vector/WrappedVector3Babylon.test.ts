@@ -6,6 +6,58 @@ import { Vector3 as Vector3Core } from '@polyzone/core/src';
 import { WrappedVector3Babylon } from './WrappedVector3Babylon';
 
 describe(WrappedVector3Babylon.name, () => {
+  test("set X", () => {
+    // Setup
+    const initialValue = new Vector3Babylon(1, 2, 3);
+    const vector = createVector(initialValue);
+    const newValue = 5;
+
+    // Test
+    vector.x = newValue;
+
+    // Assert
+    expect(vector.x).toBe(newValue);
+  });
+  test("set Y", () => {
+    // Setup
+    const initialValue = new Vector3Babylon(1, 2, 3);
+    const vector = createVector(initialValue);
+    const newValue = 5;
+
+    // Test
+    vector.y = newValue;
+
+    // Assert
+    expect(vector.y).toBe(newValue);
+  });
+  test("set Z", () => {
+    // Setup
+    const initialValue = new Vector3Babylon(1, 2, 3);
+    const vector = createVector(initialValue);
+    const newValue = 5;
+
+    // Test
+    vector.z = newValue;
+
+    // Assert
+    expect(vector.z).toBe(newValue);
+  });
+
+  test("setValue", () => {
+    // Setup
+    const initialValue = new Vector3Babylon(1, 2, 3);
+    const vector = createVector(initialValue);
+    const newValue = new Vector3Core(4, 5, 6);
+
+    // Test
+    vector.setValue(newValue);
+
+    // Assert
+    expect(vector.x).toBe(newValue.x);
+    expect(vector.y).toBe(newValue.y);
+    expect(vector.z).toBe(newValue.z);
+  });
+
   test("addSelf", () => {
     // Setup
     const initialValue = new Vector3Babylon(1, 2, 3);
@@ -179,6 +231,40 @@ describe(WrappedVector3Babylon.name, () => {
     expect(result.y).toBe(initialValue.y / operand.y);
     expect(result.z).toBe(initialValue.z / operand.z);
   });
+  test("divideSelf - zero scalar operand", () => {
+    // Setup
+    const initialValue = new Vector3Babylon(1, 2, 3);
+    const operand = 0;
+    const vector = createVector(initialValue);
+
+    // Test
+    const testFunc = (): void => {
+      vector.divideSelf(operand);
+    };
+
+    // Assert
+    expect(testFunc).toThrow("Cannot divide Vector3 by 0");
+    expect(vector.x).toBe(initialValue.x);
+    expect(vector.y).toBe(initialValue.y);
+    expect(vector.z).toBe(initialValue.z);
+  });
+  test("divideSelf - zero vector operand", () => {
+    // Setup
+    const initialValue = new Vector3Babylon(1, 2, 3);
+    const operand = new Vector3Core(2, 0, 4);
+    const vector = createVector(initialValue);
+
+    // Test
+    const testFunc = (): void => {
+      vector.divideSelf(operand);
+    };
+
+    // Assert
+    expect(testFunc).toThrow(`Cannot divide Vector3 by 0: ${operand}`);
+    expect(vector.x).toBe(initialValue.x);
+    expect(vector.y).toBe(initialValue.y);
+    expect(vector.z).toBe(initialValue.z);
+  });
   test("divide - vector scalar", () => {
     // Setup
     const initialValue = new Vector3Babylon(1, 2, 3);
@@ -213,6 +299,34 @@ describe(WrappedVector3Babylon.name, () => {
     expect(result.y).toBe(initialValue.y / operand.y);
     expect(result.z).toBe(initialValue.z / operand.z);
   });
+  test("divide - zero scalar operand", () => {
+    // Setup
+    const initialValue = new Vector3Babylon(1, 2, 3);
+    const operand = 0;
+    const vector = createVector(initialValue);
+
+    // Test
+    const testFunc = (): void => {
+      vector.divide(operand);
+    };
+
+    // Assert
+    expect(testFunc).toThrow("Cannot divide Vector3 by 0");
+  });
+  test("divide - zero vector operand", () => {
+    // Setup
+    const initialValue = new Vector3Babylon(1, 2, 3);
+    const operand = new Vector3Core(2, 0, 4);
+    const vector = createVector(initialValue);
+
+    // Test
+    const testFunc = (): void => {
+      vector.divide(operand);
+    };
+
+    // Assert
+    expect(testFunc).toThrow(`Cannot divide Vector3 by 0: ${operand}`);
+  });
 
   test("normalizeSelf", () => {
     // Setup
@@ -231,6 +345,22 @@ describe(WrappedVector3Babylon.name, () => {
     expect(result.y).toBe(initialValue.y / expectedLength);
     expect(result.z).toBe(initialValue.z / expectedLength);
   });
+  test("normalizeSelf - zero length", () => {
+    // Setup
+    const initialValue = new Vector3Babylon(0, 0, 0);
+    const vector = createVector(initialValue);
+
+    const initialInstance = vector;
+
+    // Test
+    const result = vector.normalizeSelf();
+
+    // Assert
+    expect(initialInstance).toBe(result);
+    expect(result.x).toBe(0);
+    expect(result.y).toBe(0);
+    expect(result.z).toBe(0);
+  });
   test("normalize", () => {
     // Setup
     const expectedLength = 7;
@@ -247,6 +377,22 @@ describe(WrappedVector3Babylon.name, () => {
     expect(result.x).toBe(initialValue.x / expectedLength);
     expect(result.y).toBe(initialValue.y / expectedLength);
     expect(result.z).toBe(initialValue.z / expectedLength);
+  });
+  test("normalize - zero length", () => {
+    // Setup
+    const initialValue = new Vector3Babylon(0, 0, 0);
+    const vector = createVector(initialValue);
+
+    const initialInstance = vector;
+
+    // Test
+    const result = vector.normalize();
+
+    // Assert
+    expect(initialInstance).not.toBe(result);
+    expect(result.x).toBe(0);
+    expect(result.y).toBe(0);
+    expect(result.z).toBe(0);
   });
 
   test("length", () => {
@@ -324,7 +470,7 @@ describe(WrappedVector3Babylon.name, () => {
 });
 
 function createVector(initialValue: Vector3Babylon): WrappedVector3Babylon {
-  let internalValue = initialValue;
+  let internalValue = initialValue.clone();
 
   return new WrappedVector3Babylon(
     () => internalValue,
