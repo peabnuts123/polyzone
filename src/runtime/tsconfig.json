@@ -19,6 +19,7 @@
   },
   "include": [
     "eslint.config.mjs",
+    "jest.config.ts",
     "scripts/generate-core.js",
     "src/**/*.ts",
   ]

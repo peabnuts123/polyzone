@@ -11,14 +11,21 @@
     "build": "npm run build:core.g; npm run typecheck",
     "build:core.g": "node scripts/generate-core.js",
     "simulate-ci": "npm run lint && npm run test && npm run build && echo 'Build succeeded'",
-    "test": "echo \"No tests yet, sorry\"",
+    "test": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" npx jest",
+    "test:watch": "npm run test -- --watch",
+    "test:coverage": "npm run test -- --collectCoverage true && http-server coverage/lcov-report -p 8080",
     "lint": "eslint --max-warnings 0 --no-error-on-unmatched-pattern \"*.{js,ts}\" \"src/**/*.{js,ts}\" \"test/**/*.{js,ts}\"",
     "typecheck": "tsc"
   },
   "devDependencies": {
     "@eslint/js": "^9.27.0",
+    "@jest/globals": "^30.0.2",
+    "@swc/core": "^1.12.4",
+    "@swc/jest": "^0.2.38",
     "eslint": "^9.27.0",
     "globals": "^16.1.0",
+    "http-server": "^14.1.1",
+    "jest": "^30.0.2",
     "nodemon": "^3.1.0",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.32.1"
