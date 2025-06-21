@@ -85,13 +85,13 @@ export abstract class ReflectionLoading {
 
   private static async loadTextureToCanvas(texture: TextureBabylon): Promise<[HTMLCanvasElement, CanvasRenderingContext2D]> {
     // Read data from texture so we don't have to fetch it again (which would be MUCH easier)
-    const cachedTextureSize = texture.getSize();
+    const textureSize = texture.getSize();
     const dataBuffer = await ReflectionLoading.readTextureData(texture);
 
     // Create HTML canvas
     const canvas = document.createElement('canvas');
-    canvas.width = cachedTextureSize.width;
-    canvas.height = cachedTextureSize.height;
+    canvas.width = textureSize.width;
+    canvas.height = textureSize.height;
 
     // Write texture data to canvas
     const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
@@ -103,9 +103,34 @@ export abstract class ReflectionLoading {
   }
 
   private static async readTextureData(texture: TextureBabylon): Promise<Uint8Array> {
-    const cachedTextureSize = texture.getSize();
-    const dataBuffer = new Uint8Array(cachedTextureSize.width * cachedTextureSize.height * 4/* @NOTE RGBA encoding */);
+    const textureSize = texture.getSize();
+
+    // Read texture data into Uint8Array
+    const dataBuffer = new Uint8Array(textureSize.width * textureSize.height * 4/* @NOTE RGBA encoding */);
     await texture.readPixels(undefined, undefined, dataBuffer);
+
+    function flipImageDataVertically(data: Uint8Array): void {
+      const rowLengthBytes = textureSize.width * 4;
+      const tempRowBytes = new Uint8Array(rowLengthBytes);
+
+      // Iterate half the image, swapping rows vertically
+      for (let y = 0; y < Math.floor(textureSize.height / 2); y++) {
+        const topRowOffset = y * rowLengthBytes;
+        const bottomRowOffset = (textureSize.height - y - 1) * rowLengthBytes;
+
+        // Read top row into temp
+        tempRowBytes.set(data.subarray(topRowOffset, topRowOffset + rowLengthBytes));
+        // Copy bottom row -> top row
+        data.copyWithin(topRowOffset, bottomRowOffset, bottomRowOffset + rowLengthBytes);
+        // Write top row (from temp) into bottom row
+        data.set(tempRowBytes, bottomRowOffset);
+      }
+    }
+
+    // Flip texture data vertically, since Babylon texture data origin point is bottom-left,
+    // whereas HTML canvas origin point is top-left.
+    flipImageDataVertically(dataBuffer);
+
     return dataBuffer;
   }
 
@@ -200,7 +225,7 @@ export abstract class ReflectionLoading {
     const [canvas, ctx] = await ReflectionLoading.loadTextureToCanvas(cachedTextureAsset.texture);
 
     // Read specific chunks of image data into array of `Uint8ClampedArray`
-    const cellSize = canvas.width / 4;
+    const cellSize = canvas.width / 3;
     const textures = [
       ReflectionLoading.readCanvasCell(ctx, 0, 0, cellSize), // +x
       ReflectionLoading.readCanvasCell(ctx, 0, 1, cellSize), // -x
@@ -247,7 +272,7 @@ export abstract class ReflectionLoading {
     const [canvas, ctx] = await ReflectionLoading.loadTextureToCanvas(cachedTextureAsset.texture);
 
     // Read specific chunks of image data into array of `Uint8ClampedArray`
-    const cellSize = canvas.width / 4;
+    const cellSize = canvas.width / 6;
     const textures = [
       ReflectionLoading.readCanvasCell(ctx, 0, 0, cellSize), // +x
       ReflectionLoading.readCanvasCell(ctx, 1, 0, cellSize), // -x
