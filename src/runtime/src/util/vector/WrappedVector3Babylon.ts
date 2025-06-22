@@ -18,8 +18,7 @@ export class WrappedVector3Babylon extends Vector3Core {
   private readonly _setValue: (value: Vector3Babylon) => void;
 
   public constructor(getValue: () => Vector3Babylon, setValue: (value: Vector3Babylon) => void) {
-    const vector = getValue();
-    super(vector.x, vector.y, vector.z);
+    super(0, 0, 0); // @NOTE Super values NOT used
     this.getValue = getValue;
     this._setValue = setValue;
   }
@@ -142,11 +141,11 @@ export class WrappedVector3Babylon extends Vector3Core {
   public override divideSelf(factor: number): Vector3Core;
   public override divideSelf(other: Vector3Core): Vector3Core;
   public override divideSelf(operand: number | Vector3Core): Vector3Core {
-    const currentValue = this.getValue();
     if (operand instanceof Vector3Core) {
       if (operand.x === 0 || operand.y === 0 || operand.z === 0) {
         throw new Error(`Cannot divide Vector3 by 0: ${operand}`);
       }
+      const currentValue = this.getValue();
       this._setValue(new Vector3Babylon(
         currentValue.x / operand.x,
         currentValue.y / operand.y,
@@ -156,6 +155,7 @@ export class WrappedVector3Babylon extends Vector3Core {
       if (operand === 0) {
         throw new Error(`Cannot divide Vector3 by 0`);
       }
+      const currentValue = this.getValue();
       this._setValue(new Vector3Babylon(
         currentValue.x / operand,
         currentValue.y / operand,
@@ -168,11 +168,11 @@ export class WrappedVector3Babylon extends Vector3Core {
   public override divide(factor: number): Vector3Core;
   public override divide(other: Vector3Core): Vector3Core;
   public override divide(operand: number | Vector3Core): Vector3Core {
-    const currentValue = this.getValue();
     if (operand instanceof Vector3Core) {
       if (operand.x === 0 || operand.y === 0 || operand.z === 0) {
         throw new Error(`Cannot divide Vector3 by 0: ${operand}`);
       }
+      const currentValue = this.getValue();
       return new Vector3Core(
         currentValue.x / operand.x,
         currentValue.y / operand.y,
@@ -182,6 +182,7 @@ export class WrappedVector3Babylon extends Vector3Core {
       if (operand === 0) {
         throw new Error(`Cannot divide Vector3 by 0`);
       }
+      const currentValue = this.getValue();
       return new Vector3Core(
         currentValue.x / operand,
         currentValue.y / operand,
@@ -189,6 +190,12 @@ export class WrappedVector3Babylon extends Vector3Core {
       );
     }
   }
+
+  public override length(): number {
+    const currentValue = this.getValue();
+    return Math.sqrt(currentValue.x * currentValue.x + currentValue.y * currentValue.y + currentValue.z * currentValue.z);
+  }
+
   public override normalizeSelf(): Vector3Core {
     const currentValue = this.getValue();
     const length = currentValue.length();
