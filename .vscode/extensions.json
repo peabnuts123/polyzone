@@ -1,3 +1,9 @@
 {
-  "recommendations": ["tauri-apps.tauri-vscode", "rust-lang.rust-analyzer"]
+  "recommendations": [
+    "dbaeumer.vscode-eslint",
+    "tauri-apps.tauri-vscode",
+    "rust-lang.rust-analyzer",
+    "firsttris.vscode-jest-runner",
+    "bradlc.vscode-tailwindcss"
+  ]
 }
