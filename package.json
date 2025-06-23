@@ -10,5 +10,9 @@
     "src/editor",
     "src/runtime",
     "src/web-player"
-  ]
+  ],
+  "scripts": {
+    "test": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" npx jest --projects src/core src/runtime",
+    "test:watch": "npm run test -- --watch"
+  }
 }

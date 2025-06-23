@@ -17,6 +17,20 @@
       ],
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
-    }
+    },
+    {
+      "name": "(Core) Debug Tests",
+      "cwd": "${workspaceFolder}/src/core",
+      "type": "node",
+      "request": "launch",
+      "runtimeArgs": [
+        "--experimental-vm-modules",
+        "--inspect-brk",
+        "${workspaceRoot}/node_modules/.bin/jest",
+        "--runInBand"
+      ],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+    },
   ]
 }
