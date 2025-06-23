@@ -8,7 +8,10 @@ import { WrappedVector3Babylon } from './WrappedVector3Babylon';
 describe(WrappedVector3Babylon.name, () => {
   test("set x updates x efficiently", () => {
     // Setup
-    const initialValue = new Vector3Babylon(1, 2, 3);
+    const initialX = 1;
+    const initialY = 2;
+    const initialZ = 3;
+    const initialValue = new Vector3Babylon(initialX, initialY, initialZ);
     const metadata = createVector(initialValue);
     const vector = metadata.vector;
     const newValue = 5;
@@ -19,12 +22,17 @@ describe(WrappedVector3Babylon.name, () => {
 
     // Assert
     expect(vector.x).toBe(newValue);
+    expect(vector.y).toBe(initialY);
+    expect(vector.z).toBe(initialZ);
     expect(getCount).toBe(1);
     expect(setCount).toBe(1);
   });
   test("set y updates y efficiently", () => {
     // Setup
-    const initialValue = new Vector3Babylon(1, 2, 3);
+    const initialX = 1;
+    const initialY = 2;
+    const initialZ = 3;
+    const initialValue = new Vector3Babylon(initialX, initialY, initialZ);
     const metadata = createVector(initialValue);
     const vector = metadata.vector;
     const newValue = 5;
@@ -34,13 +42,18 @@ describe(WrappedVector3Babylon.name, () => {
     const { getCount, setCount } = metadata;
 
     // Assert
+    expect(vector.x).toBe(initialX);
     expect(vector.y).toBe(newValue);
+    expect(vector.z).toBe(initialZ);
     expect(getCount).toBe(1);
     expect(setCount).toBe(1);
   });
   test("set z updates z efficiently", () => {
     // Setup
-    const initialValue = new Vector3Babylon(1, 2, 3);
+    const initialX = 1;
+    const initialY = 2;
+    const initialZ = 3;
+    const initialValue = new Vector3Babylon(initialX, initialY, initialZ);
     const metadata = createVector(initialValue);
     const vector = metadata.vector;
     const newValue = 5;
@@ -50,6 +63,8 @@ describe(WrappedVector3Babylon.name, () => {
     const { getCount, setCount } = metadata;
 
     // Assert
+    expect(vector.x).toBe(initialX);
+    expect(vector.y).toBe(initialY);
     expect(vector.z).toBe(newValue);
     expect(getCount).toBe(1);
     expect(setCount).toBe(1);
@@ -333,7 +348,7 @@ describe(WrappedVector3Babylon.name, () => {
       expect(getCount).toBe(0);
       expect(setCount).toBe(0);
     });
-    test("divide(), called with a typical vector scalar operand, divides each component by the scalar into a new vector efficiently", () => {
+    test("divide(), called with a typical scalar operand, divides each component by the scalar into a new vector efficiently", () => {
       // Setup
       const initialValue = new Vector3Babylon(1, 2, 3);
       const operand = 4;
