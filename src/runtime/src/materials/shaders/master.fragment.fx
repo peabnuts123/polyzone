@@ -35,7 +35,7 @@ vec3 dither(vec3 color, vec2 p) {
   // extrapolate 16bit color float to 16bit integer space
   color *= 255.;
 
-  //get dither value from dither table (by indexing it with column and row offsets)
+  // get dither value from dither table (by indexing it with column and row offsets)
   highp int col = int(mod(p.x, 4.0));
   highp int row = int(mod(p.y, 4.0));
   float dither = psx_dither_table[col][row];
@@ -49,6 +49,8 @@ vec3 dither(vec3 color, vec2 p) {
   // @TODO Split out 15 bit color into its own feature
   // truncate to 5bpc precision via bitwise AND operator, and limit value max to prevent wrapping.
   // PS1 colors in default color mode have a maximum integer value of 248 (0xf8)
+  // @TODO I reckon this is wrong? Shouldn't it just be 2^5 buckets between 0 and 0xFF? Can't find
+  // any source that suggests the max colour of PS1 GPU is 0xF8.
   ivec3 c = ivec3(color) & ivec3(0xf8);
   color = mix(vec3(c), vec3(0xf8), step(vec3(0xf8), color));
 
