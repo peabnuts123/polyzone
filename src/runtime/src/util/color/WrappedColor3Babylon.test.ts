@@ -7,7 +7,10 @@ describe(WrappedColor3Babylon.name, () => {
   describe("set r", () => {
     test("with a typical value updates r efficiently", () => {
       // Setup
-      const initialValue = new Color3Core(128, 200, 255);
+      const initialR = 128;
+      const initialG = 200;
+      const initialB = 255;
+      const initialValue = new Color3Core(initialR, initialG, initialB);
       const metadata = createColor(initialValue);
       const color = metadata.color;
       const newValue = 50;
@@ -21,12 +24,17 @@ describe(WrappedColor3Babylon.name, () => {
       // Assert
       expect(color).toBe(initialInstance);
       expect(color.r).toBe(newValue);
+      expect(color.g).toBe(initialG);
+      expect(color.b).toBe(initialB);
       expect(getCount).toBe(1);
       expect(setCount).toBe(1);
     });
     test("with an overflowed value updates r to 0xFF", () => {
       // Setup
-      const initialValue = new Color3Core(128, 200, 255);
+      const initialR = 128;
+      const initialG = 200;
+      const initialB = 255;
+      const initialValue = new Color3Core(initialR, initialG, initialB);
       const metadata = createColor(initialValue);
       const color = metadata.color;
       const newValue = 300;
@@ -40,12 +48,17 @@ describe(WrappedColor3Babylon.name, () => {
       // Assert
       expect(color).toBe(initialInstance);
       expect(color.r).toBe(255);
+      expect(color.g).toBe(initialG);
+      expect(color.b).toBe(initialB);
       expect(getCount).toBe(1);
       expect(setCount).toBe(1);
     });
     test("with an underflowed value updates r to 0", () => {
       // Setup
-      const initialValue = new Color3Core(128, 200, 255);
+      const initialR = 128;
+      const initialG = 200;
+      const initialB = 255;
+      const initialValue = new Color3Core(initialR, initialG, initialB);
       const metadata = createColor(initialValue);
       const color = metadata.color;
       const newValue = -10;
@@ -59,6 +72,8 @@ describe(WrappedColor3Babylon.name, () => {
       // Assert
       expect(color).toBe(initialInstance);
       expect(color.r).toBe(0);
+      expect(color.g).toBe(initialG);
+      expect(color.b).toBe(initialB);
       expect(getCount).toBe(1);
       expect(setCount).toBe(1);
     });
@@ -66,7 +81,10 @@ describe(WrappedColor3Babylon.name, () => {
   describe("set g", () => {
     test("with a typical value updates g efficiently", () => {
       // Setup
-      const initialValue = new Color3Core(128, 200, 255);
+      const initialR = 128;
+      const initialG = 200;
+      const initialB = 255;
+      const initialValue = new Color3Core(initialR, initialG, initialB);
       const metadata = createColor(initialValue);
       const color = metadata.color;
       const newValue = 50;
@@ -76,13 +94,18 @@ describe(WrappedColor3Babylon.name, () => {
       const { getCount, setCount } = metadata;
 
       // Assert
+      expect(color.r).toBe(initialR);
       expect(color.g).toBe(newValue);
+      expect(color.b).toBe(initialB);
       expect(getCount).toBe(1);
       expect(setCount).toBe(1);
     });
     test("with an overflowed value updates g to 0xFF", () => {
       // Setup
-      const initialValue = new Color3Core(128, 200, 255);
+      const initialR = 128;
+      const initialG = 200;
+      const initialB = 255;
+      const initialValue = new Color3Core(initialR, initialG, initialB);
       const metadata = createColor(initialValue);
       const color = metadata.color;
       const newValue = 300;
@@ -92,13 +115,18 @@ describe(WrappedColor3Babylon.name, () => {
       const { getCount, setCount } = metadata;
 
       // Assert
+      expect(color.r).toBe(initialR);
       expect(color.g).toBe(255);
+      expect(color.b).toBe(initialB);
       expect(getCount).toBe(1);
       expect(setCount).toBe(1);
     });
     test("with an underflowed value updates r to 0", () => {
       // Setup
-      const initialValue = new Color3Core(128, 200, 255);
+      const initialR = 128;
+      const initialG = 200;
+      const initialB = 255;
+      const initialValue = new Color3Core(initialR, initialG, initialB);
       const metadata = createColor(initialValue);
       const color = metadata.color;
       const newValue = -10;
@@ -108,7 +136,9 @@ describe(WrappedColor3Babylon.name, () => {
       const { getCount, setCount } = metadata;
 
       // Assert
+      expect(color.r).toBe(initialR);
       expect(color.g).toBe(0);
+      expect(color.b).toBe(initialB);
       expect(getCount).toBe(1);
       expect(setCount).toBe(1);
     });
@@ -116,7 +146,10 @@ describe(WrappedColor3Babylon.name, () => {
   describe("set b", () => {
     test("with a typical value updates b efficiently", () => {
       // Setup
-      const initialValue = new Color3Core(128, 200, 255);
+      const initialR = 128;
+      const initialG = 200;
+      const initialB = 255;
+      const initialValue = new Color3Core(initialR, initialG, initialB);
       const metadata = createColor(initialValue);
       const color = metadata.color;
       const newValue = 50;
@@ -126,13 +159,18 @@ describe(WrappedColor3Babylon.name, () => {
       const { getCount, setCount } = metadata;
 
       // Assert
+      expect(color.r).toBe(initialR);
+      expect(color.g).toBe(initialG);
       expect(color.b).toBe(newValue);
       expect(getCount).toBe(1);
       expect(setCount).toBe(1);
     });
     test("with an overflowed value updates b to 0xFF", () => {
       // Setup
-      const initialValue = new Color3Core(128, 200, 255);
+      const initialR = 128;
+      const initialG = 200;
+      const initialB = 255;
+      const initialValue = new Color3Core(initialR, initialG, initialB);
       const metadata = createColor(initialValue);
       const color = metadata.color;
       const newValue = 300;
@@ -142,13 +180,18 @@ describe(WrappedColor3Babylon.name, () => {
       const { getCount, setCount } = metadata;
 
       // Assert
+      expect(color.r).toBe(initialR);
+      expect(color.g).toBe(initialG);
       expect(color.b).toBe(255);
       expect(getCount).toBe(1);
       expect(setCount).toBe(1);
     });
     test("with an underflowed value updates r to 0", () => {
       // Setup
-      const initialValue = new Color3Core(128, 200, 255);
+      const initialR = 128;
+      const initialG = 200;
+      const initialB = 255;
+      const initialValue = new Color3Core(initialR, initialG, initialB);
       const metadata = createColor(initialValue);
       const color = metadata.color;
       const newValue = -10;
@@ -158,6 +201,8 @@ describe(WrappedColor3Babylon.name, () => {
       const { getCount, setCount } = metadata;
 
       // Assert
+      expect(color.r).toBe(initialR);
+      expect(color.g).toBe(initialG);
       expect(color.b).toBe(0);
       expect(getCount).toBe(1);
       expect(setCount).toBe(1);

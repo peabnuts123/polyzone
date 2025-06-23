@@ -7,9 +7,15 @@ export class Color3 {
 
   public constructor(r: number, g: number, b: number) {
     // Validate
-    if (r < 0 || r > 0xFF) throw new Error(`Cannot create Color3. 'r' must be between 0 and 255`);
-    if (g < 0 || g > 0xFF) throw new Error(`Cannot create Color3. 'g' must be between 0 and 255`);
-    if (b < 0 || b > 0xFF) throw new Error(`Cannot create Color3. 'b' must be between 0 and 255`);
+    /* Red */
+    if (r < 0) r = 0;
+    else if (r > 0xFF) r = 0xFF;
+    /* Green */
+    if (g < 0) g = 0;
+    else if (g > 0xFF) g = 0xFF;
+    /* Blue */
+    if (b < 0) b = 0;
+    else if (b > 0xFF) b = 0xFF;
 
     this._r = r;
     this._g = g;
@@ -17,14 +23,26 @@ export class Color3 {
   }
 
   public withR(value: number): Color3 {
+    // Validate
+    if (value < 0) value = 0;
+    else if (value > 0xFF) value = 0xFF;
+
     return new Color3(value, this.g, this.b);
   }
 
   public withG(value: number): Color3 {
+    // Validate
+    if (value < 0) value = 0;
+    else if (value > 0xFF) value = 0xFF;
+
     return new Color3(this.r, value, this.b);
   }
 
   public withB(value: number): Color3 {
+    // Validate
+    if (value < 0) value = 0;
+    else if (value > 0xFF) value = 0xFF;
+
     return new Color3(this.r, this.g, value);
   }
 
@@ -37,13 +55,31 @@ export class Color3 {
   }
 
   public get r(): number { return this._r; }
-  public set r(value: number) { this._r = value; }
+  public set r(value: number) {
+    // Validate
+    if (value < 0) value = 0;
+    else if (value > 0xFF) value = 0xFF;
+
+    this._r = value;
+  }
 
   public get g(): number { return this._g; }
-  public set g(value: number) { this._g = value; }
+  public set g(value: number) {
+    // Validate
+    if (value < 0) value = 0;
+    else if (value > 0xFF) value = 0xFF;
+
+    this._g = value;
+  }
 
   public get b(): number { return this._b; }
-  public set b(value: number) { this._b = value; }
+  public set b(value: number) {
+    // Validate
+    if (value < 0) value = 0;
+    else if (value > 0xFF) value = 0xFF;
+
+    this._b = value;
+  }
 
   public static white(): Color3 { return new Color3(0xFF, 0xFF, 0xFF); }
   public static black(): Color3 { return new Color3(0, 0, 0); }
