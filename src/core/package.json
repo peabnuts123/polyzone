@@ -27,7 +27,7 @@
   ],
   "scripts": {
     "start": "nodemon --watch src --ext 'ts' --exec npm run build",
-    "build": "rm -rf dist && tsc --project tsconfig.json",
+    "build": "rm -rf dist && tsc --project tsconfig.build.json",
     "simulate-ci": "npm run typecheck && npm run lint && npm run test && npm run build && echo 'Build succeeded'",
     "publish": "npm run simulate-ci && node scripts/publish.js",
     "test": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" npx jest",

@@ -22,5 +22,5 @@
     "eslint.config.mjs",
     "src/**/*.ts",
     "jest.config.ts",
-  ]
+  ],
 }
