@@ -2,6 +2,15 @@ import { describe, expect, test } from '@jest/globals';
 
 import { Vector3 as Vector3Core } from './Vector3';
 
+/* @TODO Test backlog
+  - Interoperability with WrappedVector3Babylon
+  - lengthSquared()
+  - crossSelf
+  - cross
+  - dot
+  - isNormalized
+*/
+
 describe(Vector3Core.name, () => {
   test("set x updates x", () => {
     // Setup

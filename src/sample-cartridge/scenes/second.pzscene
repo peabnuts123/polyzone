@@ -21,7 +21,11 @@
       "id": "3107d880-4127-4618-8b95-72d9d7875450",
       "name": "Main Camera",
       "transform": {
-        "position": { "x": 0, "y": 0, "z": -5 },
+        "position": {
+          "x": 0,
+          "y": 1.528952956199646,
+          "z": -3.5867974758148193
+        },
         "rotation": { "x": 0, "y": 0, "z": 0 },
         "scale": { "x": 1, "y": 1, "z": 1 },
       },
@@ -71,8 +75,8 @@
       "name": "Ball",
       "transform": {
         "position": {
-          "x": 2.13468337059021,
-          "y": 0.08018926531076431,
+          "x": 0,
+          "y": 0,
           "z": 0
         },
         "rotation": {
@@ -90,7 +94,7 @@
         {
           "id": "3cb76802-fa54-498a-93ae-a0bd428ff9d8",
           "type": "mesh",
-          "meshFileId": "dba91ca4-6ab9-4336-ac9b-b758e59e881e"
+          "meshFileId": "9ed10f7b-3cf8-4614-b7d3-9c2d2a12cf2f"
         },
         {
           "id": "b5cbbff3-dfad-4ee5-b628-5661b1794a6a",
@@ -104,7 +108,7 @@
       "name": "Ball 2",
       "transform": {
         "position": {
-          "x": 5,
+          "x": 2,
           "y": 0,
           "z": 0
         },
@@ -123,37 +127,8 @@
         {
           "id": "2009895e-10b0-41f2-9b8b-aad8c1ecdd89",
           "type": "mesh",
-          "meshFileId": "dba91ca4-6ab9-4336-ac9b-b758e59e881e"
+          "meshFileId": "9ed10f7b-3cf8-4614-b7d3-9c2d2a12cf2f"
         },
-      ]
-    },
-    {
-      "id": "0a12b8e6-704e-4b1d-a167-c3c298ce00f4",
-      "name": "New Object",
-      "transform": {
-        "position": {
-          "x": 3.461728096008301,
-          "y": -0.03446590527892113,
-          "z": -1.409824252128601
-        },
-        "rotation": {
-          "x": 0,
-          "y": -0.05789536494631028,
-          "z": 0
-        },
-        "scale": {
-          "x": 1,
-          "y": 1,
-          "z": 1
-        }
-      },
-      "children": [],
-      "components": [
-        {
-          "id": "1254eef7-1334-46cf-9c38-fe0c2293218c",
-          "type": "mesh",
-          "meshFileId": "a0bfe951-b0e3-449c-a9ef-37734a81a6e6"
-        }
       ]
     },
     {

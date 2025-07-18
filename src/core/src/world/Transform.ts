@@ -6,6 +6,7 @@ import type { GameObject } from "./GameObject";
 export abstract class Transform {
   /* Position */
   // @TODO Rename local stuff to `position` etc
+  // @TODO or the absolute ones?
   public abstract get localPosition(): Vector3;
   public abstract set localPosition(value: Vector3);
   public abstract get absolutePosition(): Vector3;

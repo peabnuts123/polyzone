@@ -17,17 +17,7 @@
       "type": "mesh",
       "materialOverrides": {
         "Material.001": {
-          "diffuseTextureAssetId": "e8dd265c-035e-447f-bd0b-ea295b3d41e7",
-          "materialAssetId": "2f0203a2-54ca-4cf4-9a45-c930ba452610",
-          "reflection": {
-            "type": "separate",
-            "pxTextureAssetId": "5a970739-02bd-4049-bb12-5fac412e2ec5",
-            "nxTextureAssetId": "6752f38b-580a-478c-8b46-2524b61099a2",
-            "pyTextureAssetId": "c1a10675-536e-48d2-be96-5105e69533d8",
-            "nyTextureAssetId": "ac8c40eb-3f38-4926-b3a0-3e67a43a82c3",
-            "pzTextureAssetId": "5f9e7aa6-770f-408b-9ab0-31821a0c6565",
-            "nzTextureAssetId": "f93d4ac7-f782-4059-94e7-7a6f7847d758"
-          }
+          "diffuseTextureAssetId": "e8dd265c-035e-447f-bd0b-ea295b3d41e7"
         }
       },
     },
@@ -54,13 +44,6 @@
             "g": 105,
             "b": 0
           }
-        },
-        "brownDark": {
-          "emissionColor": {
-            "r": 255,
-            "g": 0,
-            "b": 0
-          }
         }
       },
     },
@@ -75,6 +58,22 @@
       "path": "models/detailDumpster_closed.obj",
       "hash": "295301d39938d025",
       "type": "mesh",
+      "materialOverrides": {
+        "wall_metal": {
+          "reflection": {
+            "type": "3x2",
+            "strength": 0.1,
+            "textureAssetId": "d7644c9c-c573-4a7b-8152-8015f3ae1581"
+          }
+        },
+        "roof": {
+          "reflection": {
+            "type": "3x2",
+            "strength": 0.2,
+            "textureAssetId": "d7644c9c-c573-4a7b-8152-8015f3ae1581"
+          }
+        }
+      },
     },
     {
       "id": "c8d495af-3ff4-49ca-ad1b-c794aaf813c1",
@@ -165,7 +164,7 @@
     {
       "id": "9d6c6041-97c7-4fa2-a289-40d1c9c052b4",
       "path": "textures/metal.png",
-      "hash": "f34b11df08b02300",
+      "hash": "2dddc0890938d6d",
       "type": "texture",
     },
     {
@@ -259,145 +258,66 @@
       "type": "script",
     },
     {
-      "id": "f05af9d4-e868-45b9-8420-23fcfa65de4d",
-      "path": "models/newell_teaset/teacup.mtl",
-      "hash": "1160b91dfacc6f79",
-      "type": "meshSupplementary"
-    },
-    {
       "id": "3a0b6f91-9ea8-4fb8-9052-cfe7d1484ed2",
-      "path": "models/newell_teaset/teapot.mtl",
-      "hash": "1160b91dfacc6f79",
+      "path": "models/primitives/teapot.mtl",
+      "hash": "8df4ea5f7d0bf4a",
       "type": "meshSupplementary"
-    },
-    {
-      "id": "90409169-d644-463f-b79b-3ac85f66760c",
-      "path": "models/newell_teaset/spoon.obj",
-      "hash": "1a26d2b94b17d9e",
-      "type": "mesh",
-      "materialOverrides": {
-        "FrontColor": {
-          "reflection": {
-            "type": "3x2",
-            "textureAssetId": "c87ddc93-4247-44d4-9f60-d0625e186efa"
-          },
-          "diffuseColor": {
-            "r": 150,
-            "g": 150,
-            "b": 150
-          }
-        }
-      }
-    },
-    {
-      "id": "627ea75c-459c-402d-b18b-fbd353986f71",
-      "path": "models/newell_teaset/spoon.mtl",
-      "hash": "6714f1bc7c8a079f",
-      "type": "meshSupplementary"
-    },
-    {
-      "id": "21c679f3-249e-47bd-9667-1b2488638729",
-      "path": "models/newell_teaset/teacup.obj",
-      "hash": "bbcbd8f2dc5d93e3",
-      "type": "mesh",
-      "materialOverrides": {
-        "FrontColor": {
-          "reflection": {
-            "type": "3x2",
-            "strength": 0.2,
-            "textureAssetId": "c87ddc93-4247-44d4-9f60-d0625e186efa"
-          },
-          "diffuseColor": {
-            "r": 233,
-            "g": 233,
-            "b": 229
-          }
-        }
-      }
     },
     {
       "id": "0dd8594a-b0f5-4b9f-8d30-238c665fdf28",
-      "path": "models/newell_teaset/teapot.obj",
-      "hash": "b74d2c644817e517",
+      "path": "models/primitives/teapot.obj",
+      "hash": "599287a80d63b35a",
       "type": "mesh",
       "materialOverrides": {
         "FrontColor": {
-          "emissionColor": {
-            "r": 255,
-            "g": 0,
-            "b": 225
-          },
           "diffuseColor": {
-            "r": 134,
-            "g": 42,
-            "b": 126
-          },
-          "reflection": {
-            "type": "3x2",
-            "strength": 0.35,
-            "textureAssetId": "d7644c9c-c573-4a7b-8152-8015f3ae1581"
+            "r": 254,
+            "g": 203,
+            "b": 255
           }
         }
       }
-    },
-    {
-      "id": "2e108ba0-6c6b-4b4e-9836-a055a7d8dbfe",
-      "path": "materials/metal.pzmat",
-      "hash": "d9b686e9ae3c3707",
-      "type": "material"
-    },
-    {
-      "id": "daa0dcb0-9f06-4f72-814b-99146b50683d",
-      "type": "material",
-      "hash": "d41bbb8fea11190e",
-      "path": "materials/big hand.pzmat"
-    },
-    {
-      "id": "d372f302-5894-473e-83f9-d475cfb8ebff",
-      "type": "material",
-      "hash": "b771a4bde8878ed",
-      "path": "materials/new material.pzmat"
     },
     {
       "id": "b39e2652-a840-4f26-9beb-0c031953031a",
       "path": "textures/skyboxes/outdoor-concrete_3x2.png",
-      "hash": "51ddea26c057647e",
+      "hash": "684fc901d2199941",
       "type": "texture"
     },
     {
       "id": "bc1d2659-bd6f-43e3-9386-87bbed7dedbe",
       "path": "textures/skyboxes/outdoor-bridge_3x2.png",
-      "hash": "7eaf62884a4750cc",
+      "hash": "8b4acefbf8c20df",
       "type": "texture"
     },
     {
       "id": "358536a2-3e92-47e2-b9a3-9016f54b40a4",
       "path": "textures/skyboxes/indoor-chapel_3x2.png",
-      "hash": "f7633f3f8d397a94",
+      "hash": "cf0bf159c95ec0f2",
       "type": "texture"
     },
     {
       "id": "d7644c9c-c573-4a7b-8152-8015f3ae1581",
       "path": "textures/skyboxes/outdoor-twilight_3x2.png",
-      "hash": "cb970d4de4eaccbe",
+      "hash": "d5845999877c95fe",
       "type": "texture"
     },
     {
       "id": "ac07ded2-de12-4dab-a049-70a5bb7b6dbd",
       "path": "textures/skyboxes/indoor-basilica_3x2.png",
-      "hash": "23fcaed1e690320a",
+      "hash": "ac4bc6a72eb9c308",
       "type": "texture"
     },
     {
       "id": "2fe0a95a-e9de-4a17-b4b5-b7237fd90f58",
       "path": "textures/skyboxes/outdoor-grassy_3x2.png",
-      "hash": "60837b841f0bdb88",
+      "hash": "3566283894d9d934",
       "type": "texture"
     },
     {
       "id": "1367d8a5-6162-484d-9081-aa86e4f3186d",
       "path": "textures/skyboxes/outdoor-night_3x2.png",
-      "hash": "af36619301659fb8",
+      "hash": "3ebaf47ab938cb2d",
       "type": "texture"
     },
     {
@@ -407,123 +327,51 @@
       "type": "texture"
     },
     {
-      "id": "f6372274-7c12-4a32-97f7-e86538c3c4a3",
-      "path": "textures/skyboxes/debug_6x1.png",
-      "hash": "365774b82b3582e5",
-      "type": "texture"
-    },
-    {
-      "id": "44125594-28c7-48de-aff2-947ffc6e9ec2",
-      "path": "textures/skyboxes/debug_box-net.png",
-      "hash": "532303f845be0eaa",
-      "type": "texture"
-    },
-    {
-      "id": "37e8db3a-5304-4b08-aa1f-5b2d36924369",
-      "path": "textures/skyboxes/debug_separate-posz.png",
-      "hash": "d5ca8fdd5136c499",
-      "type": "texture"
-    },
-    {
-      "id": "d3a19f4a-9109-4810-8040-f6b9440ec25a",
-      "path": "textures/skyboxes/debug_separate-posy.png",
-      "hash": "2c0789c931980795",
-      "type": "texture"
-    },
-    {
-      "id": "65d5086e-9be7-4a72-818b-4bf2b1a1cd26",
-      "path": "textures/skyboxes/debug_separate-posx.png",
-      "hash": "42911d3ca96591fe",
-      "type": "texture"
-    },
-    {
-      "id": "b05fc9e2-2f40-4228-9342-160edc97a85c",
-      "path": "textures/skyboxes/debug_separate-negz.png",
-      "hash": "db9ed8a67397e79b",
-      "type": "texture"
-    },
-    {
-      "id": "34f97bb3-1e7b-4e81-8aea-3d2ad954a420",
-      "path": "textures/skyboxes/debug_separate-negy.png",
-      "hash": "841e941072c6680b",
-      "type": "texture"
-    },
-    {
-      "id": "8833c28f-9cd7-49f6-bd75-a61973fd11c2",
-      "path": "textures/skyboxes/debug_separate-negx.png",
-      "hash": "c9f8fb6acc5b14f7",
-      "type": "texture"
-    },
-    {
-      "id": "28d2374f-95ff-425a-b9eb-234865d2cf1b",
-      "type": "material",
-      "hash": "6d2ee1523aa7eb4",
-      "path": "materials/debug-reflection-separate.pzmat"
-    },
-    {
-      "id": "2f0203a2-54ca-4cf4-9a45-c930ba452610",
-      "type": "material",
-      "hash": "61a5b46ddeffc68f",
-      "path": "materials/debug-reflection-3x2.pzmat"
-    },
-    {
-      "id": "c037df01-79a2-45e2-80f1-546959a97b1a",
-      "type": "material",
-      "hash": "2293c21e0bb0210",
-      "path": "materials/debug-reflection-6x1.pzmat"
-    },
-    {
-      "id": "ae46e30d-4b31-4caa-a090-e1233a01b1a0",
-      "type": "material",
-      "hash": "1376eac6a5ef5fe1",
-      "path": "materials/debug-reflection-box-net.pzmat"
-    },
-    {
       "id": "173f55a1-7727-4868-bc9a-52762dc6744a",
-      "path": "textures/skyboxes/outdoor-night_6x1.png",
-      "hash": "989761ec4fdf154f",
+      "path": "textures/skyboxes/sample/6x1.png",
+      "hash": "683b70c28334b037",
       "type": "texture"
     },
     {
       "id": "21fb5402-9506-401a-b722-40802ca0e0a9",
-      "path": "textures/skyboxes/outdoor-night_box-net.png",
-      "hash": "1a951545d61606d3",
+      "path": "textures/skyboxes/sample/box-net.png",
+      "hash": "a638549967977eca",
       "type": "texture"
     },
     {
       "id": "5f9e7aa6-770f-408b-9ab0-31821a0c6565",
-      "path": "textures/skyboxes/outdoor-night_separate-posz.png",
-      "hash": "4909f28d25fec57c",
+      "path": "textures/skyboxes/sample/separate-posz.png",
+      "hash": "3dbcfd1754f8254f",
       "type": "texture"
     },
     {
       "id": "c1a10675-536e-48d2-be96-5105e69533d8",
-      "path": "textures/skyboxes/outdoor-night_separate-posy.png",
-      "hash": "ba7b788ab60a46e4",
+      "path": "textures/skyboxes/sample/separate-posy.png",
+      "hash": "5ef91a814face8f2",
       "type": "texture"
     },
     {
       "id": "5a970739-02bd-4049-bb12-5fac412e2ec5",
-      "path": "textures/skyboxes/outdoor-night_separate-posx.png",
-      "hash": "e36200941360bcb3",
+      "path": "textures/skyboxes/sample/separate-posx.png",
+      "hash": "71012a131f3041e4",
       "type": "texture"
     },
     {
       "id": "f93d4ac7-f782-4059-94e7-7a6f7847d758",
-      "path": "textures/skyboxes/outdoor-night_separate-negz.png",
-      "hash": "c95d54277890e913",
+      "path": "textures/skyboxes/sample/separate-negz.png",
+      "hash": "b3d7f370d9bda8ea",
       "type": "texture"
     },
     {
       "id": "ac8c40eb-3f38-4926-b3a0-3e67a43a82c3",
-      "path": "textures/skyboxes/outdoor-night_separate-negy.png",
-      "hash": "b38649cb8e45ea7c",
+      "path": "textures/skyboxes/sample/separate-negy.png",
+      "hash": "45800e5090782fb5",
       "type": "texture"
     },
     {
       "id": "6752f38b-580a-478c-8b46-2524b61099a2",
-      "path": "textures/skyboxes/outdoor-night_separate-negx.png",
-      "hash": "e347ca48a77d9b71",
+      "path": "textures/skyboxes/sample/separate-negx.png",
+      "hash": "82e2c7e0f636fc92",
       "type": "texture"
     },
     {
@@ -568,39 +416,123 @@
             "g": 255,
             "b": 255
           },
-          "diffuseTextureAssetId": "9d92a4cb-0d2a-4fd3-982b-773310e7bd46"
+          "diffuseTextureAssetId": "04a6f729-bba5-4751-b779-6a1db3cc2d2d",
+          "diffuseColor": {
+            "r": 65,
+            "g": 86,
+            "b": 129
+          }
         }
       }
     },
     {
-      "id": "dc0acdbb-b303-4538-8105-27c7d7da520d",
-      "path": "scripts/spinning/spinning-model.ts",
-      "hash": "41a319746854eae3",
-      "type": "script"
+      "id": "9fcdc28c-647f-44a9-98a4-5456832e174e",
+      "path": "models/car/car3_yellow.png",
+      "hash": "6ac31fe8885f9f3a",
+      "type": "texture"
     },
     {
-      "id": "78399f58-9e39-4290-be1b-434c7e883fbf",
-      "path": "scripts/spinning/absolute-rotation-fixed-angle.ts",
-      "hash": "d0e022230f96ed1f",
-      "type": "script"
+      "id": "8037619c-0924-4519-aa9f-9e3f18b7eadd",
+      "path": "models/car/car3_red.png",
+      "hash": "1addfcf87ea147f1",
+      "type": "texture"
     },
     {
-      "id": "045645b9-aa36-42cf-9105-7ff1ed436993",
-      "path": "scripts/spinning/absolute-scale-fixed-size.ts",
-      "hash": "e59a6addeb7374ac",
-      "type": "script"
+      "id": "8c25ad8b-e2f6-4e9b-8d61-590dae2f1633",
+      "path": "models/car/car3.png",
+      "hash": "6800841959bbd29e",
+      "type": "texture"
     },
     {
-      "id": "b30b9d6a-ae2a-43c4-8ba5-5dcff0b04a9c",
-      "path": "scripts/spinning/absolute-rotation-rotating.ts",
-      "hash": "77de7d9bec454489",
-      "type": "script"
+      "id": "86645e79-7a8b-466f-8552-e211b02d493d",
+      "path": "models/car/Car3.obj",
+      "hash": "b19178ec989cf099",
+      "type": "mesh",
+      "materialOverrides": {
+        "car": {
+          "reflection": {
+            "type": "3x2",
+            "strength": 0.2,
+            "textureAssetId": "1367d8a5-6162-484d-9081-aa86e4f3186d"
+          },
+          "diffuseTextureAssetId": "60e63799-8259-48e7-872c-a6523823160f"
+        },
+        "headlights": {
+          "emissionColor": {
+            "r": 255,
+            "g": 255,
+            "b": 255
+          },
+          "reflection": {
+            "type": "3x2",
+            "strength": 0.6,
+            "textureAssetId": "1367d8a5-6162-484d-9081-aa86e4f3186d"
+          }
+        },
+        "taillights": {
+          "emissionColor": {
+            "r": 255,
+            "g": 255,
+            "b": 255
+          },
+          "reflection": {
+            "type": "3x2",
+            "strength": 0.6,
+            "textureAssetId": "1367d8a5-6162-484d-9081-aa86e4f3186d"
+          }
+        }
+      }
     },
     {
-      "id": "4004ecd8-530c-4aa8-841f-1a2f614e9342",
-      "path": "scripts/spinning/absolute-scale-throbbing.ts",
-      "hash": "bc3de071e23b18ec",
-      "type": "script"
+      "id": "b57ea60a-e263-45c3-9f93-d3c527d745e9",
+      "path": "models/car/Car3.mtl",
+      "hash": "7498191469257ff1",
+      "type": "meshSupplementary"
+    },
+    {
+      "id": "229b7d21-1e72-4f37-883e-4b4dc092bee3",
+      "path": "models/primitives/cube.mtl",
+      "hash": "8df4ea5f7d0bf4a",
+      "type": "meshSupplementary"
+    },
+    {
+      "id": "b39e95b2-cd00-4720-bf8e-92237902882c",
+      "path": "models/primitives/cube.obj",
+      "hash": "1482dc68d4a58a43",
+      "type": "mesh"
+    },
+    {
+      "id": "9ed10f7b-3cf8-4614-b7d3-9c2d2a12cf2f",
+      "path": "models/primitives/sphere.obj",
+      "hash": "dbe6dfb31954cb5e",
+      "type": "mesh",
+      "materialOverrides": {
+        "default": {
+          "diffuseColor": {
+            "r": 255,
+            "g": 4,
+            "b": 4
+          }
+        }
+      }
+    },
+    {
+      "id": "7b76797f-3337-4fd7-813d-3b72fa4ec1f2",
+      "path": "models/primitives/sphere.mtl",
+      "hash": "8df4ea5f7d0bf4a",
+      "type": "meshSupplementary"
+    },
+    {
+      "id": "60e63799-8259-48e7-872c-a6523823160f",
+      "path": "models/car/car3_gray.png",
+      "hash": "ee60f6dd5246a2d1",
+      "type": "texture"
+    },
+    {
+      "id": "9b5f7188-ab1e-4afd-b6b2-e4ff9bd80df0",
+      "path": "textures/skyboxes/sample/3x2.png",
+      "hash": "3ebaf47ab938cb2d",
+      "type": "texture"
     }
   ],
   "scenes": [
@@ -608,23 +540,13 @@
     {
       "id": "f2215ac1-2fbe-4d6d-a8fc-d63c88ecbf51",
       "path": "scenes/main.pzscene",
-      "hash": "83afd7eb524072ce",
+      "hash": "79bbf8fb67de08a1",
     },
     {
       "id": "d7641dad-c3f9-46cf-a0cc-79db0201ca0d",
       "path": "scenes/second.pzscene",
-      "hash": "4807764452205c28",
-    },
-    {
-      "id": "f3864ba6-5179-4fa6-9772-a99b9bdbfdd6",
-      "hash": "3718b61a77e74140",
-      "path": "scenes/spin_demo.pzscene"
-    },
-    {
-      "id": "530575ba-5318-4e8e-919b-edbac08c52ad",
-      "hash": "6bf045e15db91037",
-      "path": "scenes/transform-debug.pzscene"
-    },
+      "hash": "ddcb6edce197105",
+    }
   ],
   // @TODO ???
   // "objectTemplates": [

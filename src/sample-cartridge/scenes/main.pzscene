@@ -60,16 +60,16 @@
           "z": 0
         },
         "scale": {
-          "x": 0.1,
-          "y": 0.1,
-          "z": 0.1
+          "x": 1,
+          "y": 1,
+          "z": 1
         }
       },
       "components": [
         {
           "id": "9ae0aa1d-14ac-4d99-87e2-8804ca2bb75b",
           "type": "mesh",
-          "meshFileId": "0dd8594a-b0f5-4b9f-8d30-238c665fdf28"
+          "meshFileId": "59e2bfad-f6f0-471a-a0a4-7b25b76152dc"
         },
         {
           "id": "21c414bb-bde8-4c25-bbcd-ac2e1b911db6",
@@ -84,7 +84,7 @@
           "transform": {
             "position": {
               "x": 0,
-              "y": 5,
+              "y": 0.4,
               "z": 0
             },
             "rotation": {
@@ -93,9 +93,9 @@
               "z": 0
             },
             "scale": {
-              "x": 10.000037817072794,
-              "y": 8.751857539149446,
-              "z": 10.000015595839127
+              "x": 1,
+              "y": 1,
+              "z": 1
             }
           },
           "components": [
@@ -112,7 +112,7 @@
           "transform": {
             "position": {
               "x": 0,
-              "y": 4.1689470410346985,
+              "y": 0.6737986207008362,
               "z": 0
             },
             "rotation": {
@@ -133,8 +133,8 @@
               "type": "light_point",
               "color": {
                 "r": 255,
-                "g": 0,
-                "b": 194
+                "g": 175,
+                "b": 0
               },
               "intensity": 0.7
             }

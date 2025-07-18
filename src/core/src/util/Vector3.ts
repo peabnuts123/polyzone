@@ -138,6 +138,10 @@ export class Vector3 {
     return Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
   }
 
+  public lengthSquared(): number {
+    return this.x * this.x + this.y * this.y + this.z * this.z;
+  }
+
   public normalizeSelf(): Vector3 {
     const length = this.length();
     if (length === 0) {
@@ -155,6 +159,31 @@ export class Vector3 {
       return Vector3.zero();
     }
     return this.divide(length);
+  }
+
+  public crossSelf(other: Vector3): Vector3 {
+    const x = this.y * other.z - this.z * other.y;
+    const y = this.z * other.x - this.x * other.z;
+    const z = this.x * other.y - this.y * other.x;
+    this.x = x;
+    this.y = y;
+    this.z = z;
+    return this;
+  }
+  public cross(other: Vector3): Vector3 {
+    return new Vector3(
+      this.y * other.z - this.z * other.y,
+      this.z * other.x - this.x * other.z,
+      this.x * other.y - this.y * other.x,
+    );
+  }
+
+  public dot(other: Vector3): number {
+    return this.x * other.x + this.y * other.y + this.z * other.z;
+  }
+
+  public isNormalized(): boolean {
+    return this.lengthSquared() === 1.0;
   }
 
   public clone(): Vector3 {
@@ -186,10 +215,13 @@ export class Vector3 {
   public get z(): number { return this._z; }
   public set z(value: number) { this._z = value; }
 
-  public static zero(): Vector3 {
-    return new Vector3(0, 0, 0);
-  }
-  public static one(): Vector3 {
-    return new Vector3(1, 1, 1);
-  }
+  public static zero(): Vector3 { return new Vector3(0, 0, 0); }
+  public static one(): Vector3 { return new Vector3(1, 1, 1); }
+
+  public static up(): Vector3 { return new Vector3(0, 1, 0); }
+  public static down(): Vector3 { return new Vector3(0, -1, 0); }
+  public static right(): Vector3 { return new Vector3(1, 0, 0); }
+  public static left(): Vector3 { return new Vector3(-1, 0, 0); }
+  public static forward(): Vector3 { return new Vector3(0, 0, 1); }
+  public static back(): Vector3 { return new Vector3(0, 0, -1); }
 }

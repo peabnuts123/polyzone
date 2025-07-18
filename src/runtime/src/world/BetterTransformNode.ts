@@ -2,6 +2,15 @@ import { Quaternion, TmpVectors, Vector3 } from "@babylonjs/core/Maths/math.vect
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 
 export class BetterTransformNode extends TransformNode {
+  public get rotationQuaternion(): Quaternion {
+    return super.rotationQuaternion!;
+  }
+
+  public set rotationQuaternion(value: Quaternion) {
+    super.rotationQuaternion = value;
+    this.computeWorldMatrix();
+  }
+
   // @NOTE Seems omitting the getter while defining the setter means the class
   // has an implicit getter that returns `undefined`
   public get absoluteRotationQuaternion(): Quaternion {
@@ -29,6 +38,8 @@ export class BetterTransformNode extends TransformNode {
         this.rotationQuaternion = absoluteRotation.clone();
       }
     }
+
+    this.markAsDirty();
 
     // Update world matrix with new value
     // Will cause cached value to be recomputed next time getter is called
@@ -71,7 +82,8 @@ export class BetterTransformNode extends TransformNode {
     } else {
       this.scaling.copyFrom(absoluteScaling);
     }
-    this._isDirty = true;
+
+    this.markAsDirty();
 
     // Update world matrix with new value
     // Will cause cached value to be recomputed next time getter is called

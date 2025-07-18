@@ -20,7 +20,6 @@ const nextConfig: NextConfig = {
 
   // @NOTE Ridiculous check to find where `next` is installed (causes havoc in monorepos)
   outputFileTracingRoot: path.join(cwd(), '../../../..'),
-  /* @NOTE New turbopack config */
 };
 
 if (Bundler === 'webpack') {

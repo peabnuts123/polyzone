@@ -83,6 +83,59 @@ export class Quaternion {
     );
   }
 
+  public static fromLookDirection(forward: Vector3, up: Vector3): Quaternion {
+    // Validate
+    if (Math.abs(forward.dot(up)) > 1e-8) {
+      throw new Error(`Cannot create Quaternion from look direction - 'forward' and 'up' vectors must be orthogonal. (DEBUG: (dot='${forward.dot(up)}')) Provided: (forward='${forward}') (up='${up}')`);
+    }
+    // Sanitise
+    if (!forward.isNormalized()) {
+      forward = forward.normalize();
+    }
+    if (!up.isNormalized()) {
+      up = up.normalize();
+    }
+
+    const right = up.cross(forward);
+
+    // Mostly from: https://github.com/BabylonJS/Babylon.js/blob/86bda66b6f61e482374c1a0597f1f504cd75837d/packages/dev/core/src/Maths/math.vector.ts#L5335
+    const trace = right.x + up.y + forward.z;
+
+    if (trace > 0) {
+      const s = 0.5 / Math.sqrt(trace + 1.0);
+      return new Quaternion(
+        (up.z - forward.y) * s,
+        (forward.x - right.z) * s,
+        (right.y - up.x) * s,
+        0.25 / s,
+      );
+    } else if (right.x > up.y && right.x > forward.z) {
+      const s = 2.0 * Math.sqrt(1.0 + right.x - up.y - forward.z);
+      return new Quaternion(
+        0.25 * s,
+        (up.x + right.y) / s,
+        (forward.x + right.z) / s,
+        (up.z - forward.y) / s,
+      );
+    } else if (up.y > forward.z) {
+      const s = 2.0 * Math.sqrt(1.0 + up.y - right.x - forward.z);
+      return new Quaternion(
+        (up.x + right.y) / s,
+        0.25 * s,
+        (forward.y + up.z) / s,
+        (forward.x - right.z) / s,
+      );
+    } else {
+      const s = 2.0 * Math.sqrt(1.0 + forward.z - right.x - up.y);
+      return new Quaternion(
+        (forward.x + right.z) / s,
+        (forward.y + up.z) / s,
+        0.25 * s,
+        (right.y - up.x) / s,
+      );
+    }
+  }
+
   /**
    * Convert the quaternion to Euler angles (in radians).
    */
@@ -90,10 +143,10 @@ export class Quaternion {
     // From: https://github.com/BabylonJS/Babylon.js/blob/86bda66b6f61e482374c1a0597f1f504cd75837d/packages/dev/core/src/Maths/math.vector.ts#L5217
     const result = new Vector3(0, 0, 0);
 
-    const qz = this._z;
-    const qx = this._x;
-    const qy = this._y;
-    const qw = this._w;
+    const qz = this.z;
+    const qx = this.x;
+    const qy = this.y;
+    const qw = this.w;
 
     const zAxisY = qy * qz - qx * qw;
     const limit = 0.4999999;
@@ -149,6 +202,39 @@ export class Quaternion {
     return this;
   }
 
+  public static slerp(left: Quaternion, right: Quaternion, t: number): Quaternion {
+    // Sanitise
+    t = Math.min(1, Math.max(t, 0));
+
+    // From: https://github.com/BabylonJS/Babylon.js/blob/86bda66b6f61e482374c1a0597f1f504cd75837d/packages/dev/core/src/Maths/math.vector.ts#L5826
+    let num2;
+    let num3;
+    let num4 = left.x * right.x + left.y * right.y + left.z * right.z + left.w * right.w;
+    let flag = false;
+
+    if (num4 < 0) {
+      flag = true;
+      num4 = -num4;
+    }
+
+    if (num4 > 0.999999) {
+      num3 = 1 - t;
+      num2 = flag ? -t : t;
+    } else {
+      const num5 = Math.acos(num4);
+      const num6 = 1.0 / Math.sin(num5);
+      num3 = Math.sin((1.0 - t) * num5) * num6;
+      num2 = flag ? -Math.sin(t * num5) * num6 : Math.sin(t * num5) * num6;
+    }
+
+    return new Quaternion(
+      num3 * left.x + num2 * right.x,
+      num3 * left.y + num2 * right.y,
+      num3 * left.z + num2 * right.z,
+      num3 * left.w + num2 * right.w,
+    );
+  }
+
   public conjugate(): Quaternion {
     return new Quaternion(-this.x, -this.y, -this.z, this.w);
   }
@@ -171,5 +257,9 @@ export class Quaternion {
     this.y = value.y;
     this.z = value.z;
     this.w = value.w;
+  }
+
+  public toString(): string {
+    return `Quaternion(x=${this.x}, y=${this.y}, z=${this.z}, w=${this.w})`;
   }
 }
