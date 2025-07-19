@@ -3,6 +3,7 @@ import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
 import { AssetContainer } from '@babylonjs/core/assetContainer';
 import { PBRMaterial } from '@babylonjs/core/Materials/PBR/pbrMaterial';
 import { CubeTexture } from '@babylonjs/core/Materials/Textures/cubeTexture';
+import { BaseTexture } from '@babylonjs/core/Materials/Textures/baseTexture';
 
 import { AssetType, IMeshAssetData } from '@polyzone/runtime/src/cartridge';
 import { debug_modTexture } from "@polyzone/runtime/src";
@@ -12,7 +13,6 @@ import { RetroMaterial } from "@polyzone/runtime/src/materials/RetroMaterial";
 import { LoadedAssetBase } from './LoadedAssetBase';
 import type { AssetCacheContext } from './AssetCache';
 import { ReflectionLoading } from './TextureAsset';
-import { BaseTexture } from '@babylonjs/core/Materials/Textures/baseTexture';
 
 export class MeshAsset extends LoadedAssetBase<AssetType.Mesh> {
   public get type(): AssetType.Mesh { return AssetType.Mesh; }
@@ -140,6 +140,17 @@ export class MeshAsset extends LoadedAssetBase<AssetType.Mesh> {
       // Update the container, IDK
       assetContainer.materials[i] = newMaterial;
       oldMaterial.dispose();
+    }
+
+    // If asset container has no materials, create a default material
+    if (assetContainer.materials.length === 0) {
+      const defaultMaterial = new RetroMaterial('default', assetContainer.scene);
+      // @NOTE We do not push this into the list of materials so that it
+      // does not show up in the material editor / cannot be customised.
+      // It is purely a default value.
+      for (const mesh of assetContainer.meshes) {
+        mesh.material = defaultMaterial;
+      }
     }
 
     return new MeshAsset(assetData.id, assetContainer);
