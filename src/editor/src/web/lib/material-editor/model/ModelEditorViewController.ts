@@ -53,7 +53,8 @@ export class ModelEditorViewController {
     this._canvas = document.createElement('canvas');
     this.canvas.classList.add('w-full', 'h-full');
 
-    this.engine = new Engine(this.canvas, true, {}, true);
+    // @NOTE `preserveDrawingBuffer` needed to be able to capture canvas contents
+    this.engine = new Engine(this.canvas, true, { preserveDrawingBuffer: true }, true);
     this.babylonScene = new BabylonScene(this.engine);
 
     // Build scene

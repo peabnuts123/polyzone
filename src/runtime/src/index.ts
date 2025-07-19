@@ -10,6 +10,7 @@ import { readCartridgeArchive, loadCartridge, fetchCartridge, Cartridge, Cartrid
 import Resolver from './Resolver';
 import { Game } from "./Game";
 import { BabylonInputManager } from './modules/BabylonInputManager';
+import { DebugModule } from "./util/DebugModule";
 
 export type OnUpdateCallback = () => void;
 export type OnDisposeCallback = () => void;
@@ -32,6 +33,8 @@ export class Runtime {
     this.canvas = canvas;
     this.onUpdateCallbacks = [];
     this.onDisposeCallbacks = [];
+
+    DebugModule.register();
   }
 
   public onUpdate(callback: OnUpdateCallback): void {
@@ -79,7 +82,8 @@ export class Runtime {
     const initialCanvasWidth = this.canvas.width;
     const initialCanvasHeight = this.canvas.height;
 
-    this.engine = new Engine(this.canvas, false);
+    // @NOTE `preserveDrawingBuffer` needed to be able to capture canvas contents
+    this.engine = new Engine(this.canvas, false, { preserveDrawingBuffer: true });
     // Override application resolution to fixed resolution
     this.engine.setSize(initialCanvasWidth, initialCanvasHeight);
 

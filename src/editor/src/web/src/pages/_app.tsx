@@ -5,6 +5,8 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import * as Mobx from 'mobx';
 
+import { DebugModule } from '@polyzone/runtime/src/util/DebugModule';
+
 import '@app/styles/index.css';
 import { createLibrary, LibraryContext } from '@lib/index';
 import { mockTauri } from '@lib/tauri/mock'; // @TODO Exclude from production build
@@ -13,7 +15,9 @@ import { isRunningInTauri } from '@lib/tauri';
 // @NOTE Dear diary, I am so, so sorry for doing this.
 __hackNextJsServerSideRenderingForTauri();
 
+// Global debug utilities accessible from devtools console
 __storeMobxGlobalsForDebugging();
+DebugModule.register();
 
 /* Mock Tauri IPC if not running in Tauri */
 if (typeof window !== "undefined") {
