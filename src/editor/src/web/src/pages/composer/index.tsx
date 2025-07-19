@@ -2,21 +2,20 @@ import type { FunctionComponent } from "react";
 import { useEffect, useRef, useState } from "react";
 import { observer } from "mobx-react-lite";
 import Link from "next/link";
-import { save } from '@tauri-apps/plugin-dialog';
-import { writeFile } from '@tauri-apps/plugin-fs';
 import { PlayIcon, StopIcon, ArrowLeftEndOnRectangleIcon, CubeIcon, PlusIcon, XMarkIcon } from '@heroicons/react/24/solid';
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 
 import { useLibrary } from "@lib/index";
 import { DragAndDropDataProvider } from '@lib/util/drag-and-drop';
 import { SceneData } from "@lib/project/data";
+import type { TabData } from "@lib/composer/ComposerController";
+import { showSavePrompt } from "@lib/tauri/showSavePrompt";
 import SceneView from "@app/components/composer/SceneView";
 import Player from "@app/components/player";
 import { AssetsAndScenes } from "@app/components/composer/AssetsAndScenes";
 import { TabBar, TabButtonProps, TabPage, TabProvider, useTabState } from "@app/components/tabs";
 import { StatusBar } from "@app/components/composer/StatusBar";
 import { useSceneDrop } from "@app/interactions";
-import type { TabData } from "@lib/composer/ComposerController";
 
 
 interface Props { }
@@ -56,15 +55,13 @@ const ComposerPage: FunctionComponent<Props> = observer(({ }) => {
   const debug_exportScene = async (): Promise<void> => {
 
     const bytes = await ComposerController.debug_buildCartridge();
-    const savePath = await save({
+
+    await showSavePrompt(bytes, {
       filters: [{
         name: 'PolyZone Cartridge',
         extensions: ['pzcart'],
       }],
     });
-    if (!savePath) return;
-
-    await writeFile(savePath, bytes);
   };
 
   const debug_playProject = async (): Promise<void> => {

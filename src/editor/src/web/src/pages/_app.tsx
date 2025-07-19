@@ -11,13 +11,14 @@ import '@app/styles/index.css';
 import { createLibrary, LibraryContext } from '@lib/index';
 import { mockTauri } from '@lib/tauri/mock'; // @TODO Exclude from production build
 import { isRunningInTauri } from '@lib/tauri';
+import { showSavePrompt } from '@lib/tauri/showSavePrompt';
 
 // @NOTE Dear diary, I am so, so sorry for doing this.
 __hackNextJsServerSideRenderingForTauri();
 
 // Global debug utilities accessible from devtools console
 __storeMobxGlobalsForDebugging();
-DebugModule.register();
+__registerDebugModule();
 
 /* Mock Tauri IPC if not running in Tauri */
 if (typeof window !== "undefined") {
@@ -132,5 +133,21 @@ function __storeMobxGlobalsForDebugging(): void {
     (window as any).Mobx = {
       toJS: Mobx.toJS,
     };
+  }
+}
+
+function __registerDebugModule(): void {
+  if (isRunningInTauri()) {
+    /* Use Tauri for downloading files */
+    async function saveOverride(data: Blob, filename: string): Promise<void> {
+      const bytes = await data.bytes();
+      return showSavePrompt(bytes, {
+        defaultPath: filename,
+      });
+    }
+    DebugModule.register(saveOverride);
+  } else {
+    /* Use native browser functionality for downloading */
+    DebugModule.register();
   }
 }

@@ -18,6 +18,8 @@ interface RecordCanvasRawOptions extends Omit<RecordCanvasOptions, 'length'> {
   length: number;
 }
 
+type SaveOverrideFunction = (data: Blob, filename: string) => void | Promise<void>;
+
 /*
   @NOTE Since `DebugModule` is designed to be called from a JavaScript context (e.g. Devtools)
   you MUST validate parameters and types!
@@ -28,18 +30,28 @@ interface RecordCanvasRawOptions extends Omit<RecordCanvasOptions, 'length'> {
  * Contains various debug utilities for working in PolyZone.
  */
 export class DebugModule {
+  /**
+   * Optional override for saving files (e.g. for Tauri integration).
+   * If set, this will be called with (data: Blob, filename: string) instead of using <a> tag download.
+   */
+  public saveOverride?: SaveOverrideFunction;
 
   private _currentMediaRecorder: MediaRecorder | undefined = undefined;
   private _currentRecordingBlobs: Blob[] | undefined = undefined;
   private _currentRecordingAutoStopTimer: ReturnType<typeof setTimeout> | undefined = undefined;
 
+  private constructor(saveOverride: SaveOverrideFunction | undefined) {
+    this.saveOverride = saveOverride;
+  }
+
   /**
    * Create an instance of `DebugModule` and store it on `window.Debug`.
+   * @param saveOverride Optional override for providing custom file-saving logic.
    */
-  public static register(): void {
+  public static register(saveOverride: SaveOverrideFunction | undefined = undefined): void {
     /* eslint-disable @typescript-eslint/no-unsafe-member-access */
     if (typeof window !== 'undefined' && (window as any).Debug === undefined) {
-      (window as any).Debug = new DebugModule();
+      (window as any).Debug = new DebugModule(saveOverride);
     }
     /* eslint-enable @typescript-eslint/no-unsafe-member-access */
   }
@@ -170,19 +182,8 @@ export class DebugModule {
 
     // Wait for last data before saving video
     this._currentMediaRecorder.onstop = (_e) => {
-      // Ye olde construct blob and add a button to the page to download it hack
       const blob = new Blob(this._currentRecordingBlobs, { type: 'video/webm' });
-      const url = window.URL.createObjectURL(blob);
-      const downloadElement = document.createElement('a');
-      downloadElement.style.display = 'none';
-      downloadElement.href = url;
-      downloadElement.download = 'recording.webm';
-      document.body.appendChild(downloadElement);
-      downloadElement.click();
-      setTimeout(() => {
-        document.body.removeChild(downloadElement);
-        window.URL.revokeObjectURL(url);
-      }, 100);
+      void this.saveFile(blob, 'recording.webm');
     };
     this._currentMediaRecorder = undefined;
   }
@@ -223,17 +224,7 @@ export class DebugModule {
 
     canvas.toBlob((blob) => {
       if (blob === null) throw new Error(`Could not capture canvas contents`);
-
-      const downloadElement = document.createElement('a');
-      downloadElement.style.display = 'none';
-      downloadElement.href = URL.createObjectURL(blob);
-      downloadElement.download = 'screenshot.png';
-      document.body.appendChild(downloadElement);
-      downloadElement.click();
-      setTimeout(() => {
-        document.body.removeChild(downloadElement);
-        URL.revokeObjectURL(downloadElement.href);
-      }, 100);
+      void this.saveFile(blob, 'screenshot.png');
     }, 'image/png', 1);
   }
 
@@ -359,14 +350,29 @@ export class DebugModule {
     });
     const zipped = zipSync(files);
     const blob = new Blob([zipped], { type: 'application/zip' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'frames.zip';
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(() => {
-      document.body.removeChild(a);
-      URL.revokeObjectURL(a.href);
-    }, 100);
+    void this.saveFile(blob, 'frames.zip');
+  }
+
+  /**
+   * Prompt the user to save a blob as a file.
+   */
+  private async saveFile(blob: Blob, filename: string): Promise<void> {
+    if (this.saveOverride) {
+      // Use override if one is provided (assume external logic will handle everything)
+      await this.saveOverride(blob, filename);
+    } else {
+      // Use ye-old anchor tag tricks to prompt user for a file download
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 100);
+    }
   }
 }
