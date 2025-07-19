@@ -83,7 +83,7 @@ export function canonicalisePath(path: string, stripProtocol: boolean = false): 
  * @param stripProtocol Whether the paths need to have a protocol stripped from them first (e.g. `http://`)
  */
 export function arePathsCanonicallyEquivalent(pathA: string, pathB: string, stripProtocol: boolean = false): boolean {
-  return canonicalisePath(pathA, stripProtocol) === canonicalisePath(pathB, stripProtocol);
+  return canonicalisePath(pathA, stripProtocol).toLowerCase() === canonicalisePath(pathB, stripProtocol).toLowerCase();
 }
 
 /**
