@@ -1,23 +1,10 @@
 import { describe, expect, test } from "vitest";
+import { sleep } from '@test/util/sleep';
 import { Mutator } from './Mutator';
 import { IMutation } from "./IMutation";
 import { IContinuousMutation } from "./IContinuousMutation";
 
 describe(Mutator.name, () => {
-  /* @TODO Test Backlog
-    - Beginning another continuous mutation while the previous mutation is still debouncing applies the previous mutation immediately
-    - Beginning another regular mutation while the previous mutation is still debouncing applies the previous mutation immediately
-    - Beginning another continuous mutation before the previous continuous mutation has been applied throws an error
-    - Updating a continuous mutation that is not the latest mutation throws an error
-    - Calling `apply()` on a continuous mutation that is not the latest mutation throws an error
-    - Calling `applyInstantly()` on a continuous mutation applies the mutation instantly
-    - Calling `apply()` on a regular mutation before the previous continuous mutation has been applied throws an error
-    - Calling `apply()` on a regular mutation twice throws an error
-    - Calling `apply()` on a continuous mutation twice throws an error
-    - Mutation with `afterPersistChanges()` is called after `persistChanges()` is called
-    - Calling `debounceContinuous()` with another continuous mutation while the previous mutation is still debouncing applies the previous mutation immediately
-   */
-
   test('Applying a mutation applies it', () => {
     // Setup
     const initialMockStateValue = 5;
@@ -118,7 +105,7 @@ describe(Mutator.name, () => {
     expect(timesPersisted).toBe(1);
   });
 
-  test('Calling `debounceContinuous()` repeatedly updates the state, only applies after debounce window', () => {
+  test('Calling `debounceContinuous()` repeatedly updates the state, only applies after debounce window', async () => {
     // Setup
     const mockDebounceWindowMs = 100;
     const mockDebounceMutationTarget = {};
@@ -168,18 +155,446 @@ describe(Mutator.name, () => {
     expect(actions.some((action) => action.startsWith('apply'))).toBe(false);
     expect(timesPersisted).toBe(0);
 
-    // Assert
     // Wait for debounce timeout before asserting
-    // Need to wrap in a Promise so that vitest knows it needs to wait
-    return new Promise<void>((resolve) => {
-      setTimeout(() => {
-        expect(actions).toEqual(expectedActions);
-        expect(mutator.mockState.value).toBe(finalUpdateValue); // @TODO Not sure if this will be true when async, unless we `await`
-        expect(timesPersisted).toBe(1);
+    await sleep(mockDebounceWindowMs + 50);
 
-        resolve();
-      }, mockDebounceWindowMs + 50);
-    });
+    // Assert
+    // Need to wrap in a Promise so that vitest knows it needs to wait
+    expect(actions).toEqual(expectedActions);
+    expect(mutator.mockState.value).toBe(finalUpdateValue); // @TODO Not sure if this will be true when async, unless we `await`
+    expect(timesPersisted).toBe(1);
+  });
+
+  test('Beginning another continuous mutation while the previous mutation is still debouncing applies the previous mutation immediately', async () => {
+    // Setup
+    const mockDebounceWindowMs = 100;
+    const mockDebounceMutationTargetA = {};
+    const mockDebounceMutationTargetB = {};
+    const initialMockStateValue = 5;
+    const mutator = new MockMutator(initialMockStateValue);
+
+    let timesPersisted = 0;
+    mutator.persistChangesImplementation = (): Promise<void> => {
+      timesPersisted++;
+      return Promise.resolve();
+    };
+
+    const actions: string[] = [];
+    const firstMutationNewValue = 10;
+    const secondMutationNewValue = 20;
+    const expectedActionsBeforeSecondMutation: string[] = [
+      'queue(10):5',      // queue($new_value):$current_value
+      'begin:5',          // begin:$current_value
+      'update(10):5',     // update($new_value):$current_value
+      // @NOTE apply() has not been called yet
+    ];
+    const expectedActionsImmediatelyAfterSecondMutation: string[] = [
+      ...expectedActionsBeforeSecondMutation,
+      'queue(20):10',
+      'apply:10',         // apply:$current_value - @NOTE First mutation applied by calling `debounceContinuous` on second mutation
+      'begin:10',
+      'update(20):10',
+    ];
+
+    // Test
+    // Start first debounced mutation
+    actions.push(`queue(${firstMutationNewValue}):${mutator.mockState.value}`);
+    mutator.debounceContinuous(
+      SetMockValueContinuousMutation,
+      mockDebounceMutationTargetA,
+      () => new SetMockValueContinuousMutation(
+        ({ MockState }) => actions.push(`begin:${MockState.value}`),
+        ({ MockState }, { value }) => actions.push(`update(${value}):${MockState.value}`),
+        ({ MockState }) => actions.push(`apply:${MockState.value}`),
+      ),
+      () => ({ value: firstMutationNewValue }),
+      mockDebounceWindowMs,
+    );
+
+    // Wait a bit, but NOT long enough for debounced action to fire
+    await sleep(mockDebounceWindowMs / 2);
+
+    // @NOTE Expect first mutation to have called begin and update but NOT apply
+    expect(actions).toEqual(expectedActionsBeforeSecondMutation);
+    expect(timesPersisted).toBe(0);
+
+    // Begin second mutation before first mutation's debounce expires
+    actions.push(`queue(${secondMutationNewValue}):${mutator.mockState.value}`);
+    const secondMutation = new SetMockValueContinuousMutation(
+      ({ MockState }) => actions.push(`begin:${MockState.value}`),
+      ({ MockState }, { value }) => actions.push(`update(${value}):${MockState.value}`),
+      ({ MockState }) => actions.push(`apply:${MockState.value}`),
+    );
+    mutator.beginContinuous(secondMutation);
+    mutator.updateContinuous(secondMutation, { value: secondMutationNewValue });
+
+    // Assert
+    expect(actions).toEqual(expectedActionsImmediatelyAfterSecondMutation);
+    expect(mutator.mockState.value).toBe(secondMutationNewValue);
+    expect(timesPersisted).toBe(1); // First mutation persisted
+  });
+
+  test('Calling `debounceContinuous()` with another continuous mutation while the previous mutation is still debouncing applies the previous mutation immediately', async () => {
+    // Setup
+    const mockDebounceWindowMs = 100;
+    const mockDebounceMutationTargetA = {};
+    const mockDebounceMutationTargetB = {};
+    const initialMockStateValue = 5;
+    const mutator = new MockMutator(initialMockStateValue);
+
+    let timesPersisted = 0;
+    mutator.persistChangesImplementation = (): Promise<void> => {
+      timesPersisted++;
+      return Promise.resolve();
+    };
+
+    const actions: string[] = [];
+    const firstMutationNewValue = 10;
+    const secondMutationNewValue = 20;
+    const expectedActionsBeforeSecondMutation: string[] = [
+      'queue(10):5',      // queue($new_value):$current_value
+      'begin:5',          // begin:$current_value
+      'update(10):5',     // update($new_value):$current_value
+      // @NOTE apply() has not been called yet
+    ];
+    const expectedActionsImmediatelyAfterSecondMutation: string[] = [
+      ...expectedActionsBeforeSecondMutation,
+      'queue(20):10',
+      'apply:10',         // apply:$current_value - @NOTE First mutation applied by calling `debounceContinuous` on second mutation
+      'begin:10',
+      'update(20):10',
+    ];
+    const expectedActionsAfterSecondMutationHasDebounced: string[] = [
+      ...expectedActionsImmediatelyAfterSecondMutation,
+      'apply:20',
+    ];
+
+    // Test
+    // Start first debounced mutation
+    actions.push(`queue(${firstMutationNewValue}):${mutator.mockState.value}`);
+    mutator.debounceContinuous(
+      SetMockValueContinuousMutation,
+      mockDebounceMutationTargetA,
+      () => new SetMockValueContinuousMutation(
+        ({ MockState }) => actions.push(`begin:${MockState.value}`),
+        ({ MockState }, { value }) => actions.push(`update(${value}):${MockState.value}`),
+        ({ MockState }) => actions.push(`apply:${MockState.value}`),
+      ),
+      () => ({ value: firstMutationNewValue }),
+      mockDebounceWindowMs,
+    );
+
+    // Wait a bit, but NOT long enough for debounced action to fire
+    await sleep(mockDebounceWindowMs / 2);
+
+    // @NOTE Expect first mutation to have called begin and update but NOT apply
+    expect(actions).toEqual(expectedActionsBeforeSecondMutation);
+    expect(timesPersisted).toBe(0);
+
+    // Call second mutation before first mutation's debounce expires
+    actions.push(`queue(${secondMutationNewValue}):${mutator.mockState.value}`);
+    mutator.debounceContinuous(
+      SetMockValueContinuousMutation,
+      mockDebounceMutationTargetB,
+      () => new SetMockValueContinuousMutation(
+        ({ MockState }) => actions.push(`begin:${MockState.value}`),
+        ({ MockState }, { value }) => actions.push(`update(${value}):${MockState.value}`),
+        ({ MockState }) => actions.push(`apply:${MockState.value}`),
+      ),
+      () => ({ value: secondMutationNewValue }),
+      mockDebounceWindowMs,
+    );
+
+    // Assert
+    expect(actions).toEqual(expectedActionsImmediatelyAfterSecondMutation);
+    expect(mutator.mockState.value).toBe(secondMutationNewValue);
+    expect(timesPersisted).toBe(1); // First mutation persisted
+
+    // Wait for second mutation's debounce timer
+    await sleep(mockDebounceWindowMs + 50);
+
+    expect(actions).toEqual(expectedActionsAfterSecondMutationHasDebounced);
+    expect(timesPersisted).toBe(2);
+  });
+
+  test('Beginning another regular mutation while the previous mutation is still debouncing applies the previous mutation immediately', async () => {
+    // Setup
+    const mockDebounceWindowMs = 100;
+    const mockDebounceMutationTarget = {};
+    const initialMockStateValue = 5;
+    const mutator = new MockMutator(initialMockStateValue);
+
+    let timesPersisted = 0;
+    mutator.persistChangesImplementation = (): Promise<void> => {
+      timesPersisted++;
+      return Promise.resolve();
+    };
+
+    const actions: string[] = [];
+    const firstMutationNewValue = 10;
+    const secondMutationNewValue = 20;
+    const expectedActionsBeforeSecondMutation: string[] = [
+      'queue(10):5',      // queue($new_value):$current_value
+      'begin:5',          // begin:$current_value
+      'update(10):5',     // update($new_value):$current_value
+      // @NOTE apply() has not been called yet
+    ];
+    const expectedActionsAfterSecondMutation: string[] = [
+      ...expectedActionsBeforeSecondMutation,
+      'queue(20):10',
+      'apply:10',         // apply:$current_value - @NOTE First mutation applied by calling `debounceContinuous` on second mutation
+      'apply(20):10',
+    ];
+
+    // Test
+    // Start debounced mutation
+    actions.push(`queue(${firstMutationNewValue}):${mutator.mockState.value}`);
+    mutator.debounceContinuous(
+      SetMockValueContinuousMutation,
+      mockDebounceMutationTarget,
+      () => new SetMockValueContinuousMutation(
+        ({ MockState }) => actions.push(`begin:${MockState.value}`),
+        ({ MockState }, { value }) => actions.push(`update(${value}):${MockState.value}`),
+        ({ MockState }) => actions.push(`apply:${MockState.value}`),
+      ),
+      () => ({ value: firstMutationNewValue }),
+      mockDebounceWindowMs,
+    );
+
+    // Wait a bit, but NOT long enough for debounced action to fire
+    await sleep(mockDebounceWindowMs / 2);
+
+    // @NOTE Expect first mutation to have called begin and update but NOT apply
+    expect(actions).toEqual(expectedActionsBeforeSecondMutation);
+    expect(timesPersisted).toBe(0);
+
+    // Apply regular mutation before first mutation's debounce expires
+    actions.push(`queue(${secondMutationNewValue}):${mutator.mockState.value}`);
+    mutator.apply(new SetMockValueMutation(secondMutationNewValue, ({ MockState }) => actions.push(`apply(${secondMutationNewValue}):${MockState.value}`)));
+
+    // Assert
+    expect(actions).toEqual(expectedActionsAfterSecondMutation);
+    expect(mutator.mockState.value).toBe(secondMutationNewValue);
+    expect(timesPersisted).toBe(2); // Both mutations persisted
+  });
+
+  test('Beginning another continuous mutation before the previous continuous mutation has been applied throws an error', () => {
+    // Setup
+    const initialMockStateValue = 5;
+    const mutator = new MockMutator(initialMockStateValue);
+
+    const firstContinuousMutation = new SetMockValueContinuousMutation();
+    const secondContinuousMutation = new SetMockValueContinuousMutation();
+
+    // Test
+    // Start first mutation
+    mutator.beginContinuous(firstContinuousMutation);
+    mutator.updateContinuous(firstContinuousMutation, { value: 10 });
+    // @NOTE Do not apply first mutation yet
+
+    // Attempt to begin a second mutation before applying the first
+    const testFunc = (): void => {
+      mutator.beginContinuous(secondContinuousMutation);
+    };
+
+    // Assert
+    expect(testFunc).toThrow('Cannot begin continuous mutation - Previous continuous mutation has not been applied');
+  });
+
+  test('Updating a continuous mutation that is not the latest mutation throws an error', () => {
+    // Setup
+    const initialMockStateValue = 5;
+    const mutator = new MockMutator(initialMockStateValue);
+
+    const firstContinuousMutation = new SetMockValueContinuousMutation();
+    const secondContinuousMutation = new SetMockValueContinuousMutation();
+
+    // Test
+    // Apply first mutation
+    mutator.beginContinuous(firstContinuousMutation);
+    mutator.updateContinuous(firstContinuousMutation, { value: 10 });
+    mutator.apply(firstContinuousMutation);
+
+    // Start a second mutation
+    mutator.beginContinuous(secondContinuousMutation); // Begin second mutation
+
+    // Attempt to update the first mutation
+    const testFunc = (): void => {
+      mutator.updateContinuous(firstContinuousMutation, { value: 20 });
+    };
+
+    // Assert
+    expect(testFunc).toThrow('Cannot update continuous mutation - provided instance is not the latest mutation');
+  });
+
+  test('Calling `apply()` on a continuous mutation that is not the latest mutation throws an error', () => {
+    // Setup
+    const initialMockStateValue = 5;
+    const mutator = new MockMutator(initialMockStateValue);
+
+    const firstContinuousMutation = new SetMockValueContinuousMutation();
+    const secondContinuousMutation = new SetMockValueContinuousMutation();
+
+    // Test
+    // Apply first mutation
+    mutator.beginContinuous(firstContinuousMutation);
+    mutator.updateContinuous(firstContinuousMutation, { value: 10 });
+    mutator.apply(firstContinuousMutation); // Apply first mutation
+
+    // Start a second mutation
+    mutator.beginContinuous(secondContinuousMutation); // Begin second mutation
+
+    // Attempt to apply the first mutation again
+    const testFunc = (): void => {
+      mutator.apply(firstContinuousMutation);
+    };
+
+    // Assert
+    expect(testFunc).toThrow('Cannot apply continuous mutation - It is not the latest mutation, did you call \'beginContinuous()\'?');
+  });
+
+  test('Calling `applyInstantly()` on a continuous mutation applies the mutation instantly', () => {
+    // Setup
+    const initialMockStateValue = 5;
+    const mutator = new MockMutator(initialMockStateValue);
+    const newValue = 15;
+
+    let timesPersisted = 0;
+    mutator.persistChangesImplementation = (): Promise<void> => {
+      timesPersisted++;
+      return Promise.resolve();
+    };
+
+    const actions: string[] = [];
+    const expectedActions = [
+      'begin:5',
+      'update(15):5',
+      'apply:15',
+    ];
+
+    const continuousMutation = new SetMockValueContinuousMutation(
+      ({ MockState }) => actions.push(`begin:${MockState.value}`),
+      ({ MockState }, { value }) => actions.push(`update(${value}):${MockState.value}`),
+      ({ MockState }) => actions.push(`apply:${MockState.value}`),
+    );
+
+    // Test
+    mutator.applyInstantly(continuousMutation, { value: newValue });
+
+    // Assert
+    expect(actions).toEqual(expectedActions);
+    expect(mutator.mockState.value).toBe(newValue);
+    expect(timesPersisted).toBe(1);
+    expect(continuousMutation.hasBeenApplied).toBe(true);
+  });
+
+  test('Calling `apply()` on a regular mutation before the previous continuous mutation has been applied throws an error', () => {
+    // Setup
+    const initialMockStateValue = 5;
+    const mutator = new MockMutator(initialMockStateValue);
+
+    const continuousMutation = new SetMockValueContinuousMutation();
+    const regularMutation = new SetMockValueMutation(10);
+
+    // Test
+    // Begin a continuous mutation
+    mutator.beginContinuous(continuousMutation);
+    mutator.updateContinuous(continuousMutation, { value: 10 });
+
+    // Attempt to apply a regular mutation before applying the continuous mutation
+    const testFunc = (): void => {
+      mutator.apply(regularMutation);
+    };
+
+    // Assert
+    expect(testFunc).toThrow('Cannot apply mutation - Previous continuous mutation has not been applied');
+  });
+
+  test('Calling `apply()` on a regular mutation twice throws an error', () => {
+    // Setup
+    const initialMockStateValue = 5;
+    const mutator = new MockMutator(initialMockStateValue);
+
+    const mutation = new SetMockValueMutation(10);
+
+    // Test
+    // Apply the mutation
+    mutator.apply(mutation);
+
+    // Attempt to apply the same mutation again
+    const testFunc = (): void => {
+      mutator.apply(mutation);
+    };
+
+    // Assert
+    expect(testFunc).toThrow('Cannot apply mutation - It has already been applied');
+  });
+
+  test('Calling `apply()` on a continuous mutation twice throws an error', () => {
+    // Setup
+    const initialMockStateValue = 5;
+    const mutator = new MockMutator(initialMockStateValue);
+
+    const continuousMutation = new SetMockValueContinuousMutation();
+
+    // Test
+    // Apply a mutation
+    mutator.beginContinuous(continuousMutation);
+    mutator.updateContinuous(continuousMutation, { value: 10 });
+    mutator.apply(continuousMutation);
+
+    // Attempt to apply the same mutation again
+    const testFunc = (): void => {
+      mutator.apply(continuousMutation);
+    };
+
+    // Assert
+    expect(testFunc).toThrow('Cannot apply continuous mutation - It has already been applied');
+  });
+
+  test('Mutation with `afterPersistChanges()` is called after `persistChanges()` is called', async () => {
+    // Setup
+    const initialMockStateValue = 5;
+    const mutator = new MockMutator(initialMockStateValue);
+    const newValue = 10;
+
+    const actions: string[] = [];
+    const expectedActions: string[] = [
+      'queue(10):5',          // queue:$current_value
+      'apply(10):5',          // apply:$current_value
+      'persistChanges',
+      'afterPersistChanges',
+    ];
+
+    // Record when `persistChanges()` is called
+    mutator.persistChangesImplementation = (): Promise<void> => {
+      actions.push('persistChanges');
+      return Promise.resolve();
+    };
+
+    // Create a mutation
+    const mutation = new SetMockValueMutation(
+      newValue,
+      ({ MockState }) => actions.push(`apply(${newValue}):${MockState.value}`),
+    );
+    // Set `afterPersistChanges` to record when it is called
+    mutation.afterPersistChanges = () => {
+      actions.push('afterPersistChanges');
+      return Promise.resolve();
+    };
+
+    // Test
+    // Apply mutation
+    actions.push(`queue(${newValue}):${mutator.mockState.value}`);
+    mutator.apply(mutation);
+
+    // Wait a bit for async operations to complete
+    // @TODO This will evaporate when we make mutations async
+    await new Promise(resolve => setTimeout(resolve, 10));
+
+    // Assert
+    expect(actions).toEqual(expectedActions);
+    expect(mutator.mockState.value).toBe(newValue);
   });
 });
 
@@ -229,6 +644,8 @@ class SetMockValueMutation implements IMockMutation {
 
   // Undo state
   private oldValue: number | undefined;
+
+  public afterPersistChanges?: ((args: MockMutationArgs) => Promise<void> | void) | undefined;
 
   public constructor(
     newValue: number,
@@ -286,6 +703,8 @@ class SetMockValueContinuousMutation implements IContinuousMockMutation<SetMockV
 
   // Undo state
   private oldValue: number | undefined;
+
+  public afterPersistChanges?: ((args: MockMutationArgs) => Promise<void> | void) | undefined;
 
   public constructor(
     onBegin: ((args: MockMutationArgs) => void) | undefined = undefined,
