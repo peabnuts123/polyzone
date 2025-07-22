@@ -1,4 +1,4 @@
-import { describe, expect, test } from "@jest/globals";
+import { describe, expect, test } from 'vitest';
 import { Color3 } from "@polyzone/core/src/util";
 
 describe(Color3.name, () => {

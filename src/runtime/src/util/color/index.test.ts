@@ -1,4 +1,4 @@
-import { describe, expect, test } from "@jest/globals";
+import { describe, expect, test } from 'vitest';
 import { Color3 as Color3Babylon, Color4 as Color4Babylon } from "@babylonjs/core/Maths/math.color";
 
 import { Color3 as Color3Core, Color4 as Color4Core } from "@polyzone/core/src/util";

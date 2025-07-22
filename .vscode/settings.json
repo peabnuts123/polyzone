@@ -21,9 +21,4 @@
   "css.customData": [
     ".vscode/tailwind.json"
   ],
-  "jestrunner.debugOptions": {
-    "runtimeArgs": [
-      "--experimental-vm-modules",
-    ],
-  },
 }

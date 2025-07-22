@@ -1,4 +1,4 @@
-import { describe, expect, test } from "@jest/globals";
+import { describe, expect, test } from 'vitest';
 import { WrappedColor3Babylon } from "./WrappedColor3Babylon";
 import { Color3 as Color3Core } from "@polyzone/core/src/util";
 import { toColor3Babylon } from "./index";

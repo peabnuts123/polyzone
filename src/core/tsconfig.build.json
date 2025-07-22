@@ -3,6 +3,6 @@
   "exclude": [
     "**/*.test.ts",
     "eslint.config.mjs",
-    "jest.config.ts",
+    "vitest.config.ts",
   ]
 }

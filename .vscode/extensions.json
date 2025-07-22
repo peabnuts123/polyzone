@@ -3,7 +3,7 @@
     "dbaeumer.vscode-eslint",
     "tauri-apps.tauri-vscode",
     "rust-lang.rust-analyzer",
-    "firsttris.vscode-jest-runner",
+    "vitest.explorer",
     "bradlc.vscode-tailwindcss"
   ]
 }

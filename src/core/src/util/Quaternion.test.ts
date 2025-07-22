@@ -1,4 +1,4 @@
-import { describe, expect, test } from "@jest/globals";
+import { describe, expect, test } from 'vitest';
 import { Quaternion as QuaternionBabylon, Vector3 as Vector3Babylon } from '@babylonjs/core';
 import { Quaternion } from './Quaternion';
 import { Vector3 } from "./Vector3";

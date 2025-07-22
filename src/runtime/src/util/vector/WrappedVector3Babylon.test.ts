@@ -1,5 +1,5 @@
 import { Vector3 as Vector3Babylon } from '@babylonjs/core/Maths/math.vector';
-import { describe, expect, test } from '@jest/globals';
+import { describe, expect, test } from 'vitest';
 
 import { Vector3 as Vector3Core } from '@polyzone/core/src';
 
