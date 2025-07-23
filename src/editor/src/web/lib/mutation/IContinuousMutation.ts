@@ -4,8 +4,8 @@ export interface IContinuousMutation<TMutationArgs, TUpdateArgs> extends IMutati
   get hasBeenApplied(): boolean;
   set hasBeenApplied(value: boolean);
 
-  begin(args: TMutationArgs): void;
-  update(args: TMutationArgs, updateArgs: TUpdateArgs): void;
+  begin(args: TMutationArgs): void | Promise<void>;
+  update(args: TMutationArgs, updateArgs: TUpdateArgs): void | Promise<void>;
 }
 
 export function isContinuousMutation<TMutationArgs>(mutation: IMutation<TMutationArgs> | undefined): mutation is IContinuousMutation<TMutationArgs, unknown> {

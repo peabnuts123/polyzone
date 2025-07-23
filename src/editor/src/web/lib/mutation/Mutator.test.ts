@@ -5,20 +5,20 @@ import { IMutation } from "./IMutation";
 import { IContinuousMutation } from "./IContinuousMutation";
 
 describe(Mutator.name, () => {
-  test('Applying a mutation applies it', () => {
+  test('Applying a mutation applies it', async () => {
     // Setup
     const initialMockStateValue = 5;
     const mutator = new MockMutator(initialMockStateValue);
     const newMockStateValue = 9;
 
     // Test
-    mutator.apply(new SetMockValueMutation(newMockStateValue));
+    await mutator.apply(new SetMockValueMutation(newMockStateValue));
 
     // Assert
     expect(mutator.mockState.value).toBe(newMockStateValue);
   });
 
-  test('Applying several mutations applies them in series', () => {
+  test('Applying several mutations applies them in series', async () => {
     // Setup
     const initialMockStateValue = 5;
     const mutator = new MockMutator(initialMockStateValue);
@@ -29,34 +29,40 @@ describe(Mutator.name, () => {
 
     const actions: string[] = [];
     const expectedActions: string[] = [
-      // @TODO Ordering will change when mutations are async
       'queue(9):5',       // queue($new_value):$current_value
       'apply(9):5',       // apply($new_value):$current_value
       'queue(12):9',
+      'queue(15):9',
       'apply(12):9',
-      'queue(15):12',
       'apply(15):12',
     ];
 
     // Test
+    const mutationPromises: Promise<void>[] = [];
     for (const updateValue of updateValues) {
       actions.push(`queue(${updateValue}):${mutator.mockState.value}`);
-      mutator.apply(
-        new SetMockValueMutation(updateValue,
+      mutationPromises.push(
+        mutator.apply(
+          new SetMockValueMutation(updateValue,
           /* onApply: */({ MockState }) => {
-            actions.push(`apply(${updateValue}):${MockState.value}`);
-          }),
+              actions.push(`apply(${updateValue}):${MockState.value}`);
+            }),
+        ).then(() => {
+          // After each mutation resolves, expect the value to be updated
+          expect(mutator.mockState.value).toBe(updateValue);
+        }),
       );
-      // @TODO this will be async in the future
-      expect(mutator.mockState.value).toBe(updateValue);
     }
+
+    // Wait for mutations to all finish
+    await Promise.all(mutationPromises);
 
     // Assert
     expect(actions).toEqual(expectedActions);
     expect(mutator.mockState.value).toBe(finalUpdateValue);
   });
 
-  test('Continuous mutation mutates state, only persists on apply', () => {
+  test('Continuous mutation mutates state, only persists on apply', async () => {
     // Setup
     const initialMockStateValue = 5;
     const mutator = new MockMutator(initialMockStateValue);
@@ -87,17 +93,27 @@ describe(Mutator.name, () => {
 
     // Test
     /* Continuous phase: begin */
-    mutator.beginContinuous(continuousMutation);
+    const mutationPromises: Promise<void>[] = [];
+    mutationPromises.push(
+      mutator.beginContinuous(continuousMutation),
+    );
 
     /* Continuous phase: update... */
     for (const updateValue of updateValues) {
-      mutator.updateContinuous(continuousMutation, { value: updateValue });
-      expect(mutator.mockState.value).toBe(updateValue); // State should be updated immediately
+      mutationPromises.push(
+        mutator.updateContinuous(continuousMutation, { value: updateValue })
+          .then(() => {
+            expect(mutator.mockState.value).toBe(updateValue); // State should be updated immediately
+          }),
+      );
     }
+
+    // Wait for all work to settle
+    await Promise.all(mutationPromises);
     expect(timesPersisted).toBe(0); // No persistence yet
 
     /* Continuous phase: apply */
-    mutator.apply(continuousMutation);
+    await mutator.apply(continuousMutation);
 
     // Assert
     expect(actions).toEqual(expectedActions);
@@ -122,34 +138,44 @@ describe(Mutator.name, () => {
 
     const actions: string[] = [];
     const expectedActions: string[] = [
-      // @TODO The order of this will change when mutations are async
       'queue(9):5',       // queue($new_value):$current_value
       'begin:5',          // begin:$current_value
+      'queue(12):5',
+      'queue(15):5',
+      'queue(20):5',
       'update(9):5',      // update($new_value):$current_value
-      'queue(12):9',
       'update(12):9',
-      'queue(15):12',
       'update(15):12',
-      'queue(20):15',
       'update(20):15',
       'apply:20',         // apply:$current_value
     ];
 
     // Test
+    const mutationPromises: Promise<void>[] = [];
     for (const updateValue of updateValues) {
+      // Queue several invocations of debounceContinuous
       actions.push(`queue(${updateValue}):${mutator.mockState.value}`);
-      mutator.debounceContinuous(
-        SetMockValueContinuousMutation,
-        mockDebounceMutationTarget,
-        () => new SetMockValueContinuousMutation(
-          ({ MockState }) => actions.push(`begin:${MockState.value}`),
-          ({ MockState }, { value }) => actions.push(`update(${value}):${MockState.value}`),
-          ({ MockState }) => actions.push(`apply:${MockState.value}`),
-        ),
-        () => ({ value: updateValue }),
-        mockDebounceWindowMs,
+      mutationPromises.push(
+        mutator.debounceContinuous(
+          SetMockValueContinuousMutation,
+          mockDebounceMutationTarget,
+          () => new SetMockValueContinuousMutation(
+            ({ MockState }) => actions.push(`begin:${MockState.value}`),
+            ({ MockState }, { value }) => actions.push(`update(${value}):${MockState.value}`),
+            ({ MockState }) => actions.push(`apply:${MockState.value}`),
+          ),
+          () => ({ value: updateValue }),
+          mockDebounceWindowMs,
+        )
+          .then(() => {
+            // After each debounce resolves, expect the value to be updated
+            expect(mutator.mockState.value).toBe(updateValue);
+          }),
       );
     }
+
+    // Wait for all debounceContinuous invocations to complete
+    await Promise.all(mutationPromises);
 
     // Apply should not have been called yet
     expect(actions.some((action) => action.startsWith('apply'))).toBe(false);
@@ -161,15 +187,14 @@ describe(Mutator.name, () => {
     // Assert
     // Need to wrap in a Promise so that vitest knows it needs to wait
     expect(actions).toEqual(expectedActions);
-    expect(mutator.mockState.value).toBe(finalUpdateValue); // @TODO Not sure if this will be true when async, unless we `await`
+    expect(mutator.mockState.value).toBe(finalUpdateValue);
     expect(timesPersisted).toBe(1);
   });
 
   test('Beginning another continuous mutation while the previous mutation is still debouncing applies the previous mutation immediately', async () => {
     // Setup
     const mockDebounceWindowMs = 100;
-    const mockDebounceMutationTargetA = {};
-    const mockDebounceMutationTargetB = {};
+    const mockDebounceMutationTarget = {};
     const initialMockStateValue = 5;
     const mutator = new MockMutator(initialMockStateValue);
 
@@ -201,7 +226,7 @@ describe(Mutator.name, () => {
     actions.push(`queue(${firstMutationNewValue}):${mutator.mockState.value}`);
     mutator.debounceContinuous(
       SetMockValueContinuousMutation,
-      mockDebounceMutationTargetA,
+      mockDebounceMutationTarget,
       () => new SetMockValueContinuousMutation(
         ({ MockState }) => actions.push(`begin:${MockState.value}`),
         ({ MockState }, { value }) => actions.push(`update(${value}):${MockState.value}`),
@@ -225,13 +250,13 @@ describe(Mutator.name, () => {
       ({ MockState }, { value }) => actions.push(`update(${value}):${MockState.value}`),
       ({ MockState }) => actions.push(`apply:${MockState.value}`),
     );
-    mutator.beginContinuous(secondMutation);
-    mutator.updateContinuous(secondMutation, { value: secondMutationNewValue });
+    await mutator.beginContinuous(secondMutation);
+    await mutator.updateContinuous(secondMutation, { value: secondMutationNewValue });
 
     // Assert
     expect(actions).toEqual(expectedActionsImmediatelyAfterSecondMutation);
     expect(mutator.mockState.value).toBe(secondMutationNewValue);
-    expect(timesPersisted).toBe(1); // First mutation persisted
+    expect(timesPersisted).toBe(1); // First mutation persisted only
   });
 
   test('Calling `debounceContinuous()` with another continuous mutation while the previous mutation is still debouncing applies the previous mutation immediately', async () => {
@@ -293,7 +318,7 @@ describe(Mutator.name, () => {
 
     // Call second mutation before first mutation's debounce expires
     actions.push(`queue(${secondMutationNewValue}):${mutator.mockState.value}`);
-    mutator.debounceContinuous(
+    await mutator.debounceContinuous(
       SetMockValueContinuousMutation,
       mockDebounceMutationTargetB,
       () => new SetMockValueContinuousMutation(
@@ -370,7 +395,7 @@ describe(Mutator.name, () => {
 
     // Apply regular mutation before first mutation's debounce expires
     actions.push(`queue(${secondMutationNewValue}):${mutator.mockState.value}`);
-    mutator.apply(new SetMockValueMutation(secondMutationNewValue, ({ MockState }) => actions.push(`apply(${secondMutationNewValue}):${MockState.value}`)));
+    await mutator.apply(new SetMockValueMutation(secondMutationNewValue, ({ MockState }) => actions.push(`apply(${secondMutationNewValue}):${MockState.value}`)));
 
     // Assert
     expect(actions).toEqual(expectedActionsAfterSecondMutation);
@@ -378,7 +403,7 @@ describe(Mutator.name, () => {
     expect(timesPersisted).toBe(2); // Both mutations persisted
   });
 
-  test('Beginning another continuous mutation before the previous continuous mutation has been applied throws an error', () => {
+  test('Beginning another continuous mutation before the previous continuous mutation has been applied throws an error', async () => {
     // Setup
     const initialMockStateValue = 5;
     const mutator = new MockMutator(initialMockStateValue);
@@ -388,20 +413,20 @@ describe(Mutator.name, () => {
 
     // Test
     // Start first mutation
-    mutator.beginContinuous(firstContinuousMutation);
-    mutator.updateContinuous(firstContinuousMutation, { value: 10 });
+    await mutator.beginContinuous(firstContinuousMutation);
+    await mutator.updateContinuous(firstContinuousMutation, { value: 10 });
     // @NOTE Do not apply first mutation yet
 
     // Attempt to begin a second mutation before applying the first
-    const testFunc = (): void => {
-      mutator.beginContinuous(secondContinuousMutation);
+    const testFunc = async (): Promise<void> => {
+      await mutator.beginContinuous(secondContinuousMutation);
     };
 
     // Assert
-    expect(testFunc).toThrow('Cannot begin continuous mutation - Previous continuous mutation has not been applied');
+    await expect(testFunc).rejects.toThrow('Cannot begin continuous mutation - Previous continuous mutation has not been applied');
   });
 
-  test('Updating a continuous mutation that is not the latest mutation throws an error', () => {
+  test('Updating a continuous mutation that is not the latest mutation throws an error', async () => {
     // Setup
     const initialMockStateValue = 5;
     const mutator = new MockMutator(initialMockStateValue);
@@ -411,23 +436,23 @@ describe(Mutator.name, () => {
 
     // Test
     // Apply first mutation
-    mutator.beginContinuous(firstContinuousMutation);
-    mutator.updateContinuous(firstContinuousMutation, { value: 10 });
-    mutator.apply(firstContinuousMutation);
+    await mutator.beginContinuous(firstContinuousMutation);
+    await mutator.updateContinuous(firstContinuousMutation, { value: 10 });
+    await mutator.apply(firstContinuousMutation);
 
     // Start a second mutation
-    mutator.beginContinuous(secondContinuousMutation); // Begin second mutation
+    await mutator.beginContinuous(secondContinuousMutation); // Begin second mutation
 
     // Attempt to update the first mutation
-    const testFunc = (): void => {
-      mutator.updateContinuous(firstContinuousMutation, { value: 20 });
+    const testFunc = async (): Promise<void> => {
+      await mutator.updateContinuous(firstContinuousMutation, { value: 20 });
     };
 
     // Assert
-    expect(testFunc).toThrow('Cannot update continuous mutation - provided instance is not the latest mutation');
+    await expect(testFunc).rejects.toThrow('Cannot update continuous mutation - provided instance is not the latest mutation');
   });
 
-  test('Calling `apply()` on a continuous mutation that is not the latest mutation throws an error', () => {
+  test('Calling `apply()` on a continuous mutation that is not the latest mutation throws an error', async () => {
     // Setup
     const initialMockStateValue = 5;
     const mutator = new MockMutator(initialMockStateValue);
@@ -437,23 +462,23 @@ describe(Mutator.name, () => {
 
     // Test
     // Apply first mutation
-    mutator.beginContinuous(firstContinuousMutation);
-    mutator.updateContinuous(firstContinuousMutation, { value: 10 });
-    mutator.apply(firstContinuousMutation); // Apply first mutation
+    await mutator.beginContinuous(firstContinuousMutation);
+    await mutator.updateContinuous(firstContinuousMutation, { value: 10 });
+    await mutator.apply(firstContinuousMutation); // Apply first mutation
 
     // Start a second mutation
-    mutator.beginContinuous(secondContinuousMutation); // Begin second mutation
+    await mutator.beginContinuous(secondContinuousMutation); // Begin second mutation
 
     // Attempt to apply the first mutation again
-    const testFunc = (): void => {
-      mutator.apply(firstContinuousMutation);
+    const testFunc = async (): Promise<void> => {
+      await mutator.apply(firstContinuousMutation);
     };
 
     // Assert
-    expect(testFunc).toThrow('Cannot apply continuous mutation - It is not the latest mutation, did you call \'beginContinuous()\'?');
+    await expect(testFunc).rejects.toThrow('Cannot apply continuous mutation - It is not the latest mutation, did you call \'beginContinuous()\'?');
   });
 
-  test('Calling `applyInstantly()` on a continuous mutation applies the mutation instantly', () => {
+  test('Calling `applyInstantly()` on a continuous mutation applies the mutation instantly', async () => {
     // Setup
     const initialMockStateValue = 5;
     const mutator = new MockMutator(initialMockStateValue);
@@ -479,7 +504,7 @@ describe(Mutator.name, () => {
     );
 
     // Test
-    mutator.applyInstantly(continuousMutation, { value: newValue });
+    await mutator.applyInstantly(continuousMutation, { value: newValue });
 
     // Assert
     expect(actions).toEqual(expectedActions);
@@ -488,7 +513,7 @@ describe(Mutator.name, () => {
     expect(continuousMutation.hasBeenApplied).toBe(true);
   });
 
-  test('Calling `apply()` on a regular mutation before the previous continuous mutation has been applied throws an error', () => {
+  test('Calling `apply()` on a regular mutation before the previous continuous mutation has been applied throws an error', async () => {
     // Setup
     const initialMockStateValue = 5;
     const mutator = new MockMutator(initialMockStateValue);
@@ -498,19 +523,19 @@ describe(Mutator.name, () => {
 
     // Test
     // Begin a continuous mutation
-    mutator.beginContinuous(continuousMutation);
-    mutator.updateContinuous(continuousMutation, { value: 10 });
+    await mutator.beginContinuous(continuousMutation);
+    await mutator.updateContinuous(continuousMutation, { value: 10 });
 
     // Attempt to apply a regular mutation before applying the continuous mutation
-    const testFunc = (): void => {
-      mutator.apply(regularMutation);
+    const testFunc = async (): Promise<void> => {
+      await mutator.apply(regularMutation);
     };
 
     // Assert
-    expect(testFunc).toThrow('Cannot apply mutation - Previous continuous mutation has not been applied');
+    await expect(testFunc).rejects.toThrow('Cannot apply mutation - Previous continuous mutation has not been applied');
   });
 
-  test('Calling `apply()` on a regular mutation twice throws an error', () => {
+  test('Calling `apply()` on a regular mutation twice throws an error', async () => {
     // Setup
     const initialMockStateValue = 5;
     const mutator = new MockMutator(initialMockStateValue);
@@ -519,18 +544,18 @@ describe(Mutator.name, () => {
 
     // Test
     // Apply the mutation
-    mutator.apply(mutation);
+    await mutator.apply(mutation);
 
     // Attempt to apply the same mutation again
-    const testFunc = (): void => {
-      mutator.apply(mutation);
+    const testFunc = async (): Promise<void> => {
+      await mutator.apply(mutation);
     };
 
     // Assert
-    expect(testFunc).toThrow('Cannot apply mutation - It has already been applied');
+    await expect(testFunc).rejects.toThrow('Cannot apply mutation - It has already been applied');
   });
 
-  test('Calling `apply()` on a continuous mutation twice throws an error', () => {
+  test('Calling `apply()` on a continuous mutation twice throws an error', async () => {
     // Setup
     const initialMockStateValue = 5;
     const mutator = new MockMutator(initialMockStateValue);
@@ -539,17 +564,17 @@ describe(Mutator.name, () => {
 
     // Test
     // Apply a mutation
-    mutator.beginContinuous(continuousMutation);
-    mutator.updateContinuous(continuousMutation, { value: 10 });
-    mutator.apply(continuousMutation);
+    await mutator.beginContinuous(continuousMutation);
+    await mutator.updateContinuous(continuousMutation, { value: 10 });
+    await mutator.apply(continuousMutation);
 
     // Attempt to apply the same mutation again
-    const testFunc = (): void => {
-      mutator.apply(continuousMutation);
+    const testFunc = async (): Promise<void> => {
+      await mutator.apply(continuousMutation);
     };
 
     // Assert
-    expect(testFunc).toThrow('Cannot apply continuous mutation - It has already been applied');
+    await expect(testFunc).rejects.toThrow('Cannot apply continuous mutation - It has already been applied');
   });
 
   test('Mutation with `afterPersistChanges()` is called after `persistChanges()` is called', async () => {
@@ -586,11 +611,7 @@ describe(Mutator.name, () => {
     // Test
     // Apply mutation
     actions.push(`queue(${newValue}):${mutator.mockState.value}`);
-    mutator.apply(mutation);
-
-    // Wait a bit for async operations to complete
-    // @TODO This will evaporate when we make mutations async
-    await new Promise(resolve => setTimeout(resolve, 10));
+    await mutator.apply(mutation);
 
     // Assert
     expect(actions).toEqual(expectedActions);
