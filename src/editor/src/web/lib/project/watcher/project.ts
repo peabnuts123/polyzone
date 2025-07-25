@@ -2,7 +2,7 @@ import { UnwatchFn } from "@tauri-apps/plugin-fs";
 import { listen } from "@tauri-apps/api/event";
 
 import { TauriEvents } from "@lib/util/TauriEvents";
-import { ProjectController } from "../ProjectController";
+import type { IProjectController } from "../ProjectController";
 import { ProjectData } from "../data/ProjectData";
 
 
@@ -59,12 +59,12 @@ export type ProjectFileEvent = ProjectFileDeletedEvent | ProjectFileModifiedEven
 export type ProjectFileEventListener = (event: ProjectFileEvent) => void;
 
 export class ProjectFileWatcher {
-  private readonly projectController: ProjectController;
+  private readonly projectController: IProjectController;
   private stopListeningForEvents: UnwatchFn | undefined = undefined;
 
   private readonly eventListeners: ProjectFileEventListener[] = [];
 
-  public constructor(projectController: ProjectController) {
+  public constructor(projectController: IProjectController) {
     this.projectController = projectController;
   }
 

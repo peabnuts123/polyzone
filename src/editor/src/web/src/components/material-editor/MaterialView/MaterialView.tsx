@@ -3,11 +3,11 @@ import { useEffect, useRef } from "react";
 import { observer } from "mobx-react-lite";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 
-import { MaterialEditorViewController } from "@lib/material-editor/material/MaterialEditorViewController";
+import { IMaterialEditorViewController } from "@lib/material-editor/material/MaterialEditorViewController";
 import { Inspector } from "./Inspector";
 
 interface Props {
-  controller: MaterialEditorViewController;
+  controller: IMaterialEditorViewController;
 }
 
 export const MaterialView: FunctionComponent<Props> = observer(({ controller }) => {

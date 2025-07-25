@@ -22,14 +22,14 @@ import {
   SetMaterialReflectionStrengthMutation,
   SetMaterialReflectionTypeMutation,
 } from "@lib/mutation/MaterialEditor/MaterialEditorView/mutations";
-import { MaterialEditorViewController } from "@lib/material-editor/material/MaterialEditorViewController";
+import { IMaterialEditorViewController } from "@lib/material-editor/material/MaterialEditorViewController";
 import { ColorInput, createAssetReferenceComponentOfType, NumberInput } from "@app/components/common/inputs";
 import Spinner from "@app/components/spinner";
 
 const TextureAssetReference = createAssetReferenceComponentOfType<AssetType.Texture>();
 
 interface Props {
-  materialEditorViewController: MaterialEditorViewController;
+  materialEditorViewController: IMaterialEditorViewController;
 }
 export const Inspector: FunctionComponent<Props> = observer(({ materialEditorViewController: controller }) => {
   // Refs
@@ -122,7 +122,7 @@ export const Inspector: FunctionComponent<Props> = observer(({ materialEditorVie
 });
 
 export interface ReflectionInputProps {
-  controller: MaterialEditorViewController;
+  controller: IMaterialEditorViewController;
 }
 /* @NOTE Very similar to ModelView Inspector - just different mutations */
 export const ReflectionInput: FunctionComponent<ReflectionInputProps> = observer(({ controller }) => {

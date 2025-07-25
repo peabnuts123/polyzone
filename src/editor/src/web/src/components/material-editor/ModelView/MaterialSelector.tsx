@@ -3,10 +3,10 @@ import { observer } from "mobx-react-lite";
 import cn from 'classnames';
 import { GlobeAltIcon } from '@heroicons/react/24/outline';
 
-import { ModelEditorViewController } from "@lib/material-editor/model/ModelEditorViewController";
+import type { IModelEditorViewController } from "@lib/material-editor/model/ModelEditorViewController";
 
 interface Props {
-  controller: ModelEditorViewController;
+  controller: IModelEditorViewController;
 }
 
 export const MaterialSelector: FunctionComponent<Props> = observer(({ controller }) => {

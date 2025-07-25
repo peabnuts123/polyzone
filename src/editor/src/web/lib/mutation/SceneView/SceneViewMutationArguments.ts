@@ -1,7 +1,7 @@
-import { SceneViewController } from "@lib/composer/scene/SceneViewController";
-import { ProjectController } from "@lib/project/ProjectController";
+import type { ISceneViewController } from "@lib/composer/scene/SceneViewController";
+import type { IProjectController } from "@lib/project/ProjectController";
 
 export interface SceneViewMutationArguments {
-  SceneViewController: SceneViewController;
-  ProjectController: ProjectController;
+  SceneViewController: ISceneViewController;
+  ProjectController: IProjectController;
 }

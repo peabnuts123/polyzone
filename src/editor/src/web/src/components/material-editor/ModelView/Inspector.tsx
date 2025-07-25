@@ -4,7 +4,7 @@ import { observer } from "mobx-react-lite";
 import { RetroMaterial } from "@polyzone/runtime/src/materials/RetroMaterial";
 import { toColor3Core } from "@polyzone/runtime/src/util";
 
-import { ModelEditorViewController } from "@lib/material-editor/model/ModelEditorViewController";
+import type { IModelEditorViewController } from "@lib/material-editor/model/ModelEditorViewController";
 import { MaterialAssetData, MeshAssetMaterialOverrideData, TextureAssetData } from "@lib/project/data";
 import { ReflectionSeparateTexture, SetModelMaterialOverrideBaseMaterialEnabledMutation, SetModelMaterialOverrideBaseMaterialMutation, SetModelMaterialOverrideDiffuseColorEnabledMutation, SetModelMaterialOverrideDiffuseColorMutation, SetModelMaterialOverrideDiffuseTextureEnabledMutation, SetModelMaterialOverrideDiffuseTextureMutation, SetModelMaterialOverrideEmissionColorEnabledMutation, SetModelMaterialOverrideEmissionColorMutation, SetModelMaterialOverrideReflection3x2TextureMutation, SetModelMaterialOverrideReflection6x1TextureMutation, SetModelMaterialOverrideReflectionBoxNetTextureMutation, SetModelMaterialOverrideReflectionEnabledMutation, SetModelMaterialOverrideReflectionSeparateTextureMutation, SetModelMaterialOverrideReflectionStrengthMutation, SetModelMaterialOverrideReflectionTypeMutation } from "@lib/mutation/MaterialEditor/ModelEditorView/mutations";
 import { ColorInput, createAssetReferenceComponentOfType, NumberInput } from "../../common/inputs";
@@ -15,7 +15,7 @@ const MaterialAssetReference = createAssetReferenceComponentOfType<AssetType.Mat
 
 
 interface Props {
-  modelEditorViewController: ModelEditorViewController;
+  modelEditorViewController: IModelEditorViewController;
 }
 
 export const Inspector: FunctionComponent<Props> = observer(({ modelEditorViewController: controller }) => {
@@ -145,7 +145,7 @@ export const Inspector: FunctionComponent<Props> = observer(({ modelEditorViewCo
 
 export interface ReflectionInputProps {
   overrideData: MeshAssetMaterialOverrideData | undefined;
-  controller: ModelEditorViewController;
+  controller: IModelEditorViewController;
 }
 export const ReflectionInput: FunctionComponent<ReflectionInputProps> = observer(({ overrideData, controller }) => {
   // Refs

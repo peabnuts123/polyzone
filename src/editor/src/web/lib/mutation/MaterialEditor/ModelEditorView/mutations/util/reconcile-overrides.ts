@@ -1,7 +1,7 @@
 import { resolvePathForAssetMutation } from "@lib/mutation/util";
 import { MeshAssetData, MeshAssetMaterialOverrideData, reflectionDataToDefinition } from "@lib/project/data";
 import { MeshAssetDefinition } from "@lib/project/definition";
-import { ProjectController } from "@lib/project/ProjectController";
+import type { IProjectController } from "@lib/project/ProjectController";
 import { MeshAssetMaterialOverrideDefinition } from "@polyzone/runtime/src/cartridge";
 import { toColor3Definition } from "@polyzone/runtime/src/util/color";
 
@@ -10,7 +10,7 @@ import { toColor3Definition } from "@polyzone/runtime/src/util/color";
  * Reconcile material overrides for in-memory mesh asset with its definition on-disk.
  * i.e. Add/Update/Remove properties and blocks based on whether they are enabled.
  */
-export function reconcileMaterialOverrideData(meshAssetData: MeshAssetData, ProjectController: ProjectController): void {
+export function reconcileMaterialOverrideData(meshAssetData: MeshAssetData, ProjectController: IProjectController): void {
   if (meshAssetData.areAllOverridesEmpty()) {
     // No meaningful overrides left
     // Remove overrides block from asset definition entirely
@@ -99,7 +99,7 @@ export function reconcileMaterialOverrideData(meshAssetData: MeshAssetData, Proj
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 function reconcileMaterialOverridesForProperty<TValueDefinition extends {}>(
   meshAssetData: MeshAssetData,
-  ProjectController: ProjectController,
+  ProjectController: IProjectController,
   isOverrideEnabledAndDefined: (materialOverrideData: MeshAssetMaterialOverrideData) => boolean,
   selectDefinitionPath: (materialOverrideDefinition: MeshAssetMaterialOverrideDefinition) => TValueDefinition,
   getUpdatedValue: (materialOverrideData: MeshAssetMaterialOverrideData) => TValueDefinition,

@@ -7,7 +7,7 @@ import { AssetType } from "@polyzone/runtime/src/cartridge";
 import { TauriEvents } from "@lib/util/TauriEvents";
 import { resolvePath } from "@lib/util/JsoncContainer";
 import { AssetDefinition, ProjectDefinition } from "../definition";
-import { ProjectController } from "../ProjectController";
+import type { IProjectController } from "../ProjectController";
 import { AssetData } from "../data/AssetData";
 import { createAssetData } from "../data/AssetDb";
 
@@ -92,12 +92,12 @@ export type ProjectAssetEvent = ProjectAssetCreatedEvent | ProjectAssetDeletedEv
 export type ProjectAssetEventListener = (event: ProjectAssetEvent) => void;
 
 export class ProjectAssetsWatcher {
-  private readonly projectController: ProjectController;
+  private readonly projectController: IProjectController;
   private stopListeningForEvents: UnwatchFn | undefined = undefined;
 
   private readonly eventListeners: ProjectAssetEventListener[] = [];
 
-  public constructor(projectController: ProjectController) {
+  public constructor(projectController: IProjectController) {
     this.projectController = projectController;
   }
 

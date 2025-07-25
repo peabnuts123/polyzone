@@ -1,12 +1,12 @@
-import { ProjectController } from "@lib/project/ProjectController";
+import type { IProjectController } from "@lib/project/ProjectController";
 import { invoke } from "@lib/util/TauriCommands";
 import { Mutator } from "../Mutator";
 import { ProjectMutationArguments } from "./ProjectMutationArguments";
 
 export class ProjectMutator extends Mutator<ProjectMutationArguments> {
-  private readonly projectController: ProjectController;
+  private readonly projectController: IProjectController;
 
-  public constructor(projectController: ProjectController) {
+  public constructor(projectController: IProjectController) {
     super();
     this.projectController = projectController;
   }

@@ -15,7 +15,7 @@ import { AssetType } from '@polyzone/runtime/src/cartridge';
 import { GameObject, Transform } from '@polyzone/runtime/src/world';
 import { RetroMaterial } from '@polyzone/runtime/src/materials/RetroMaterial';
 
-import { ProjectController } from '@lib/project/ProjectController';
+import type { IProjectController } from '@lib/project/ProjectController';
 import { GameObjectData, MeshAssetData, MeshComponentData, TransformData } from '@lib/project/data';
 import { ProjectFileEventType } from '@lib/project/watcher/project';
 import { ProjectAssetEventType } from '@lib/project/watcher/assets';
@@ -23,10 +23,25 @@ import { ModelEditorViewMutator } from '@lib/mutation/MaterialEditor/ModelEditor
 import { ComponentDependencyManager } from '@lib/common/ComponentDependencyManager';
 import { MeshComponent } from '@lib/composer/scene/components';
 
+export interface IModelEditorViewController {
+  startBabylonView(): () => void;
+  destroy(): void;
+  reloadSceneData(model?: MeshAssetData): Promise<void>;
+  getMaterialByName(materialName: string): RetroMaterial;
+  selectMaterial(materialName: string): void;
+
+  get canvas(): HTMLCanvasElement;
+  get model(): MeshAssetData;
+  get mutator(): ModelEditorViewMutator;
+  get allMaterials(): RetroMaterial[] | undefined;
+  get selectedMaterialName(): string | undefined;
+  get scene(): BabylonScene;
+}
+
 // @NOTE Pretty similar to SceneViewController.ts
-export class ModelEditorViewController {
+export class ModelEditorViewController implements IModelEditorViewController {
   private _model: MeshAssetData;
-  private readonly projectController: ProjectController;
+  private readonly projectController: IProjectController;
   private readonly _mutator: ModelEditorViewMutator;
 
   private readonly _canvas: HTMLCanvasElement;
@@ -41,7 +56,7 @@ export class ModelEditorViewController {
 
   private _selectedMaterialName: string | undefined = undefined;
 
-  public constructor(model: MeshAssetData, projectController: ProjectController) {
+  public constructor(model: MeshAssetData, projectController: IProjectController) {
     this._model = model;
     this.projectController = projectController;
     this.componentDependencyManager = new ComponentDependencyManager();

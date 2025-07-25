@@ -1,16 +1,16 @@
 import { invoke } from "@lib/util/TauriCommands";
-import { ProjectController } from "../ProjectController";
+import type { IProjectController } from "../ProjectController";
 import { ProjectAssetEventListener, ProjectAssetsWatcher } from "./assets";
 import { ProjectSceneEventListener, ProjectScenesWatcher } from "./scenes";
 import { ProjectFileEventListener, ProjectFileWatcher } from "./project";
 
 export class ProjectFilesWatcher {
-  private readonly projectController: ProjectController;
+  private readonly projectController: IProjectController;
   private readonly assetsWatcher: ProjectAssetsWatcher;
   private readonly scenesWatcher: ProjectScenesWatcher;
   private readonly projectFileWatcher: ProjectFileWatcher;
 
-  public constructor(projectController: ProjectController) {
+  public constructor(projectController: IProjectController) {
     this.projectController = projectController;
     this.assetsWatcher = new ProjectAssetsWatcher(projectController);
     this.scenesWatcher = new ProjectScenesWatcher(projectController);

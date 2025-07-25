@@ -16,7 +16,7 @@ import { Vector3 as Vector3Core } from "@polyzone/core/src";
 import { toQuaternionCore } from "@polyzone/runtime/src/util/quaternion";
 
 import { SetGameObjectPositionMutation, SetGameObjectRotationMutation, SetGameObjectScaleMutation } from "@lib/mutation/SceneView/mutations";
-import { SceneViewController } from "./SceneViewController";
+import type { ISceneViewController } from "./SceneViewController";
 
 
 export enum CurrentSelectionTool {
@@ -27,7 +27,7 @@ export enum CurrentSelectionTool {
 
 export class SelectionManager {
   private readonly babylonScene: BabylonScene;
-  private readonly sceneViewController: SceneViewController;
+  private readonly sceneViewController: ISceneViewController;
   private readonly gizmoManager: GizmoManager;
   private readonly moveGizmo: PositionGizmo;
   private readonly rotateGizmo: RotationGizmo;
@@ -42,7 +42,7 @@ export class SelectionManager {
   private currentRotateMutation: SetGameObjectRotationMutation | undefined = undefined;
   private currentScaleMutation: SetGameObjectScaleMutation | undefined = undefined;
 
-  public constructor(scene: BabylonScene, sceneViewController: SceneViewController) {
+  public constructor(scene: BabylonScene, sceneViewController: ISceneViewController) {
     this.babylonScene = scene;
     this.sceneViewController = sceneViewController;
     const utilityLayer = new UtilityLayerRenderer(scene);

@@ -15,7 +15,23 @@ import { ProjectFilesWatcher } from "./watcher/ProjectFilesWatcher";
 import { ProblemScanner } from "./problems/ProblemScanner";
 import { ProjectData } from "./data/ProjectData";
 
-export class ProjectController {
+export interface IProjectController {
+  loadProject(projectPath: string): Promise<void>;
+  reloadProjectFileFromFs(): Promise<ProjectData>;
+  onDestroy(): void;
+
+  get isLoadingProject(): boolean;
+  get hasLoadedProject(): boolean;
+  get project(): ProjectData;
+  get projectJson(): JsoncContainer<ProjectDefinition>;
+  get projectDefinition(): ProjectDefinition;
+  get mutator(): ProjectMutator;
+  get fileSystem(): TauriFileSystem;
+  get filesWatcher(): ProjectFilesWatcher;
+  get assetCache(): AssetCache;
+}
+
+export class ProjectController implements IProjectController {
   private _isLoadingProject: boolean = false;
   private _projectJson: JsoncContainer<ProjectDefinition> | undefined = undefined;
   private readonly _mutator: ProjectMutator;

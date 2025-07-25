@@ -3,25 +3,36 @@ import { v4 as uuid } from 'uuid';
 
 import { AssetType, CartridgeArchiveManifest } from '@polyzone/runtime/src/cartridge';
 
-import { ProjectController } from '@lib/project/ProjectController';
+import type { IProjectController } from '@lib/project/ProjectController';
 import { toRuntimeSceneDefinition } from '@lib/project/definition';
 import { SceneData } from '@lib/project/data';
 import { invoke } from '@lib/util/TauriCommands';
-import { SceneViewController } from './scene/SceneViewController';
+import { SceneViewController, type ISceneViewController } from './scene/SceneViewController';
 
 
 export interface TabData {
   id: string;
-  sceneViewController?: SceneViewController;
+  sceneViewController?: ISceneViewController;
 }
 
 
-export class ComposerController {
+export interface IComposerController {
+  onEnter(): void;
+  onExit(): void;
+  loadSceneForTab(tabId: string, sceneManifest: SceneData): Promise<void>;
+  openNewTab(): TabData;
+  closeTab(tabId: string): void;
+  onDestroy(): void;
+  debug_buildCartridge(entryPointSceneIdOverride?: string): Promise<Uint8Array>;
+  get currentlyOpenTabs(): TabData[];
+}
+
+export class ComposerController implements IComposerController {
   private _tabData: TabData[] = [];
 
-  private readonly projectController: ProjectController;
+  private readonly projectController: IProjectController;
 
-  public constructor(projectController: ProjectController) {
+  public constructor(projectController: IProjectController) {
     this.projectController = projectController;
 
     // Open 1 blank tab

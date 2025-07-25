@@ -1,15 +1,15 @@
 import { createContext, useContext, useState } from 'react';
 
 import { ApplicationDataController } from './application/ApplicationDataController';
-import { ProjectController } from "./project/ProjectController";
-import { ComposerController } from "./composer/ComposerController";
-import { MaterialEditorController } from './material-editor/MaterialEditorController';
+import { ProjectController, type IProjectController } from "./project/ProjectController";
+import { ComposerController, type IComposerController } from "./composer/ComposerController";
+import { MaterialEditorController, type IMaterialEditorController } from './material-editor/MaterialEditorController';
 
 export interface Library {
   ApplicationDataController: ApplicationDataController
-  ProjectController: ProjectController;
-  ComposerController: ComposerController;
-  MaterialEditorController: MaterialEditorController;
+  ProjectController: IProjectController;
+  ComposerController: IComposerController;
+  MaterialEditorController: IMaterialEditorController;
   unloadProject: () => void,
   onPageUnload: () => void;
 }
@@ -19,9 +19,9 @@ export function createLibrary(): Library {
 
   // Poor-man's dependency injection
   const [applicationDataController, _setApplicationDataController] = useState<ApplicationDataController>(new ApplicationDataController());
-  const [projectController, setProjectController] = useState<ProjectController>(new ProjectController(applicationDataController));
-  const [composerController, setComposerController] = useState<ComposerController>(new ComposerController(projectController));
-  const [materialEditorController, setMaterialEditorController] = useState<MaterialEditorController>(new MaterialEditorController(projectController));
+  const [projectController, setProjectController] = useState<IProjectController>(new ProjectController(applicationDataController));
+  const [composerController, setComposerController] = useState<IComposerController>(new ComposerController(projectController));
+  const [materialEditorController, setMaterialEditorController] = useState<IMaterialEditorController>(new MaterialEditorController(projectController));
 
   return {
     ApplicationDataController: applicationDataController,

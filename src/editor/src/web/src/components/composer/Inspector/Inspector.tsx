@@ -11,14 +11,14 @@ import {
   SetGameObjectNameMutation,
   AddGameObjectComponentMutation,
 } from "@lib/mutation/SceneView/mutations";
-import type { SceneViewController } from "@lib/composer/scene";
+import type { ISceneViewController } from "@lib/composer/scene";
 import { VectorInput, TextInput } from "@app/components/common/inputs";
 import { getInspectorFor } from "./GameObjectComponents";
 import { CameraComponentData, DirectionalLightComponentData, IComposerComponentData, MeshComponentData, PointLightComponentData, ScriptComponentData } from "@lib/project/data";
 
 
 interface Props {
-  sceneViewController: SceneViewController;
+  sceneViewController: ISceneViewController;
 }
 
 export const Inspector: FunctionComponent<Props> = observer(({ sceneViewController }) => {

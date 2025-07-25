@@ -14,7 +14,7 @@ import { AssetType } from '@polyzone/runtime/src/cartridge';
 import { MaterialAsset, MaterialDefinition } from '@polyzone/runtime/src/world';
 import { RetroMaterial } from '@polyzone/runtime/src/materials/RetroMaterial';
 
-import { ProjectController } from '@lib/project/ProjectController';
+import type { IProjectController } from '@lib/project/ProjectController';
 import { MaterialAssetData } from '@lib/project/data';
 import { ProjectFileEventType } from '@lib/project/watcher/project';
 import { ProjectAssetEventType } from '@lib/project/watcher/assets';
@@ -22,12 +22,27 @@ import { MaterialEditorViewMutator } from '@lib/mutation/MaterialEditor/Material
 import { JsoncContainer } from '@lib/util/JsoncContainer';
 import { MaterialData } from './MaterialData';
 
-export class MaterialEditorViewController {
+export interface IMaterialEditorViewController {
+  startBabylonView(): () => void;
+  destroy(): void;
+  reloadSceneData(material?: MaterialAssetData): Promise<void>;
+
+  get canvas(): HTMLCanvasElement;
+  get hasLoadedMaterial(): boolean;
+  get materialAssetData(): MaterialAssetData;
+  get materialData(): MaterialData;
+  get materialJson(): JsoncContainer<MaterialDefinition>;
+  get materialInstance(): RetroMaterial;
+  get mutator(): MaterialEditorViewMutator;
+  get scene(): BabylonScene;
+}
+
+export class MaterialEditorViewController implements IMaterialEditorViewController {
   private _materialAssetData: MaterialAssetData;
   private _materialData: MaterialData | undefined;
   private _materialJson: JsoncContainer<MaterialDefinition> | undefined;
 
-  private readonly projectController: ProjectController;
+  private readonly projectController: IProjectController;
   private readonly _mutator: MaterialEditorViewMutator;
 
   private readonly _canvas: HTMLCanvasElement;
@@ -38,7 +53,7 @@ export class MaterialEditorViewController {
 
   private _materialInstance: RetroMaterial | undefined = undefined;
 
-  public constructor(material: MaterialAssetData, projectController: ProjectController) {
+  public constructor(material: MaterialAssetData, projectController: IProjectController) {
     this._materialAssetData = material;
     this.projectController = projectController;
     this._mutator = new MaterialEditorViewMutator(

@@ -1,15 +1,15 @@
-import { ProjectController } from "@lib/project/ProjectController";
-import { SceneViewController } from "@lib/composer/scene";
+import type { IProjectController } from "@lib/project/ProjectController";
+import type { ISceneViewController } from "@lib/composer/scene";
 import { invoke } from "@lib/util/TauriCommands";
 import { Mutator } from "../Mutator";
 import { SceneViewMutationArguments } from "./SceneViewMutationArguments";
 
 
 export class SceneViewMutator extends Mutator<SceneViewMutationArguments> {
-  private readonly sceneViewController: SceneViewController;
-  private readonly projectController: ProjectController;
+  private readonly sceneViewController: ISceneViewController;
+  private readonly projectController: IProjectController;
 
-  public constructor(sceneViewController: SceneViewController, projectController: ProjectController) {
+  public constructor(sceneViewController: ISceneViewController, projectController: IProjectController) {
     super();
     this.sceneViewController = sceneViewController;
     this.projectController = projectController;

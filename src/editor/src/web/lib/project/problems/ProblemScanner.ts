@@ -1,5 +1,5 @@
 import { AssetDb } from "../data/AssetDb";
-import { ProjectController } from "../ProjectController";
+import type { IProjectController } from "../ProjectController";
 import { ProjectAssetEvent } from "../watcher/assets";
 import { ProjectFileEvent } from "../watcher/project";
 import { ProjectSceneEvent } from "../watcher/scenes";
@@ -14,7 +14,7 @@ const DebounceTimeMilliseconds = 1000;
 export type ReportProblemFn = (problemKey: string, path: string[], description: string) => void;
 
 export interface ScannerContext {
-  projectController: ProjectController;
+  projectController: IProjectController;
   assetDb: AssetDb;
 }
 
@@ -31,11 +31,11 @@ export interface ScannerContext {
 // - Something about Material assets?
 
 export class ProblemScanner {
-  private readonly projectController: ProjectController;
+  private readonly projectController: IProjectController;
   private cancelDebounce: (() => void) | undefined = undefined;
   private stopListeningToFileSystemEvents: () => void;
 
-  public constructor(projectController: ProjectController) {
+  public constructor(projectController: IProjectController) {
     this.projectController = projectController;
 
     // Subscribe to file events

@@ -6,7 +6,7 @@ import { TauriEvents } from "@lib/util/TauriEvents";
 import { JsoncContainer, resolvePath } from "@lib/util/JsoncContainer";
 import { SceneData } from "@lib/project/data";
 import { ProjectDefinition, SceneDefinition, SceneManifest } from "../definition";
-import { ProjectController } from "../ProjectController";
+import type { IProjectController } from "../ProjectController";
 import { SceneDbRecord } from "../data/SceneDb";
 
 export interface RawProjectScene {
@@ -86,12 +86,12 @@ export type ProjectSceneEvent = ProjectSceneCreatedEvent | ProjectSceneDeletedEv
 export type ProjectSceneEventListener = (event: ProjectSceneEvent) => void;
 
 export class ProjectScenesWatcher {
-  private readonly projectController: ProjectController;
+  private readonly projectController: IProjectController;
   private stopListeningForEvents: UnwatchFn | undefined = undefined;
 
   private readonly eventListeners: ProjectSceneEventListener[] = [];
 
-  public constructor(projectController: ProjectController) {
+  public constructor(projectController: IProjectController) {
     this.projectController = projectController;
   }
 

@@ -1,4 +1,4 @@
-import { SceneViewController } from "@lib/composer/scene";
+import type { ISceneViewController } from "@lib/composer/scene";
 import type { FunctionComponent, MouseEventHandler } from "react";
 import { useState } from 'react';
 import { ChevronRightIcon, ChevronDownIcon, ArrowTurnDownRightIcon, TrashIcon } from '@heroicons/react/24/solid';
@@ -16,7 +16,7 @@ import { HierarchyObjectFacade } from "./HierarchyObjectFacade";
 
 
 export interface HierarchyObjectProps {
-  controller: SceneViewController;
+  controller: ISceneViewController;
   gameObject: GameObjectData;
   parentGameObject: GameObjectData | undefined;
   contextActions: {

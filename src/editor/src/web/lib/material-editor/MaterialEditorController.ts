@@ -1,21 +1,21 @@
 import { makeAutoObservable, runInAction } from 'mobx';
 import { v4 as uuid } from 'uuid';
 
-import { ProjectController } from '@lib/project/ProjectController';
+import type { IProjectController } from '@lib/project/ProjectController';
 import { MaterialAssetData, MeshAssetData } from '@lib/project/data/assets';
-import { ModelEditorViewController } from './model/ModelEditorViewController';
-import { MaterialEditorViewController } from './material/MaterialEditorViewController';
+import { ModelEditorViewController, type IModelEditorViewController } from './model/ModelEditorViewController';
+import { MaterialEditorViewController, type IMaterialEditorViewController } from './material/MaterialEditorViewController';
 
 export interface ModelTabData {
   id: string;
   type: 'model';
-  modelEditorController: ModelEditorViewController;
+  modelEditorController: IModelEditorViewController;
 }
 
 export interface MaterialTabData {
   id: string;
   type: 'material';
-  materialEditorController: MaterialEditorViewController;
+  materialEditorController: IMaterialEditorViewController;
 }
 
 export interface IndeterminateTabData {
@@ -25,12 +25,22 @@ export interface IndeterminateTabData {
 
 export type TabData = ModelTabData | MaterialTabData | IndeterminateTabData;
 
-export class MaterialEditorController {
+export interface IMaterialEditorController {
+  loadModelForTab(tabId: string, model: MeshAssetData): Promise<void>;
+  loadMaterialForTab(tabId: string, material: MaterialAssetData): Promise<void>;
+  openNewTab(): TabData;
+  closeTab(tabId: string): void;
+  isTabEmpty(tabId: string): boolean;
+  onDestroy(): void;
+  get currentlyOpenTabs(): TabData[];
+}
+
+export class MaterialEditorController implements IMaterialEditorController {
   private _currentlyOpenTabs: TabData[] = [];
 
-  private readonly projectController: ProjectController;
+  private readonly projectController: IProjectController;
 
-  public constructor(projectController: ProjectController) {
+  public constructor(projectController: IProjectController) {
     this.projectController = projectController;
 
     // Open 1 blank tab

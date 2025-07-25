@@ -1,4 +1,4 @@
-import { SceneViewController } from "@lib/composer/scene";
+import type { ISceneViewController } from "@lib/composer/scene";
 import type { FunctionComponent, MouseEventHandler } from "react";
 import { Menu, MenuItem } from "@tauri-apps/api/menu";
 import { PlusIcon } from '@heroicons/react/24/outline';
@@ -12,7 +12,7 @@ import { gameObjectAt } from "./util";
 import { HierarchyObject } from "./HierarchyObject";
 
 interface Props {
-  controller: SceneViewController;
+  controller: ISceneViewController;
 }
 
 export const Hierarchy: FunctionComponent<Props> = observer(({ controller }) => {

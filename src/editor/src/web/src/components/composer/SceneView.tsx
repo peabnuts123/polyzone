@@ -5,7 +5,7 @@ import { observer } from "mobx-react-lite";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 
 
-import type { SceneViewController } from "@lib/composer/scene";
+import type { ISceneViewController } from "@lib/composer/scene";
 import { CurrentSelectionTool } from "@lib/composer/scene/SelectionManager";
 
 import { Inspector } from "./Inspector";
@@ -13,7 +13,7 @@ import { Hierarchy } from './Hierarchy';
 
 
 interface Props {
-  controller: SceneViewController;
+  controller: ISceneViewController;
 }
 
 const SceneViewComponent: FunctionComponent<Props> = observer(({ controller }) => {

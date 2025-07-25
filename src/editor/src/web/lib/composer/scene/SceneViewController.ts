@@ -23,7 +23,7 @@ import { toColor3Babylon } from '@polyzone/runtime/src/util';
 import { MeshAsset } from '@polyzone/runtime/src/world/assets';
 
 import { JsoncContainer } from '@lib/util/JsoncContainer';
-import { ProjectController } from '@lib/project/ProjectController';
+import type { IProjectController } from '@lib/project/ProjectController';
 import { SceneViewMutator } from '@lib/mutation/SceneView';
 import { SceneDefinition } from '@lib/project/definition';
 import { CameraComponentData, DirectionalLightComponentData, IComposerComponentData, MeshComponentData, PointLightComponentData, ScriptComponentData } from '@lib/project/data/components';
@@ -37,10 +37,32 @@ import { SceneViewSelectionCache } from './SceneViewSelectionCache';
 import { isAssetDependentComponent, ISelectableObject, isSelectableObject, MeshComponent } from './components';
 import { CurrentSelectionTool, SelectionManager } from './SelectionManager';
 
-export class SceneViewController {
+export interface ISceneViewController {
+  startBabylonView(): () => void;
+  destroy(): void;
+  setCurrentTool(tool: CurrentSelectionTool): void;
+  addToSelectionCache(gameObjectId: string, component: ISelectableObject): void;
+  removeFromSelectionCache(component: ISelectableObject): void;
+  createGameObject(gameObjectData: GameObjectData, parentTransform?: TransformRuntime): Promise<GameObjectRuntime>;
+  createGameObjectComponent(gameObjectData: GameObjectData, gameObject: GameObjectRuntime, componentData: IComposerComponentData): Promise<GameObjectComponent | undefined>;
+  reinitializeComponentInstance(componentData: IComposerComponentData, gameObjectData: GameObjectData): Promise<void>;
+  reloadSceneData(scene: SceneDbRecord): Promise<void>;
+  findGameObjectById(gameObjectId: string): GameObjectRuntime | undefined;
+
+  get canvas(): HTMLCanvasElement;
+  get scene(): SceneData;
+  get sceneJson(): JsoncContainer<SceneDefinition>;
+  get sceneDefinition(): SceneDefinition;
+  get mutator(): SceneViewMutator;
+  get selectedObjectData(): GameObjectData | undefined;
+  get selectedObjectId(): string | undefined;
+  get selectionManager(): SelectionManager;
+}
+
+export class SceneViewController implements ISceneViewController {
   private _scene: SceneData;
   private _sceneJson: JsoncContainer<SceneDefinition>;
-  private readonly projectController: ProjectController;
+  private readonly projectController: IProjectController;
   private readonly _mutator: SceneViewMutator;
 
   private readonly _canvas: HTMLCanvasElement;
@@ -54,7 +76,7 @@ export class SceneViewController {
 
   private _gameObjectInstances: GameObjectRuntime[];
 
-  public constructor(scene: SceneData, sceneJson: JsoncContainer<SceneDefinition>, projectController: ProjectController) {
+  public constructor(scene: SceneData, sceneJson: JsoncContainer<SceneDefinition>, projectController: IProjectController) {
     this._scene = scene;
     this._sceneJson = sceneJson;
     this.projectController = projectController;

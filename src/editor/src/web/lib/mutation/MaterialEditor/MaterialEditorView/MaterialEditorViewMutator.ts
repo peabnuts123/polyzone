@@ -1,15 +1,15 @@
-import { ProjectController } from "@lib/project/ProjectController";
-import { MaterialEditorViewController } from "@lib/material-editor/material/MaterialEditorViewController";
+import type { IProjectController } from "@lib/project/ProjectController";
+import type { IMaterialEditorViewController } from "@lib/material-editor/material/MaterialEditorViewController";
 import { invoke } from "@lib/util/TauriCommands";
 import { Mutator } from "../../Mutator";
 import { MaterialEditorViewMutationArguments } from "./MaterialEditorViewMutationArguments";
 
 
 export class MaterialEditorViewMutator extends Mutator<MaterialEditorViewMutationArguments> {
-  private readonly materialEditorViewController: MaterialEditorViewController;
-  private readonly projectController: ProjectController;
+  private readonly materialEditorViewController: IMaterialEditorViewController;
+  private readonly projectController: IProjectController;
 
-  public constructor(materialEditorViewController: MaterialEditorViewController, projectController: ProjectController) {
+  public constructor(materialEditorViewController: IMaterialEditorViewController, projectController: IProjectController) {
     super();
     this.materialEditorViewController = materialEditorViewController;
     this.projectController = projectController;
