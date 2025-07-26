@@ -5,6 +5,7 @@ import { exists } from "@tauri-apps/plugin-fs";
 import Resolver from '@polyzone/runtime/src/Resolver';
 import { AssetCache } from "@polyzone/runtime/src/world";
 
+import { IWritableFileSystem } from "@lib/filesystem/IWritableFileSystem";
 import { TauriFileSystem } from '@lib/filesystem/TauriFileSystem';
 import { JsoncContainer } from "@lib/util/JsoncContainer";
 import { ProjectMutator } from "@lib/mutation/Project";
@@ -26,7 +27,7 @@ export interface IProjectController {
   get projectJson(): JsoncContainer<ProjectDefinition>;
   get projectDefinition(): ProjectDefinition;
   get mutator(): ProjectMutator;
-  get fileSystem(): TauriFileSystem;
+  get fileSystem(): IWritableFileSystem;
   get filesWatcher(): ProjectFilesWatcher;
   get assetCache(): AssetCache;
 }
@@ -37,7 +38,7 @@ export class ProjectController implements IProjectController {
   private readonly _mutator: ProjectMutator;
   private readonly ApplicationDataController: ApplicationDataController;
   private _project: ProjectData | undefined = undefined;
-  private _fileSystem: TauriFileSystem | undefined = undefined;
+  private _fileSystem: IWritableFileSystem | undefined = undefined;
   private _filesWatcher: ProjectFilesWatcher | undefined = undefined;
   private problemScanner: ProblemScanner | undefined = undefined;
   private _assetCache: AssetCache | undefined;
@@ -183,7 +184,7 @@ export class ProjectController implements IProjectController {
     return this._mutator;
   }
 
-  public get fileSystem(): TauriFileSystem {
+  public get fileSystem(): IWritableFileSystem {
     if (this._fileSystem === undefined) {
       throw new ProjectNotLoadedError();
     }

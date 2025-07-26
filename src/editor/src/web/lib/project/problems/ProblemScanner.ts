@@ -1,4 +1,4 @@
-import { AssetDb } from "../data/AssetDb";
+import type { IEditorAssetDb } from "../data/AssetDb";
 import type { IProjectController } from "../ProjectController";
 import { ProjectAssetEvent } from "../watcher/assets";
 import { ProjectFileEvent } from "../watcher/project";
@@ -15,7 +15,7 @@ export type ReportProblemFn = (problemKey: string, path: string[], description: 
 
 export interface ScannerContext {
   projectController: IProjectController;
-  assetDb: AssetDb;
+  assetDb: IEditorAssetDb;
 }
 
 // @TODO Problem scanner backlog

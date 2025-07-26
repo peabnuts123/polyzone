@@ -2,8 +2,9 @@ import { convertFileSrc } from '@tauri-apps/api/core';
 import { readFile, writeFile, rename, exists } from '@tauri-apps/plugin-fs';
 import { makeObservable, runInAction } from 'mobx';
 
-import { IFileSystem, VirtualFile } from "@polyzone/runtime/src/filesystem";
+import { VirtualFile } from "@polyzone/runtime/src/filesystem";
 import { joinToNativePath } from '@lib/util/path';
+import { IWritableFileSystem, WritingState } from './IWritableFileSystem';
 
 /**
  * Minimum amount of time the FS will stay in the 'Writing' state for,
@@ -11,17 +12,11 @@ import { joinToNativePath } from '@lib/util/path';
  */
 const MinimumWritingStatusDurationMs = 500;
 
-export enum WritingState {
-  Writing,
-  UpToDate,
-  Failed,
-}
-
 // @TODO Eventing like onFinishSave or whatever so that fs events can wait until
 // finished saving.
 // + Also maybe some way to disable saving
 
-export class TauriFileSystem extends IFileSystem {
+export class TauriFileSystem extends IWritableFileSystem {
   private readonly projectRootDir: string;
   private _writingState: WritingState = WritingState.UpToDate;
 

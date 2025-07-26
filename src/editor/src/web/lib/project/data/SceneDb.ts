@@ -6,7 +6,7 @@ import { IFileSystem } from "@polyzone/runtime/src/filesystem";
 import { JsoncContainer } from "@lib/util/JsoncContainer";
 import { SceneDefinition, SceneManifest, toRuntimeSceneDefinition } from "../definition";
 import { SceneData } from ".";
-import { AssetDb } from "./AssetDb";
+import type { IEditorAssetDb } from "./AssetDb";
 
 export interface SceneDbRecord {
   manifest: SceneManifest;
@@ -14,11 +14,24 @@ export interface SceneDbRecord {
   jsonc: JsoncContainer<SceneDefinition>;
 }
 
-export class SceneDb {
-  private readonly records: SceneDbRecord[];
-  private readonly assetDb: AssetDb;
+export interface IEditorSceneDb {
+  add(manifest: SceneManifest, definitionJsonc: JsoncContainer<SceneDefinition>): SceneDbRecord;
+  remove(sceneId: string): void;
+  getById(id: string): SceneDbRecord | undefined;
+  getByPath(path: string): SceneDbRecord | undefined;
+  getAll(): SceneDbRecord[];
+  getAllManifests(): SceneManifest[];
+  getAllDefinitions(): SceneDefinition[];
+  getAllRuntimeDefinitions(): RuntimeSceneDefinition[];
+  getAllData(): SceneData[];
+  get length(): number;
+}
 
-  private constructor(records: SceneDbRecord[], assetDb: AssetDb) {
+export class SceneDb implements IEditorSceneDb {
+  private readonly records: SceneDbRecord[];
+  private readonly assetDb: IEditorAssetDb;
+
+  public constructor(records: SceneDbRecord[], assetDb: IEditorAssetDb) {
     this.records = records;
     this.assetDb = assetDb;
     makeAutoObservable(this);
@@ -75,7 +88,7 @@ export class SceneDb {
     return this.records.map((record) => record.data);
   }
 
-  public static async new(sceneManifests: SceneManifest[], assetDb: AssetDb, fileSystem: IFileSystem): Promise<SceneDb> {
+  public static async new(sceneManifests: SceneManifest[], assetDb: IEditorAssetDb, fileSystem: IFileSystem): Promise<SceneDb> {
     const records: SceneDbRecord[] = [];
 
     for (const sceneManifest of sceneManifests) {

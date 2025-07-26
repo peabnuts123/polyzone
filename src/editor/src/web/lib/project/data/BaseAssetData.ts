@@ -3,7 +3,7 @@ import { makeObservable } from "mobx";
 import { AssetType, CommonAssetDataArgs as CommonAssetDataArgsRuntime, IBaseAssetData } from "@polyzone/runtime/src/cartridge";
 
 import { AssetDefinitionOfType } from "../definition";
-import { AssetDb } from "./AssetDb";
+import type { IEditorAssetDb } from "./AssetDb";
 
 export interface CommonAssetDataArgs extends CommonAssetDataArgsRuntime {
   hash: string;
@@ -86,7 +86,7 @@ export abstract class BaseAssetData<TAssetType extends AssetType> implements IBa
 
   public get type(): TAssetType { return this._baseAssetData.type; }
 
-  public loadDefinition(assetDefinition: AssetDefinitionOfType<TAssetType>, assetDb: AssetDb): void {
+  public loadDefinition(assetDefinition: AssetDefinitionOfType<TAssetType>, assetDb: IEditorAssetDb): void {
     this._baseAssetData.loadDefinition(assetDefinition, assetDb);
   }
 

@@ -1,7 +1,7 @@
-import { sleep } from '@test/util/sleep';
-import { AsyncScheduler } from './AsyncScheduler';
 import { test, describe, expect } from 'vitest';
 import { createDeferred } from '@lib/util/deferred';
+import { sleep } from '@test/util';
+import { AsyncScheduler } from './AsyncScheduler';
 
 describe(AsyncScheduler.name, () => {
   test("Scheduling several async tasks at once runs them in series", async () => {

@@ -4,6 +4,7 @@ import { ProjectAssetEventListener, ProjectAssetsWatcher } from "./assets";
 import { ProjectSceneEventListener, ProjectScenesWatcher } from "./scenes";
 import { ProjectFileEventListener, ProjectFileWatcher } from "./project";
 
+// @TODO Might need an interface like `IProjectFilesWatcher`
 export class ProjectFilesWatcher {
   private readonly projectController: IProjectController;
   private readonly assetsWatcher: ProjectAssetsWatcher;

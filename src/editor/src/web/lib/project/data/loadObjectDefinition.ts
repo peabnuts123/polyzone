@@ -2,7 +2,7 @@ import { CameraComponentDefinition, ComponentDefinitionType, DirectionalLightCom
 import { isDefined, toColor3Core, toVector3Core } from "@polyzone/runtime/src/util";
 import { LoadObjectDefinitionFn } from "@polyzone/runtime/src/cartridge";
 
-import { AssetDb } from "@lib/project/data/AssetDb";
+import { AssetDb, type IEditorAssetDb } from "@lib/project/data/AssetDb";
 import { MeshAssetData, ScriptAssetData } from "@lib/project/data/assets";
 import { CameraComponentData, DirectionalLightComponentData, IComposerComponentData, MeshComponentData, PointLightComponentData, ScriptComponentData } from "./components";
 import { GameObjectData } from "./GameObjectData";
@@ -14,14 +14,14 @@ import { TransformData } from "./TransformData";
  */
 export const __loadObjectDefinitionForRuntime: LoadObjectDefinitionFn = (objectDefinition, assetDb) => {
   // @NOTE Runtime type checking so that `loadObjectDefinition` can be cast to `LoadObjectDefinitionFn`
-  if (!(assetDb instanceof AssetDb)) {
+  if ((assetDb as AssetDb).add === undefined) {
     throw new Error(`Received runtime instance of AssetDb when editor instance is required`);
   }
 
-  return loadObjectDefinition(objectDefinition, assetDb);
+  return loadObjectDefinition(objectDefinition, assetDb as AssetDb);
 };
 
-export function loadObjectDefinition(objectDefinition: GameObjectDefinition, assetDb: AssetDb): GameObjectData {
+export function loadObjectDefinition(objectDefinition: GameObjectDefinition, assetDb: IEditorAssetDb): GameObjectData {
   const components: IComposerComponentData[] = [];
   for (const componentDefinition of objectDefinition.components) {
     switch (componentDefinition.type) {

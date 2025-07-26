@@ -22,7 +22,19 @@ import {
 } from './assets';
 
 
-export class AssetDb implements IAssetDb {
+export interface IEditorAssetDb extends IAssetDb {
+  getAllOfType<TAssetType extends AssetType>(type: TAssetType): AssetDataOfType<TAssetType>[];
+  findById(assetId: string): AssetData | undefined;
+  add(asset: AssetData): void;
+  remove(assetId: string): void;
+  getAll(): AssetData[];
+  // @NOTE Overriding base types
+  getById<TAssetType extends AssetType>(assetId: string, expectedType: TAssetType): AssetDataOfType<TAssetType>;
+  loadAsset(asset: AssetData): Promise<VirtualFile>;
+  get assets(): AssetData[];
+}
+
+export class AssetDb implements IEditorAssetDb {
   private _assetDb: AssetDbRuntime;
 
   public constructor(assetDefinitions: AssetDefinition[], fileSystem: IFileSystem) {

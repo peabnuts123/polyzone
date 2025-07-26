@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { sleep } from '@test/util/sleep';
+import { sleep } from '@test/util';
 import { Mutator } from './Mutator';
 import { IMutation } from "./IMutation";
 import { IContinuousMutation } from "./IContinuousMutation";

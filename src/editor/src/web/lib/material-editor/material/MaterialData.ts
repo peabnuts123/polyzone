@@ -1,7 +1,7 @@
-import { AssetDb } from "@lib/project/data/AssetDb";
+import type { IEditorAssetDb } from "@lib/project/data/AssetDb";
 import { Color3 } from "@polyzone/core/src";
 import { ITextureAssetData, MeshAssetMaterialOverrideReflectionData } from "@polyzone/runtime/src/cartridge";
-import { IMaterialData, MaterialData as MaterialDataRuntime, MaterialDefinition } from "@polyzone/runtime/src/world";
+import { IMaterialData, MaterialData as MaterialDataRuntime, MaterialDefinition } from "@polyzone/runtime/src/world/assets/MaterialAsset";
 import { makeAutoObservable } from "mobx";
 
 export class MaterialData implements IMaterialData {
@@ -24,7 +24,7 @@ export class MaterialData implements IMaterialData {
     makeAutoObservable(this._materialData);
   }
 
-  public static fromDefinition(definition: MaterialDefinition, asset: AssetDb): MaterialData {
+  public static fromDefinition(definition: MaterialDefinition, asset: IEditorAssetDb): MaterialData {
     return new MaterialData(
       MaterialDataRuntime.fromDefinition(definition, asset),
     );

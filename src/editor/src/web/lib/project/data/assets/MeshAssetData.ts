@@ -22,7 +22,7 @@ import {
 } from "@polyzone/runtime/src/cartridge";
 import { MeshAssetDefinition } from "@lib/project/definition";
 import { BaseAssetData, CommonAssetDataArgs } from "../BaseAssetData";
-import { AssetDb } from "../AssetDb";
+import type { IEditorAssetDb } from "../AssetDb";
 import { toColor3Definition } from "@polyzone/runtime/src/util";
 
 
@@ -68,7 +68,7 @@ export class MeshAssetMaterialOverrideData implements IMeshAssetMaterialOverride
     );
   }
 
-  public static createFrom(definition: MeshAssetMaterialOverrideDefinition, assetDb: AssetDb): MeshAssetMaterialOverrideData {
+  public static createFrom(definition: MeshAssetMaterialOverrideDefinition, assetDb: IEditorAssetDb): MeshAssetMaterialOverrideData {
     return new MeshAssetMaterialOverrideData(
       MeshAssetMaterialOverrideDataRuntime.createFrom(definition, assetDb),
     );
@@ -132,7 +132,7 @@ export class MeshAssetData extends BaseAssetData<AssetType.Mesh> implements IMes
     });
   }
 
-  public override loadDefinition(assetDefinition: MeshAssetDefinition, assetDb: AssetDb): void {
+  public override loadDefinition(assetDefinition: MeshAssetDefinition, assetDb: IEditorAssetDb): void {
     // Call underlying implementation
     this._meshAssetData.loadDefinition(assetDefinition, assetDb);
     // Convert overrides to observable versions

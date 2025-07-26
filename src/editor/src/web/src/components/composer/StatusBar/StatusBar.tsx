@@ -2,8 +2,8 @@ import { observer } from "mobx-react-lite";
 import { FunctionComponent } from "react";
 import { CheckCircleIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 
-import { WritingState } from "@lib/filesystem/TauriFileSystem";
 import { useLibrary } from "@lib/index";
+import { WritingState } from "@lib/filesystem/IWritableFileSystem";
 import Spinner from "@app/components/spinner";
 
 interface Props { }

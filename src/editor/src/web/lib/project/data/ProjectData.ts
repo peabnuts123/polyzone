@@ -1,8 +1,8 @@
 import { makeAutoObservable } from "mobx";
 import { IFileSystem } from "@polyzone/runtime/src/filesystem";
 import { ProjectDefinition, ProjectManifest } from "../definition";
-import { AssetDb } from "./AssetDb";
-import { SceneDb } from "./SceneDb";
+import { AssetDb, type IEditorAssetDb } from "./AssetDb";
+import { SceneDb, type IEditorSceneDb } from "./SceneDb";
 
 export interface ProjectDataConstructorArgs {
   rootPath: string;
@@ -14,11 +14,11 @@ export interface ProjectDataConstructorArgs {
 export class ProjectData {
   public readonly rootPath: string;
   public fileName: string;
-  public readonly assets: AssetDb;
-  public readonly scenes: SceneDb;
+  public readonly assets: IEditorAssetDb;
+  public readonly scenes: IEditorSceneDb;
   public readonly manifest: ProjectManifest;
 
-  private constructor(rootPath: string, fileName: string, manifest: ProjectManifest, assets: AssetDb, scenes: SceneDb) {
+  public constructor(rootPath: string, fileName: string, manifest: ProjectManifest, assets: IEditorAssetDb, scenes: IEditorSceneDb) {
     this.rootPath = rootPath;
     this.fileName = fileName;
     this.manifest = manifest;

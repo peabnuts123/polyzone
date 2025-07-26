@@ -1,7 +1,7 @@
 
 import { toColor3Babylon, toColor3Core, toColor3Definition } from "@polyzone/runtime/src/util";
 import { RetroMaterial } from "@polyzone/runtime/src/materials/RetroMaterial";
-import { MaterialAsset, MaterialDefinition } from "@polyzone/runtime/src/world";
+import { MaterialAsset, MaterialDefinition } from "@polyzone/runtime/src/world/assets";
 import { resolvePath } from "@lib/util/JsoncContainer";
 import { IMaterialEditorViewMutation } from "../IMaterialEditorViewMutation";
 import { MaterialEditorViewMutationArguments } from "../MaterialEditorViewMutationArguments";
@@ -17,7 +17,7 @@ export class SetMaterialDiffuseColorEnabledMutation implements IMaterialEditorVi
     this.diffuseColorEnabled = diffuseColorEnabled;
   }
 
-  public apply({ MaterialEditorViewController }: MaterialEditorViewMutationArguments): void {
+  public async apply({ MaterialEditorViewController }: MaterialEditorViewMutationArguments): Promise<void> {
     const { materialData, materialInstance } = MaterialEditorViewController;
 
     // 0. Store undo data

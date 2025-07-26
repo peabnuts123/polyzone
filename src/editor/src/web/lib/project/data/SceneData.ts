@@ -5,7 +5,7 @@ import { ISceneData, SceneDataConfiguration, SceneData as SceneDataRuntime } fro
 import { SceneDefinition, SceneManifest } from "../definition";
 import { __loadObjectDefinitionForRuntime } from "./loadObjectDefinition";
 import { GameObjectData } from "./GameObjectData";
-import { AssetDb } from "./AssetDb";
+import type { IEditorAssetDb } from "./AssetDb";
 
 export class SceneData implements ISceneData {
   private _sceneData: SceneDataRuntime;
@@ -13,7 +13,7 @@ export class SceneData implements ISceneData {
   public readonly id: string;
   public hash: string;
 
-  public constructor(sceneDefinition: SceneDefinition, sceneManifest: SceneManifest, assetDb: AssetDb) {
+  public constructor(sceneDefinition: SceneDefinition, sceneManifest: SceneManifest, assetDb: IEditorAssetDb) {
     this._sceneData = new SceneDataRuntime({
       path: sceneManifest.path,
       ...sceneDefinition,
