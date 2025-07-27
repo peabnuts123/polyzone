@@ -7,8 +7,6 @@ import { HemisphericLight as HemisphericLightBabylon } from '@babylonjs/core/Lig
 import { Color3 as Color3Babylon } from '@babylonjs/core/Maths/math.color';
 import "@babylonjs/loaders/OBJ/objFileLoader";
 import "@babylonjs/loaders/glTF";
-import { PointLight as PointLightBabylon } from '@babylonjs/core/Lights/pointLight';
-import { DirectionalLight as DirectionalLightBabylon } from '@babylonjs/core/Lights/directionalLight';
 import { PointerEventTypes } from '@babylonjs/core/Events/pointerEvents';
 import '@babylonjs/core/Culling/ray'; // @NOTE needed for mesh picking - contains side effects
 
@@ -16,25 +14,24 @@ import { GameObjectComponent } from '@polyzone/core/src/world';
 import {
   Transform as TransformRuntime,
   GameObject as GameObjectRuntime,
-  DirectionalLightComponent as DirectionalLightComponentRuntime,
-  PointLightComponent as PointLightComponentRuntime,
 } from '@polyzone/runtime/src/world';
 import { toColor3Babylon } from '@polyzone/runtime/src/util';
-import { MeshAsset } from '@polyzone/runtime/src/world/assets';
+import { createGameObject } from '@polyzone/runtime/src/world/createGameObject';
 
 import { JsoncContainer } from '@lib/util/JsoncContainer';
 import type { IProjectController } from '@lib/project/ProjectController';
 import { SceneViewMutator } from '@lib/mutation/SceneView';
 import { SceneDefinition } from '@lib/project/definition';
-import { CameraComponentData, DirectionalLightComponentData, IComposerComponentData, MeshComponentData, PointLightComponentData, ScriptComponentData } from '@lib/project/data/components';
+import { IComposerComponentData } from '@lib/project/data/components';
 import { SceneData, GameObjectData } from '@lib/project/data';
 import { ProjectSceneEventType } from '@lib/project/watcher/scenes';
 import { ProjectFileEventType } from '@lib/project/watcher/project';
 import { SceneDbRecord } from '@lib/project/data/SceneDb';
 import { ProjectAssetEventType } from '@lib/project/watcher/assets';
 import { ComponentDependencyManager } from '@lib/common/ComponentDependencyManager';
+import { createEditorGameObjectComponent } from '@lib/common/GameObjects';
 import { SceneViewSelectionCache } from './SceneViewSelectionCache';
-import { isAssetDependentComponent, ISelectableObject, isSelectableObject, MeshComponent } from './components';
+import { isAssetDependentComponent, ISelectableObject, isSelectableObject } from './components';
 import { CurrentSelectionTool, SelectionManager } from './SelectionManager';
 
 export interface ISceneViewController {
@@ -48,6 +45,8 @@ export interface ISceneViewController {
   reinitializeComponentInstance(componentData: IComposerComponentData, gameObjectData: GameObjectData): Promise<void>;
   reloadSceneData(scene: SceneDbRecord): Promise<void>;
   findGameObjectById(gameObjectId: string): GameObjectRuntime | undefined;
+  addGameObject(gameObject: GameObjectRuntime): void;
+  removeGameObject(gameObject: GameObjectRuntime): void;
 
   get canvas(): HTMLCanvasElement;
   get scene(): SceneData;
@@ -251,6 +250,81 @@ export class SceneViewController implements ISceneViewController {
     );
   }
 
+  /**
+   * Wrapper for `createGameObject()` with bindings into this SceneViewController.
+   * Automatically calls `addGameObject()` on the newly created GameObject.
+   */
+  public async createGameObject(gameObjectData: GameObjectData, parentTransform?: TransformRuntime): Promise<GameObjectRuntime> {
+    const gameObject = await createGameObject(
+      gameObjectData,
+      parentTransform,
+      this.babylonScene,
+      (gameObject, componentData) => this.createGameObjectComponent(
+        gameObjectData,
+        gameObject,
+        componentData as IComposerComponentData,
+      ),
+    );
+
+    // Flatten tree of game object instances
+    // We have to manually keep a record of these instances anyway
+    const collectGameObjectInstances = (gameObject: GameObjectRuntime): void => {
+      this.addGameObject(gameObject);
+      for (const childTransform of gameObject.transform.children) {
+        collectGameObjectInstances(childTransform.gameObject);
+      }
+    };
+    collectGameObjectInstances(gameObject);
+
+    return gameObject;
+  }
+
+  /**
+   * Wrapper for `createEditorGameObjectComponent()` with bindings into this SceneViewController.
+   * Automatically calls `gameObject.addComponent()` with the newly created GameObjectComponent.
+   */
+  public async createGameObjectComponent(gameObjectData: GameObjectData, gameObject: GameObjectRuntime, componentData: IComposerComponentData): Promise<GameObjectComponent | undefined> {
+    const component = await createEditorGameObjectComponent(
+      gameObject,
+      componentData,
+      this.babylonScene,
+      this.projectController.assetCache,
+      (newComponent) => this.addToSelectionCache(gameObjectData.id, newComponent),
+      (newComponent) => this.componentDependencyManager.registerDependency(
+        componentData,
+        gameObjectData,
+        newComponent.assetDependencyIds,
+      ),
+    );
+
+    if (component !== undefined) {
+      gameObject.addComponent(component);
+    }
+
+    return component;
+  }
+
+  /**
+   * Adds a GameObject instance to the list of game objects in this scene.
+   */
+  public addGameObject(gameObject: GameObjectRuntime): void {
+    // @NOTE Prevent duplicates
+    if (!this._gameObjectInstances.some((existingGameObject) => existingGameObject.id === gameObject.id)) {
+      this._gameObjectInstances.push(gameObject);
+    }
+  }
+
+  /**
+   * Removes a GameObject instance from the list of game objects in this scene.
+   */
+  public removeGameObject(gameObject: GameObjectRuntime): void {
+    // @NOTE Fail silently
+    const index = this._gameObjectInstances.findIndex((existingGameObject) => existingGameObject.id === gameObject.id);
+    if (index !== -1) {
+      this._gameObjectInstances.splice(index, 1);
+    }
+  }
+
   public setCurrentTool(tool: CurrentSelectionTool): void {
     this.selectionManager.currentTool = tool;
   }
@@ -261,90 +335,6 @@ export class SceneViewController implements ISceneViewController {
 
   public removeFromSelectionCache(component: ISelectableObject): void {
     this.selectionCache.remove(component.allSelectableMeshes);
-  }
-
-  // @TODO we probably should try to share this with the runtime in some kind of overridable fashion (?)
-  public async createGameObject(gameObjectData: GameObjectData, parentTransform: TransformRuntime | undefined = undefined): Promise<GameObjectRuntime> {
-    console.log(`[SceneViewController] (createSceneObject) Loading scene object: `, gameObjectData.name);
-    // Construct game object transform for constructing scene's hierarchy
-    const transform = new TransformRuntime(
-      gameObjectData.name,
-      this.babylonScene!,
-      parentTransform,
-      gameObjectData.transform,
-    );
-
-    // Create all child objects first
-    await Promise.all(gameObjectData.children.map((childObjectData) => this.createGameObject(childObjectData, transform)));
-
-    // Create blank object
-    const gameObject = new GameObjectRuntime(
-      gameObjectData.id,
-      gameObjectData.name,
-      transform,
-    );
-
-    transform.gameObject = gameObject;
-
-    // Store game object instance in array of all game objects in the scene (flat, no hierarchy)
-    this._gameObjectInstances.push(gameObject);
-
-    // Load game object components
-    await Promise.all(gameObjectData.components.map((componentData) =>
-      this.createGameObjectComponent(gameObjectData, gameObject, componentData),
-    ));
-
-    return gameObject;
-  }
-
-  public async createGameObjectComponent(gameObjectData: GameObjectData, gameObject: GameObjectRuntime, componentData: IComposerComponentData): Promise<GameObjectComponent | undefined> {
-    let newComponent: GameObjectComponent | undefined = undefined;
-
-    if (componentData instanceof MeshComponentData) {
-      /* Mesh component */
-      let meshAsset: MeshAsset | undefined = undefined;
-      if (componentData.meshAsset !== undefined) {
-        meshAsset = await this.projectController.assetCache.loadAsset(componentData.meshAsset, this.babylonScene);
-      }
-      const meshComponent = newComponent = new MeshComponent(componentData, gameObject, meshAsset);
-      // Store reverse reference to new instance for managing instance later (e.g. autoload)
-      componentData.componentInstance = meshComponent;
-    } else if (componentData instanceof ScriptComponentData) {
-      /* @NOTE Script has no effect in the Composer */
-    } else if (componentData instanceof CameraComponentData) {
-      /* @NOTE Camera has no effect in the Composer */
-    } else if (componentData instanceof DirectionalLightComponentData) {
-      /* Directional Light component */
-      const light = new DirectionalLightBabylon(`light_directional`, Vector3Babylon.Down(), this.babylonScene);
-      light.specular = Color3Babylon.Black();
-      light.intensity = componentData.intensity;
-      light.diffuse = toColor3Babylon(componentData.color);
-      newComponent = new DirectionalLightComponentRuntime(componentData.id, gameObject, light);
-    } else if (componentData instanceof PointLightComponentData) {
-      /* Point Light component */
-      const light = new PointLightBabylon(`light_point`, Vector3Babylon.Zero(), this.babylonScene);
-      light.specular = Color3Babylon.Black();
-      light.intensity = componentData.intensity;
-      light.diffuse = toColor3Babylon(componentData.color);
-      newComponent = new PointLightComponentRuntime(componentData.id, gameObject, light);
-    } else {
-      console.error(`[SceneViewController] (createGameObjectComponent) Unrecognised component data: `, componentData);
-    }
-
-    // Only continue processing if a component was actually made
-    if (newComponent === undefined) return;
-
-    // Store selectable objects in cache (for efficient lookup of model => game object on click)
-    if (isSelectableObject(newComponent)) {
-      this.addToSelectionCache(gameObjectData.id, newComponent);
-    }
-
-    // Store asset dependencies in a cache (for reloading components when assets change)
-    if (isAssetDependentComponent(newComponent)) {
-      this.componentDependencyManager.registerDependency(componentData, gameObjectData, newComponent.assetDependencyIds);
-    }
-
-    gameObject.addComponent(newComponent);
   }
 
   /**

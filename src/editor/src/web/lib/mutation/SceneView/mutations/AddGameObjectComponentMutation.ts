@@ -13,7 +13,7 @@ export class AddGameObjectComponentMutation implements ISceneMutation {
     this.newComponent = newComponent;
   }
 
-  apply({ SceneViewController }: SceneViewMutationArguments): void {
+  async apply({ SceneViewController }: SceneViewMutationArguments): Promise<void> {
     // 1. Update data
     const gameObjectData = SceneViewController.scene.getGameObject(this.gameObjectId);
     gameObjectData.components.push(this.newComponent);
@@ -21,7 +21,8 @@ export class AddGameObjectComponentMutation implements ISceneMutation {
     // 2. Update scene
     const gameObject = SceneViewController.findGameObjectById(this.gameObjectId);
     if (gameObject === undefined) throw new Error(`Cannot apply mutation - no game object exists in the scene with id '${this.gameObjectId}'`);
-    SceneViewController.createGameObjectComponent(gameObjectData, gameObject, this.newComponent);
+    // @NOTE Async logic not awaited until the end - keep processing mutation while we wait
+    const createGameObjectComponentPromise = SceneViewController.createGameObjectComponent(gameObjectData, gameObject, this.newComponent);
 
     // 3. Update JSONC
     const newComponentDefinition = this.newComponent.toComponentDefinition();
@@ -31,6 +32,9 @@ export class AddGameObjectComponentMutation implements ISceneMutation {
       (gameObject) => gameObject.components[gameObjectData.components.length],
     );
     SceneViewController.sceneJson.mutate(mutationPath, newComponentDefinition, { isArrayInsertion: true });
+
+    // Ensure async logic has completed
+    await createGameObjectComponentPromise;
   }
 
   undo(_args: SceneViewMutationArguments): void {

@@ -17,7 +17,7 @@ export class SetMaterialDiffuseColorEnabledMutation implements IMaterialEditorVi
     this.diffuseColorEnabled = diffuseColorEnabled;
   }
 
-  public async apply({ MaterialEditorViewController }: MaterialEditorViewMutationArguments): Promise<void> {
+  public apply({ MaterialEditorViewController }: MaterialEditorViewMutationArguments): void {
     const { materialData, materialInstance } = MaterialEditorViewController;
 
     // 0. Store undo data

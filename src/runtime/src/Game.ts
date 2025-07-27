@@ -1,31 +1,18 @@
 import type { Scene as BabylonScene } from "@babylonjs/core/scene";
 import { Color3 } from "@babylonjs/core/Maths/math.color";
-import { FreeCamera } from "@babylonjs/core/Cameras/freeCamera";
 import { Vector3 as Vector3Babylon } from "@babylonjs/core/Maths/math.vector";
 import { HemisphericLight } from "@babylonjs/core/Lights/hemisphericLight";
-import { DirectionalLight } from "@babylonjs/core/Lights/directionalLight";
-import { PointLight } from "@babylonjs/core/Lights/pointLight";
 
-import { ScriptComponent } from "@polyzone/core/src/world";
 import { World } from '@polyzone/core/src/modules/World';
 
 import { ScriptLoader } from './ScriptLoader';
 import {
   Cartridge,
-  MeshComponentData,
   SceneData as CartridgeScene,
   GameObjectData,
-  ScriptComponentData,
-  CameraComponentData,
-  PointLightComponentData,
-  DirectionalLightComponentData,
   AssetType,
 } from './cartridge';
 import {
-  MeshComponent,
-  CameraComponent,
-  DirectionalLightComponent,
-  PointLightComponent,
   GameObject,
   Transform,
   WorldState,
@@ -33,8 +20,8 @@ import {
 import Modules from './modules';
 import { toColor3Babylon } from "./util";
 import { AssetCache } from "./world/assets/AssetCache";
-import { MeshAsset } from "./world/assets/MeshAsset";
 import { RetroMaterial } from "./materials/RetroMaterial";
+import { createGameObject, createGameObjectComponent } from "./world/createGameObject";
 
 /**
  * Top-level system containing the entire game and all content
@@ -115,7 +102,7 @@ export class Game {
 
     /* Load game objects */
     for (const sceneObject of scene.objects) {
-      const gameObject = await this.createGameObjectFromData(sceneObject);
+      const gameObject = await this.createGameObject(sceneObject);
       World.addObject(gameObject);
     }
 
@@ -128,102 +115,20 @@ export class Game {
     }
   }
 
-  /**
-   * Create a new instance of a GameObject from a {@link GameObjectData} i.e. a cartridge-defined object.
-   * @param gameObjectData The data to instantiate.
-   */
-  private async createGameObjectFromData(gameObjectData: GameObjectData, parentTransform: Transform | undefined = undefined): Promise<GameObject> {
-    // Construct game object transform for constructing scene's hierarchy
-    const gameObjectTransform = new Transform(
-      gameObjectData.name,
-      this.babylonScene,
+  private async createGameObject(gameObjectData: GameObjectData, parentTransform: Transform | undefined = undefined): Promise<GameObject> {
+    return createGameObject(
+      gameObjectData,
       parentTransform,
-      gameObjectData.transform,
+      this.babylonScene,
+      (gameObject, componentData) =>
+        createGameObjectComponent(
+          gameObject,
+          componentData,
+          this.babylonScene,
+          this.assetCache,
+          this.scriptLoader,
+        ),
     );
-
-    // Create all child objects first
-    await Promise.all(gameObjectData.children.map((childObjectData) => this.createGameObjectFromData(childObjectData, gameObjectTransform)));
-
-    // Create blank object
-    const gameObject = new GameObject(
-      gameObjectData.id,
-      gameObjectData.name,
-      gameObjectTransform,
-    );
-    gameObjectTransform.gameObject = gameObject;
-
-    // Load game object components
-    // @TODO this light thingy is nonsense, remove it
-    let debug_lightCount = 0;
-    for (const componentData of gameObjectData.components) {
-      // Load well-known inbuilt component types
-      if (componentData instanceof MeshComponentData) {
-        /* Mesh component */
-        let meshAsset: MeshAsset | undefined = undefined;
-        if (componentData.meshAsset !== undefined) {
-          meshAsset = await this.assetCache.loadAsset(componentData.meshAsset, this.babylonScene);
-        }
-        gameObject.addComponent(new MeshComponent(componentData.id, gameObject, meshAsset));
-      } else if (componentData instanceof ScriptComponentData) {
-        /* Custom component script */
-        // Instantiate instance of script component (i.e. user-defined class)
-        // Obviously only do this if the script component has a script asset assigned to it
-        // otherwise, do nothing.
-        if (componentData.scriptAsset) {
-          // Script "asset" itself which may contain metadata about the asset rather than the script data itself
-          // @TODO Where can this go? What can reference it? It currently doesn't have any data, so, ignore for now.
-          // I guess the code here will reference it?
-          // const scriptAsset = await this.assetCache.loadAsset(componentData.scriptAsset, this.babylonScene);
-
-          const scriptModule = this.scriptLoader.getModule(componentData.scriptAsset);
-          if (
-            scriptModule === undefined ||
-            scriptModule === null ||
-            !(scriptModule instanceof Object) ||
-            !('default' in scriptModule)
-          ) {
-            throw new Error(`Module is missing default export: ${componentData.scriptAsset.path}`);
-          }
-
-          // Ensure script is of correct type
-          const CustomScriptComponent = scriptModule.default as new (...args: ConstructorParameters<typeof ScriptComponent>) => ScriptComponent;
-          if (
-            !(
-              (CustomScriptComponent instanceof Object) &&
-              Object.prototype.isPrototypeOf.call(ScriptComponent, CustomScriptComponent)
-            )
-          ) {
-            throw new Error(`Cannot add component to GameObject. Default export from script '${componentData.scriptAsset.path}' is not of type 'ScriptComponent': ${CustomScriptComponent}`);
-          }
-
-          // Construct new instance of script component
-          gameObject.addComponent(new CustomScriptComponent(componentData.id, gameObject));
-        }
-      } else if (componentData instanceof CameraComponentData) {
-        /* Camera component */
-        const camera = new FreeCamera("Main Camera", Vector3Babylon.Zero(), this.babylonScene, true);
-        camera.inputs.clear();
-        gameObject.addComponent(new CameraComponent(componentData.id, gameObject, camera));
-      } else if (componentData instanceof DirectionalLightComponentData) {
-        /* Directional Light component */
-        const light = new DirectionalLight(`light_directional_${debug_lightCount++}`, Vector3Babylon.Down(), this.babylonScene);
-        light.specular = Color3.Black();
-        light.intensity = componentData.intensity;
-        light.diffuse = toColor3Babylon(componentData.color);
-        gameObject.addComponent(new DirectionalLightComponent(componentData.id, gameObject, light));
-      } else if (componentData instanceof PointLightComponentData) {
-        /* Point Light component */
-        const light = new PointLight(`light_point_${debug_lightCount++}`, Vector3Babylon.Zero(), this.babylonScene);
-        light.specular = Color3.Black();
-        light.intensity = componentData.intensity;
-        light.diffuse = toColor3Babylon(componentData.color);
-        gameObject.addComponent(new PointLightComponent(componentData.id, gameObject, light));
-      } else {
-        console.error(`[Game] (createGameObjectFromData) Unrecognised component data: `, componentData);
-      }
-    }
-
-    return gameObject;
   }
 
   private get assetCache(): AssetCache {

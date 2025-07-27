@@ -8,7 +8,7 @@ import { MockMaterialEditorViewController } from '@test/mock/material-editor/Moc
 import { SetMaterialDiffuseColorEnabledMutation } from './SetMaterialDiffuseColorEnabledMutation';
 
 
-describe("SetMaterialDiffuseColorEnabledMutation", () => {
+describe(SetMaterialDiffuseColorEnabledMutation.name, () => {
   test("Enabling diffuse color in material updates state correctly", async () => {
     // Setup
     const mockMaterialDefinition: MaterialDefinition = {

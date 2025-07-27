@@ -5,7 +5,7 @@ import { ProjectData } from '@lib/project/data/ProjectData';
 import { ProjectDefinition, SceneDefinition } from '@lib/project';
 import { AssetDb } from '@lib/project/data/AssetDb';
 
-import { createMockSceneDb } from '@test/mock/scenes';
+import { createMockSceneDb } from '@test/mock/scene';
 
 
 /**
