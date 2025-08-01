@@ -1,9 +1,12 @@
 import { describe, test, expect } from 'vitest';
 
-import { MaterialDefinition } from '@polyzone/runtime/src/world/assets';
+import { AssetType } from '@polyzone/runtime/src/cartridge';
 
-import { MockProjectController } from '@test/mock/project/MockProjectController';
-import { MockMaterialEditorViewController } from '@test/mock/material-editor/MockMaterialEditorViewController';
+import { MaterialAssetDefinition } from '@lib/project';
+import { createMockMaterial } from '@test/integration/mock/material-editor/createMockMaterial';
+import { MockProject } from '@test/integration/mock/project/MockProject';
+import { MockProjectController } from '@test/integration/mock/project/MockProjectController';
+import { MockMaterialEditorViewController } from '@test/integration/mock/material-editor/MockMaterialEditorViewController';
 
 import { SetMaterialDiffuseColorEnabledMutation } from './SetMaterialDiffuseColorEnabledMutation';
 
@@ -11,12 +14,29 @@ import { SetMaterialDiffuseColorEnabledMutation } from './SetMaterialDiffuseColo
 describe(SetMaterialDiffuseColorEnabledMutation.name, () => {
   test("Enabling diffuse color in material updates state correctly", async () => {
     // Setup
-    const mockMaterialDefinition: MaterialDefinition = {
+    const mockMaterial = createMockMaterial({
       // @NOTE Empty material i.e. no diffuse color setting
-    };
+    });
+    let mockMaterialAssetDefinition!: MaterialAssetDefinition;
+    const mock = new MockProject(({ manifest, asset, scene }) => {
+      mockMaterialAssetDefinition = asset(AssetType.Material, 'materials/mock.pzmat', mockMaterial.data);
 
-    const mockProjectController = new MockProjectController();
-    const mockMaterialEditorViewController = await MockMaterialEditorViewController.create(mockProjectController, mockMaterialDefinition);
+      return {
+        manifest: manifest(),
+        assets: [
+          mockMaterialAssetDefinition,
+        ],
+        scenes: [
+          scene('sample'),
+        ],
+      };
+    });
+    const mockProjectController = await MockProjectController.create(mock);
+    const mockMaterialEditorViewController = await MockMaterialEditorViewController.create(
+      mockProjectController,
+      mockMaterialAssetDefinition,
+      mockMaterial.definition,
+    );
 
     const initialDataEnabledValue = mockMaterialEditorViewController.materialData.diffuseColorEnabled;
     const initialDataValue = mockMaterialEditorViewController.materialData.diffuseColor;
@@ -54,12 +74,29 @@ describe(SetMaterialDiffuseColorEnabledMutation.name, () => {
 
   test("Disabling diffuse color in material updates state correctly", async () => {
     // Setup
-    const mockMaterialDefinition: MaterialDefinition = {
+    const mockMaterial = createMockMaterial({
       diffuseColor: { r: 255, g: 0, b: 255 },
-    };
+    });
+    let mockMaterialAssetDefinition!: MaterialAssetDefinition;
+    const mock = new MockProject(({ manifest, asset, scene }) => {
+      mockMaterialAssetDefinition = asset(AssetType.Material, 'materials/mock.pzmat', mockMaterial.data);
 
-    const mockProjectController = new MockProjectController();
-    const mockMaterialEditorViewController = await MockMaterialEditorViewController.create(mockProjectController, mockMaterialDefinition);
+      return {
+        manifest: manifest(),
+        assets: [
+          mockMaterialAssetDefinition,
+        ],
+        scenes: [
+          scene('sample'),
+        ],
+      };
+    });
+    const mockProjectController = await MockProjectController.create(mock);
+    const mockMaterialEditorViewController = await MockMaterialEditorViewController.create(
+      mockProjectController,
+      mockMaterialAssetDefinition,
+      mockMaterial.definition,
+    );
 
     const initialDataEnabledValue = mockMaterialEditorViewController.materialData.diffuseColorEnabled;
     const initialDataValue = mockMaterialEditorViewController.materialData.diffuseColor;

@@ -1,19 +1,17 @@
-import { v4 as uuid } from 'uuid';
-import { NullEngine } from '@babylonjs/core/Engines/nullEngine';
 import { Scene as BabylonScene } from '@babylonjs/core/scene';
+import { Engine } from '@babylonjs/core/Engines/engine';
 
 import { MaterialDefinition } from '@polyzone/runtime/src/world/assets';
 import { RetroMaterial } from '@polyzone/runtime/src/materials/RetroMaterial';
+import { AssetType } from '@polyzone/runtime/src/cartridge/archive/assets';
 
 import { IMaterialEditorViewController } from '@lib/material-editor/material/MaterialEditorViewController';
 import { JsoncContainer } from '@lib/util/JsoncContainer';
 import { MaterialAssetData } from '@lib/project/data';
 import { MaterialData } from '@lib/material-editor/material/MaterialData';
-
-import type { MockProjectController } from '@test/mock/project/MockProjectController';
-import { randomHash } from '@test/util';
+import type { MockProjectController } from '@test/integration/mock/project/MockProjectController';
 import { MaterialAssetDefinition } from '@lib/project';
-import { AssetType } from '@polyzone/runtime/src/cartridge/archive/assets';
+
 import { MockMaterialEditorViewMutator } from './MockMaterialEditorViewMutator';
 
 /**
@@ -47,9 +45,13 @@ export class MockMaterialEditorViewController implements IMaterialEditorViewCont
     this.mutator = new MockMaterialEditorViewMutator(this, projectController);
   }
 
-  public static async create(projectController: MockProjectController, mockMaterialDefinition: MaterialDefinition): Promise<MockMaterialEditorViewController> {
+  public static async create(
+    projectController: MockProjectController,
+    mockMaterialAssetDefinition: MaterialAssetDefinition,
+    mockMaterialDefinition: MaterialDefinition,
+  ): Promise<MockMaterialEditorViewController> {
     const canvas = document.createElement('canvas');
-    const babylonEngine = new NullEngine();
+    const babylonEngine = new Engine(canvas);
     const scene = new BabylonScene(babylonEngine);
 
     /*
@@ -71,15 +73,8 @@ export class MockMaterialEditorViewController implements IMaterialEditorViewCont
       MaterialAsset                 - A fully loaded Material file, including references to all asset dependencies (also loaded)
     */
 
-    // Create material asset in project
-    const materialAssetData = projectController.addAsset({
-      id: uuid(),
-      type: AssetType.Material,
-      hash: randomHash(),
-      path: 'materials/mock-material.pzmat',
-    } satisfies MaterialAssetDefinition,
-      JSON.stringify(mockMaterialDefinition, null, 2),
-    );
+    // Get material asset data from project controller
+    const materialAssetData = projectController.project.assets.getById(mockMaterialAssetDefinition.id, AssetType.Material);
 
     // Load material asset from asset data
     const materialAsset = await projectController.assetCache.loadAsset(materialAssetData, scene);
