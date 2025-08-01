@@ -9,7 +9,6 @@ import { IMaterialEditorViewController } from '@lib/material-editor/material/Mat
 import { JsoncContainer } from '@lib/util/JsoncContainer';
 import { MaterialAssetData } from '@lib/project/data';
 import { MaterialData } from '@lib/material-editor/material/MaterialData';
-import type { MaterialEditorViewMutator } from '@lib/mutation/MaterialEditor/MaterialEditorView';
 
 import type { MockProjectController } from '@test/mock/project/MockProjectController';
 import { randomHash } from '@test/util';
@@ -27,7 +26,7 @@ export class MockMaterialEditorViewController implements IMaterialEditorViewCont
   public materialData: MaterialData;
   public materialJson: JsoncContainer<MaterialDefinition>;
   public materialInstance: RetroMaterial;
-  public mutator: MaterialEditorViewMutator;
+  public mutator: MockMaterialEditorViewMutator;
   public scene: BabylonScene;
 
   private constructor(
@@ -105,9 +104,11 @@ export class MockMaterialEditorViewController implements IMaterialEditorViewCont
   }
 
   startBabylonView(): () => void {
-    return () => { };
+    throw new Error("Method not implemented.");
   }
-  destroy(): void { }
+  destroy(): void {
+    throw new Error("Method not implemented.");
+  }
   reloadSceneData(_material?: MaterialAssetData): Promise<void> {
     throw new Error('Method not implemented.');
   }

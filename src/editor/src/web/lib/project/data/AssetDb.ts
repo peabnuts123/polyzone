@@ -52,7 +52,16 @@ export class AssetDb implements IEditorAssetDb {
   }
 
   public add(asset: AssetData): void {
-    this.assets.push(asset);
+    // Check if asset already exists in AssetDb
+    const existingAssetIndex = this.assets.findIndex((asset) => asset.id === asset.id);
+    if (existingAssetIndex === -1) {
+      // Asset is new - add it
+      this.assets.push(asset);
+    } else {
+      // Asset already exists - replace it (I am not sure this should ever happen)
+      console.warn(`[AssetDb] (add) Asset with ID '${asset.id}' already exists in AssetDb - replacing existing asset`);
+      this.assets[existingAssetIndex] = asset;
+    }
   }
 
   public remove(assetId: string): void {

@@ -42,13 +42,29 @@ export class TextureAsset extends LoadedAssetBase<AssetType.Texture> {
 
     // Load texture (async)
     await new Promise((resolve, reject) => {
-      texture.onLoadObservable.addOnce(() => {
+      let hasCallbackFired = false;
+      function callback(_source: string): void {
+        // Prevent triggering twice
+        if (hasCallbackFired) return;
+        hasCallbackFired = true;
+
         if (texture.loadingError) {
           reject(texture.errorObject);
         } else {
           resolve(texture);
         }
+      }
+
+      // Observable fires when texture either loads or errors
+      texture.onLoadObservable.addOnce(() => {
+        callback('observable');
       });
+
+      // @NOTE fallback using setTimeout
+      // It seems in some contexts `onLoadObservable` is never fired (e.g. if texture file is corrupt?)
+      setTimeout(() => {
+        callback('setTimeout');
+      }, 1000);
     });
 
     return new TextureAsset(assetData.id, texture);

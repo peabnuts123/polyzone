@@ -49,6 +49,10 @@ class Resolver {
   public deregisterFileSystem(protocol: string): void {
     this.fileSystems.delete(protocol);
   }
+
+  public deregisterAllFileSystems(): void {
+    this.fileSystems.clear();
+  }
 }
 
 export default new Resolver();

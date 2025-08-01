@@ -3,7 +3,7 @@
     "target": "ESNext",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
-    "skipLibCheck": true,
+    "skipLibCheck": true, // Disappointing 😔
     "strict": true,
     "noEmit": true,
     "esModuleInterop": true,
@@ -31,5 +31,11 @@
     "**/*.tsx",
     "vitest.config.ts",
   ],
-  "exclude": [ "../../../../node_modules", "../../node_modules", "public", "dist"]
+  "exclude": [
+    "../../../../node_modules",
+    "../../node_modules",
+    "public",
+    "dist",
+    "test/integration/mock/assets/scripts/*"
+  ]
 }

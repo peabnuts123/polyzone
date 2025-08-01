@@ -1,6 +1,6 @@
 
 import { AssetType, ITextureAssetData, MeshAssetMaterialOverrideReflectionSeparateData } from "@polyzone/runtime/src/cartridge";
-import { ReflectionLoading } from "@polyzone/runtime/src/world";
+import { ReflectionLoading } from "@polyzone/runtime/src/world/assets/TextureAsset";
 import { IModelEditorViewMutation } from "../IModelEditorViewMutation";
 import { ModelEditorViewMutationArguments } from "../ModelEditorViewMutationArguments";
 import { reconcileMaterialOverrideData } from "./util/reconcile-overrides";
@@ -31,7 +31,7 @@ export class SetModelMaterialOverrideReflectionSeparateTextureMutation implement
     this.whichTexture = whichTexture;
   }
 
-  public apply({ ProjectController, ModelEditorViewController }: ModelEditorViewMutationArguments): void {
+  public async apply({ ProjectController, ModelEditorViewController }: ModelEditorViewMutationArguments): Promise<void> {
     const meshAssetData = ProjectController.project.assets.getById(this.modelAssetId, AssetType.Mesh);
     const reflectionTextureAssetData = this.reflectionTextureAssetId ? ProjectController.project.assets.getById(this.reflectionTextureAssetId, AssetType.Texture) : undefined;
     const materialOverridesData = meshAssetData.getOverridesForMaterial(this.materialName);
@@ -52,10 +52,8 @@ export class SetModelMaterialOverrideReflectionSeparateTextureMutation implement
     // 2. Update Babylon state
     if (reflectionTextureAssetData) {
       /* @NOTE Will only return a defined texture when all 6 textures are defined */
-      ReflectionLoading.loadSeparate(materialOverridesData.reflection, ProjectController.assetCache, ModelEditorViewController.scene)
-        .then((reflection) => {
-          material.overridesFromAsset.reflectionTexture = reflection?.texture;
-        });
+      const reflection = await ReflectionLoading.loadSeparate(materialOverridesData.reflection, ProjectController.assetCache, ModelEditorViewController.scene);
+      material.overridesFromAsset.reflectionTexture = reflection?.texture;
     } else {
       material.overridesFromAsset.reflectionTexture = undefined;
     }

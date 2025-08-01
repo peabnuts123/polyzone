@@ -68,7 +68,7 @@ export class Transform extends TransformCore {
       },
     );
     this._localRotation = new WrappedQuaternionBabylon(
-      () => this.node.rotationQuaternion!,
+      () => this.node.rotationQuaternion,
       (value) => {
         debugLog(`[Transform] (localRotation.set) (${name}): ${value}`);
         this.node.rotationQuaternion = value;
