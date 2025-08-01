@@ -3,9 +3,22 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 
 export default defineConfig({
   plugins: [tsconfigPaths()],
-  assetsInclude: ['**/*.fx'],
+  assetsInclude: [
+    '**/*.fx',
+    'test/integration/mock/assets/models/*',
+    'test/integration/mock/assets/scripts/*',
+    'test/integration/mock/assets/textures/*',
+  ],
   test: {
-    environment: 'jsdom',
+    exclude: [
+      '**\/node_modules/**',
+      '**\/.git/**',
+      '**/*.integration.test.?(c|m)[jt]s?(x)',
+    ],
+    setupFiles: [
+      'test/setup/deregisterAllFileSystems.ts',
+    ],
+    environment: 'happy-dom', // @TODO Probably none of this
     expect: {
       requireAssertions: true,
     },
