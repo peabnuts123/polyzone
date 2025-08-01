@@ -1,4 +1,14 @@
+import { Engine } from '@babylonjs/core/Engines/engine';
 import { Scene as BabylonScene } from '@babylonjs/core/scene';
+
+import {
+  Transform as TransformRuntime,
+  GameObject as GameObjectRuntime,
+} from '@polyzone/runtime/src/world';
+import { GameObjectComponent } from '@polyzone/core/src/world/GameObjectComponent';
+import { createGameObject } from '@polyzone/runtime/src/world/createGameObject';
+
+import { createEditorGameObjectComponent } from '@lib/common/GameObjects';
 import { ISelectableObject } from "@lib/composer/scene";
 import { ISceneViewController } from "@lib/composer/scene/SceneViewController";
 import { CurrentSelectionTool, SelectionManager } from "@lib/composer/scene/SelectionManager";
@@ -6,17 +16,11 @@ import { SceneDefinition } from "@lib/project";
 import { GameObjectData, IComposerComponentData, SceneData } from "@lib/project/data";
 import { SceneDbRecord } from "@lib/project/data/SceneDb";
 import { JsoncContainer } from "@lib/util/JsoncContainer";
+import { Func } from '@lib/util/types';
+
 import { MockProjectController } from "../project/MockProjectController";
 import { MockSceneViewMutator } from "./MockSceneViewMutator";
-import { NullEngine } from "@babylonjs/core/Engines/nullEngine";
-import {
-  Transform as TransformRuntime,
-  GameObject as GameObjectRuntime,
-} from '@polyzone/runtime/src/world';
-import { Func } from '@lib/util/types';
-import { GameObjectComponent } from '@polyzone/core/src/world/GameObjectComponent';
-import { createGameObject } from '@polyzone/runtime/src/world/createGameObject';
-import { createEditorGameObjectComponent } from '@lib/common/GameObjects';
+
 
 /**
  * Mock version of `SceneViewController` that just houses state, and otherwise contains no logic.
@@ -33,6 +37,7 @@ export class MockSceneViewController implements ISceneViewController {
   private constructor(
     projectController: MockProjectController,
     canvas: HTMLCanvasElement,
+    babylonScene: BabylonScene,
     scene: SceneData,
     sceneJson: JsoncContainer<SceneDefinition>,
   ) {
@@ -40,18 +45,20 @@ export class MockSceneViewController implements ISceneViewController {
     this.canvas = canvas;
     this.scene = scene;
     this.sceneJson = sceneJson;
+    this.babylonScene = babylonScene;
     this.mutator = new MockSceneViewMutator(this, projectController);
-    const babylonEngine = new NullEngine();
-    this.babylonScene = new BabylonScene(babylonEngine);
     this.selectionManager = new SelectionManager(this.babylonScene, this);
   }
 
   public static create(projectController: MockProjectController, scene: SceneDbRecord): MockSceneViewController {
     const canvas = document.createElement('canvas');
+    const babylonEngine = new Engine(canvas);
+    const babylonScene = new BabylonScene(babylonEngine);
 
     return new MockSceneViewController(
       projectController,
       canvas,
+      babylonScene,
       scene.data,
       scene.jsonc,
     );

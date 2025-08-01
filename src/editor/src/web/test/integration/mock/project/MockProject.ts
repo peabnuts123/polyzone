@@ -2,7 +2,7 @@ import { v4 as uuid } from 'uuid';
 
 import { AssetType } from '@polyzone/runtime/src/cartridge';
 
-import { AssetDefinitionOfType, ProjectDefinition, ProjectManifest, SceneManifest } from "@lib/project";
+import { AssetDefinitionOfType, ProjectDefinition, ProjectManifest, SceneDefinition, SceneManifest } from "@lib/project";
 import { JsoncContainer } from '@lib/util/JsoncContainer';
 
 import { randomHash } from '@test/util';
@@ -24,7 +24,7 @@ export class MockProject {
 
   public constructor(ctor: (tools: MockProjectTools) => ProjectDefinition) {
     const assetFiles: MockFile[] = this.assetFiles = [];
-    this.sceneFiles = [];
+    const sceneFiles: MockFile[] = this.sceneFiles = [];
 
     const projectDefinition = ctor({
       manifest(partialManifest?: Partial<ProjectManifest>): ProjectManifest {
@@ -49,7 +49,7 @@ export class MockProject {
       },
       scene(...args: Parameters<typeof createMockScene>): SceneManifest {
         const scene = createMockScene(...args);
-        assetFiles.push({
+        sceneFiles.push({
           path: scene.manifest.path,
           data: new TextEncoder().encode(JSON.stringify(scene.definition)),
         });
@@ -79,17 +79,16 @@ export class MockProject {
     };
   }
 
-  // @TODO (?)
-  // public get scenes(): { path: string, definition: SceneDefinition, jsonc: JsoncContainer<SceneDefinition> }[] {
-  //   return this.sceneFiles.map(sceneMockFile => {
-  //     const sceneFile = this.mockFileSystem.readFileSync(sceneMockFile.path);
-  //     const jsonc = new JsoncContainer<SceneDefinition>(sceneFile.textContent);
-  //     return {
-  //       path: sceneMockFile.path,
-  //       definition: jsonc.value,
-  //       jsonc,
-  //     };
-  //   });
-  // }
+  public get scenes(): { path: string, definition: SceneDefinition, jsonc: JsoncContainer<SceneDefinition> }[] {
+    return this.sceneFiles.map(sceneMockFile => {
+      const sceneFile = this.fileSystem.readFileSync(sceneMockFile.path);
+      const jsonc = new JsoncContainer<SceneDefinition>(sceneFile.textContent);
+      return {
+        path: sceneMockFile.path,
+        definition: jsonc.value,
+        jsonc,
+      };
+    });
+  }
 }
 

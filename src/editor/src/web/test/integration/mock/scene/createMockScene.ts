@@ -79,48 +79,52 @@ export interface CreateMockGameObjectTools {
   object: typeof createMockGameObject;
 }
 
-export function createMockGameObject(name: string, ctor: (tools: CreateMockGameObjectTools) => Partial<Omit<GameObjectDefinition, 'name'>>): GameObjectDefinition {
-  const partialObject = ctor({
-    meshComponent(meshAsset) {
-      return {
-        id: uuid(),
-        meshFileId: meshAsset.id,
-        type: ComponentDefinitionType.Mesh,
-      };
-    },
-    scriptComponent(scriptAsset) {
-      return {
-        id: uuid(),
-        type: ComponentDefinitionType.Script,
-        scriptFileId: scriptAsset.id,
-      };
-    },
-    cameraComponent() {
-      return {
-        id: uuid(),
-        type: ComponentDefinitionType.Camera,
-      };
-    },
-    directionalLightComponent(options) {
-      return {
-        id: uuid(),
-        type: ComponentDefinitionType.DirectionalLight,
-        intensity: 1.0,
-        color: { r: 255, g: 255, b: 255 },
-        ...options,
-      };
-    },
-    pointLightComponent(options) {
-      return {
-        id: uuid(),
-        type: ComponentDefinitionType.PointLight,
-        intensity: 1.0,
-        color: { r: 255, g: 255, b: 255 },
-        ...options,
-      };
-    },
-    object: createMockGameObject,
-  });
+export function createMockGameObject(name: string, ctor?: (tools: CreateMockGameObjectTools) => Partial<Omit<GameObjectDefinition, 'name'>>): GameObjectDefinition {
+  let partialObject: Partial<GameObjectDefinition> = {};
+  if (ctor) {
+    partialObject = ctor({
+      meshComponent(meshAsset) {
+        return {
+          id: uuid(),
+          meshFileId: meshAsset.id,
+          type: ComponentDefinitionType.Mesh,
+        };
+      },
+      scriptComponent(scriptAsset) {
+        return {
+          id: uuid(),
+          type: ComponentDefinitionType.Script,
+          scriptFileId: scriptAsset.id,
+        };
+      },
+      cameraComponent() {
+        return {
+          id: uuid(),
+          type: ComponentDefinitionType.Camera,
+        };
+      },
+      directionalLightComponent(options) {
+        return {
+          id: uuid(),
+          type: ComponentDefinitionType.DirectionalLight,
+          intensity: 1.0,
+          color: { r: 255, g: 255, b: 255 },
+          ...options,
+        };
+      },
+      pointLightComponent(options) {
+        return {
+          id: uuid(),
+          type: ComponentDefinitionType.PointLight,
+          intensity: 1.0,
+          color: { r: 255, g: 255, b: 255 },
+          ...options,
+        };
+      },
+      object: createMockGameObject,
+    });
+  }
+
 
   return {
     id: uuid(),

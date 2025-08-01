@@ -1,20 +1,45 @@
 import { describe, test, expect } from 'vitest';
 
-import { MockProjectController } from '@test/mock/project/MockProjectController';
-import { MockSceneViewController } from '@test/mock/scene/MockSceneViewController';
+import { GameObjectDefinition } from '@polyzone/runtime/src/cartridge';
+
+import { MockProject } from '@test/integration/mock/project/MockProject';
+import { MockProjectController } from '@test/integration/mock/project/MockProjectController';
+import { MockSceneViewController } from '@test/integration/mock/scene/MockSceneViewController';
 
 import { SetGameObjectNameMutation } from './SetGameObjectNameMutation';
 
 describe(SetGameObjectNameMutation.name, () => {
   test("Calling update() and then apply() updates state correctly", async () => {
     // Setup
-    const mockProjectController = new MockProjectController();
-    const mockScene = mockProjectController.project.scenes.getAll()[0];
-    const mockSceneViewController = MockSceneViewController.create(mockProjectController, mockScene);
-
-    const mockGameObjectData = mockScene.data.objects[0];
+    let mockGameObjectDefinition!: GameObjectDefinition;
+    const mock = new MockProject(({ manifest, scene }) => {
+      return {
+        manifest: manifest(),
+        assets: [],
+        scenes: [
+          scene('sample', ({ config, object }) => {
+            mockGameObjectDefinition = object('Mock object');
+            return {
+              config: config(),
+              objects: [
+                mockGameObjectDefinition,
+              ],
+            };
+          }),
+        ],
+      };
+    });
+    const mockProjectController = await MockProjectController.create(mock);
+    const mockScene = mockProjectController.project.scenes.getByPath(mock.scenes[0].path)!;
+    const mockSceneViewController = await MockSceneViewController.create(
+      mockProjectController,
+      mockScene,
+    );
+    const mockGameObjectData = mockScene.data.getGameObject(mockGameObjectDefinition.id);
+    /* Mock `findGameObjectById` to return mock instance */
     const mockGameObject = await mockSceneViewController.createGameObject(mockGameObjectData);
     mockSceneViewController.findGameObjectById = () => mockGameObject;
+
 
     const initialDefinitionValue = mockSceneViewController.sceneDefinition.objects[0].name;
     const initialGameObjectName = mockGameObjectData.name;
