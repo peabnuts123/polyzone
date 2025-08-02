@@ -12,23 +12,18 @@ describe(SetGameObjectNameMutation.name, () => {
   test("Calling update() and then apply() updates state correctly", async () => {
     // Setup
     let mockGameObjectDefinition!: GameObjectDefinition;
-    const mock = new MockProject(({ manifest, scene }) => {
-      return {
-        manifest: manifest(),
-        assets: [],
-        scenes: [
-          scene('sample', ({ config, object }) => {
-            mockGameObjectDefinition = object('Mock object');
-            return {
-              config: config(),
-              objects: [
-                mockGameObjectDefinition,
-              ],
-            };
-          }),
-        ],
-      };
-    });
+    const mock = new MockProject(({ manifest, scene }) => ({
+      manifest: manifest(),
+      assets: [],
+      scenes: [
+        scene('sample', ({ config, object }) => ({
+          config: config(),
+          objects: [
+            mockGameObjectDefinition = object('Mock object'),
+          ],
+        })),
+      ],
+    }));
     const mockProjectController = await MockProjectController.create(mock);
     const mockScene = mockProjectController.project.scenes.getByPath(mock.scenes[0].path)!;
     const mockSceneViewController = await MockSceneViewController.create(

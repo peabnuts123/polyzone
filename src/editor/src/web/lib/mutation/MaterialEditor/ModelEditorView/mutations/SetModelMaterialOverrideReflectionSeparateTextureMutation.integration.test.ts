@@ -19,37 +19,32 @@ describe(SetModelMaterialOverrideReflectionSeparateTextureMutation.name, () => {
     const mockMaterialName = 'Main'; // @NOTE Must match `sphere.mtl` - referenced in mock project definition
     let mockMeshAssetDefinition!: MeshAssetDefinition;
     let mockTextureAssetDefinition!: TextureAssetDefinition;
-    const mock = new MockProject(({ manifest, asset, scene }) => {
-      mockTextureAssetDefinition = asset(AssetType.Texture, 'textures/stones.png', MockAssets.textures.stonesPng);
-      mockMeshAssetDefinition = asset(AssetType.Mesh, 'models/sphere.obj', MockAssets.models.sphereObj, {
-        materialOverrides: {
-          [mockMaterialName]: {
-            diffuseColor: { r: 255, g: 128, b: 0 },
-            reflection: {
-              type: 'separate',
-              nxTextureAssetId: mockTextureAssetDefinition.id,
-              // @NOTE pxTextureAssetId is NOT set - will be set by the test
-              nyTextureAssetId: mockTextureAssetDefinition.id,
-              pyTextureAssetId: mockTextureAssetDefinition.id,
-              nzTextureAssetId: mockTextureAssetDefinition.id,
-              pzTextureAssetId: mockTextureAssetDefinition.id,
+    const mock = new MockProject(({ manifest, asset, scene }) => ({
+      manifest: manifest(),
+      assets: [
+        mockTextureAssetDefinition = asset(AssetType.Texture, 'textures/stones.png', MockAssets.textures.stonesPng),
+        mockMeshAssetDefinition = asset(AssetType.Mesh, 'models/sphere.obj', MockAssets.models.sphereObj, {
+          materialOverrides: {
+            [mockMaterialName]: {
+              diffuseColor: { r: 255, g: 128, b: 0 },
+              reflection: {
+                type: 'separate',
+                nxTextureAssetId: mockTextureAssetDefinition.id,
+                // @NOTE pxTextureAssetId is NOT set - will be set by the test
+                nyTextureAssetId: mockTextureAssetDefinition.id,
+                pyTextureAssetId: mockTextureAssetDefinition.id,
+                nzTextureAssetId: mockTextureAssetDefinition.id,
+                pzTextureAssetId: mockTextureAssetDefinition.id,
+              },
             },
           },
-        },
-      });
-
-      return {
-        manifest: manifest(),
-        assets: [
-          mockMeshAssetDefinition,
-          mockTextureAssetDefinition,
-          asset(AssetType.MeshSupplementary, 'models/sphere.mtl', MockAssets.models.sphereMtl),
-        ],
-        scenes: [
-          scene('sample'),
-        ],
-      };
-    });
+        }),
+        asset(AssetType.MeshSupplementary, 'models/sphere.mtl', MockAssets.models.sphereMtl),
+      ],
+      scenes: [
+        scene('sample'),
+      ],
+    }));
     const mockProjectController = await MockProjectController.create(mock);
     const mockMeshAssetData = mockProjectController.project.assets.getById(mockMeshAssetDefinition.id, AssetType.Mesh);
     const mockModelEditorViewController = await MockModelEditorViewController.create(mockProjectController, mockMeshAssetData);

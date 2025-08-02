@@ -20,17 +20,15 @@ describe(SetMaterialDiffuseColorMutation.name, () => {
       // @NOTE Empty material i.e. no diffuse color setting
     });
     let mockMaterialAssetDefinition!: MaterialAssetDefinition;
-    const mock = new MockProject(({ manifest, asset, scene }) => {
-      return {
-        manifest: manifest(),
-        assets: [
-          mockMaterialAssetDefinition = asset(AssetType.Material, 'materials/mock.pzmat', mockMaterial.data),
-        ],
-        scenes: [
-          scene('sample'),
-        ],
-      };
-    });
+    const mock = new MockProject(({ manifest, asset, scene }) => ({
+      manifest: manifest(),
+      assets: [
+        mockMaterialAssetDefinition = asset(AssetType.Material, 'materials/mock.pzmat', mockMaterial.data),
+      ],
+      scenes: [
+        scene('sample'),
+      ],
+    }));
     const mockProjectController = await MockProjectController.create(mock);
     const mockMaterialEditorViewController = await MockMaterialEditorViewController.create(
       mockProjectController,
@@ -88,17 +86,15 @@ describe(SetMaterialDiffuseColorMutation.name, () => {
       diffuseColor: initialColor,
     });
     let mockMaterialAssetDefinition!: MaterialAssetDefinition;
-    const mock = new MockProject(({ manifest, asset, scene }) => {
-      return {
-        manifest: manifest(),
-        assets: [
-          mockMaterialAssetDefinition = asset(AssetType.Material, 'materials/mock.pzmat', mockMaterial.data),
-        ],
-        scenes: [
-          scene('sample'),
-        ],
-      };
-    });
+    const mock = new MockProject(({ manifest, asset, scene }) => ({
+      manifest: manifest(),
+      assets: [
+        mockMaterialAssetDefinition = asset(AssetType.Material, 'materials/mock.pzmat', mockMaterial.data),
+      ],
+      scenes: [
+        scene('sample'),
+      ],
+    }));
     const mockProjectController = await MockProjectController.create(mock);
     const mockMaterialEditorViewController = await MockMaterialEditorViewController.create(
       mockProjectController,
@@ -146,17 +142,15 @@ describe(SetMaterialDiffuseColorMutation.name, () => {
       diffuseColor: { r: 255, g: 255, b: 255 },
     });
     let mockMaterialAssetDefinition!: MaterialAssetDefinition;
-    const mock = new MockProject(({ manifest, asset, scene }) => {
-      return {
-        manifest: manifest(),
-        assets: [
-          mockMaterialAssetDefinition = asset(AssetType.Material, 'materials/mock.pzmat', mockMaterial.data),
-        ],
-        scenes: [
-          scene('sample'),
-        ],
-      };
-    });
+    const mock = new MockProject(({ manifest, asset, scene }) => ({
+      manifest: manifest(),
+      assets: [
+        mockMaterialAssetDefinition = asset(AssetType.Material, 'materials/mock.pzmat', mockMaterial.data),
+      ],
+      scenes: [
+        scene('sample'),
+      ],
+    }));
     const mockProjectController = await MockProjectController.create(mock);
     const mockMaterialEditorViewController = await MockMaterialEditorViewController.create(
       mockProjectController,
