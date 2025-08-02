@@ -1,3 +1,4 @@
+import { runInAction } from "mobx";
 import { isContinuousMutation } from "./IContinuousMutation";
 import { IMutation } from "./IMutation";
 import { IContinuousMutation } from "./IContinuousMutation";
@@ -93,7 +94,12 @@ export abstract class Mutator<TMutationArgs> {
 
     // Push new mutation (not yet applied) and call `begin()`
     this.mutationStack.push(continuousMutation);
-    await continuousMutation.begin(this.getMutationArgs());
+
+    // @NOTE runInAction will be useless after an `await`, so called code
+    // will need additional `runInAction` calls after async work
+    await runInAction(() => {
+      return continuousMutation.begin(this.getMutationArgs());
+    });
   }
 
   public updateContinuous<TMutation extends AnyContinuousMutation<TMutationArgs>>(continuousMutation: TMutation, updateArgs: TMutation extends IContinuousMutation<TMutationArgs, infer TUpdateArgs> ? TUpdateArgs : never): Promise<void> {
@@ -111,7 +117,11 @@ export abstract class Mutator<TMutationArgs> {
       throw new Error(`Cannot update continuous mutation - provided instance is not the latest mutation`);
     }
 
-    await continuousMutation.update(this.getMutationArgs(), updateArgs);
+    // @NOTE runInAction will be useless after an `await`, so called code
+    // will need additional `runInAction` calls after async work
+    await runInAction(() => {
+      return continuousMutation.update(this.getMutationArgs(), updateArgs);
+    });
   }
 
   /**
@@ -171,7 +181,12 @@ export abstract class Mutator<TMutationArgs> {
 
     // Apply mutation
     const mutationArgs = this.getMutationArgs();
-    await mutation.apply(mutationArgs);
+
+    // @NOTE runInAction will be useless after an `await`, so called code
+    // will need additional `runInAction` calls after async work
+    await runInAction(() => {
+      return mutation.apply(mutationArgs);
+    });
 
     // @TODO @DEBUG REMOVE
     console.log(`Mutation stack: `, this.mutationStack.map((mutation) => mutation.description));
@@ -179,9 +194,13 @@ export abstract class Mutator<TMutationArgs> {
     // Save to disk
     await this.persistChanges();
 
-    if (mutation.afterPersistChanges) {
-      await mutation.afterPersistChanges(mutationArgs);
-    }
+    // @NOTE runInAction will be useless after an `await`, so called code
+    // will need additional `runInAction` calls after async work
+    await runInAction(() => {
+      if (mutation.afterPersistChanges) {
+        return mutation.afterPersistChanges(mutationArgs);
+      }
+    });
   }
 
   public async undo(): Promise<void> {
