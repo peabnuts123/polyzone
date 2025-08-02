@@ -15,7 +15,7 @@ export class SetMaterialDiffuseTextureEnabledMutation implements IMaterialEditor
     this.diffuseTextureEnabled = diffuseTextureEnabled;
   }
 
-  public apply({ ProjectController, MaterialEditorViewController }: MaterialEditorViewMutationArguments): void {
+  public async apply({ ProjectController, MaterialEditorViewController }: MaterialEditorViewMutationArguments): Promise<void> {
     const { materialData, materialInstance } = MaterialEditorViewController;
 
     // 0. Store undo data
@@ -27,10 +27,8 @@ export class SetMaterialDiffuseTextureEnabledMutation implements IMaterialEditor
     // 2. Update Babylon state
     if (materialData.diffuseTexture !== undefined) {
       // Enabling override
-      ProjectController.assetCache.loadAsset(materialData.diffuseTexture, MaterialEditorViewController.scene)
-        .then((textureAsset) => {
-          materialInstance.overridesFromMaterial.diffuseTexture = textureAsset.texture;
-        });
+      const textureAsset = await ProjectController.assetCache.loadAsset(materialData.diffuseTexture, MaterialEditorViewController.scene);
+      materialInstance.overridesFromMaterial.diffuseTexture = textureAsset.texture;
     } else {
       // Disabling override
       materialInstance.overridesFromMaterial.diffuseTexture = undefined;
