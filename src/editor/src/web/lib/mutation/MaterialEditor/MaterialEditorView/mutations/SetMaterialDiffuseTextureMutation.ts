@@ -16,7 +16,7 @@ export class SetMaterialDiffuseTextureMutation implements IMaterialEditorViewMut
     this.diffuseTextureAssetId = diffuseTextureAssetId;
   }
 
-  public apply({ ProjectController, MaterialEditorViewController }: MaterialEditorViewMutationArguments): void {
+  public async apply({ ProjectController, MaterialEditorViewController }: MaterialEditorViewMutationArguments): Promise<void> {
     const diffuseTextureAssetData = this.diffuseTextureAssetId ? ProjectController.project.assets.getById(this.diffuseTextureAssetId, AssetType.Texture) : undefined;
     const { materialData, materialInstance } = MaterialEditorViewController;
 
@@ -28,10 +28,8 @@ export class SetMaterialDiffuseTextureMutation implements IMaterialEditorViewMut
 
     // 2. Update Babylon state
     if (materialData.diffuseTexture !== undefined) {
-      ProjectController.assetCache.loadAsset(materialData.diffuseTexture, MaterialEditorViewController.scene)
-        .then((textureAsset) => {
-          materialInstance.overridesFromMaterial.diffuseTexture = textureAsset.texture;
-        });
+      const textureAsset = await ProjectController.assetCache.loadAsset(materialData.diffuseTexture, MaterialEditorViewController.scene);
+      materialInstance.overridesFromMaterial.diffuseTexture = textureAsset.texture;
     } else {
       materialInstance.overridesFromMaterial.diffuseTexture = undefined;
     }
