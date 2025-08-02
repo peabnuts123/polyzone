@@ -3,6 +3,13 @@ import { throwUnhandled } from "../util";
 import { MockEventSystem } from "../MockEventSystem";
 import { MockWindowSystem } from "../MockWindowSystem";
 
+export const DefaultTauriPluginWindowMockModuleConfig = {
+  /* @NOTE Empty for now */
+};
+export let TauriPluginWindowMockModuleConfig = {
+  ...DefaultTauriPluginWindowMockModuleConfig,
+};
+
 export class TauriPluginWindowMockModule {
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   public static handle(action: string, args: any) {
@@ -23,5 +30,11 @@ export class TauriPluginWindowMockModule {
       // Trying to close another window (that presumably this instance opened)
       MockWindowSystem.close(label);
     }
+  }
+
+  public static resetConfig(): void {
+    TauriPluginWindowMockModuleConfig = {
+      ...DefaultTauriPluginWindowMockModuleConfig,
+    };
   }
 }

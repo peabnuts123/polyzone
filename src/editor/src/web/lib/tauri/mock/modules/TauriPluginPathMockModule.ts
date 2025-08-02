@@ -4,6 +4,13 @@ import { BaseDirectory } from '@tauri-apps/api/path';
 import { MockHandlerWith1Arg, MockHandlerWith2Args, MockHandlerWithRestArg, throwUnhandled } from "../util";
 import { Paths } from "../config";
 
+export const DefaultTauriPluginPathMockModuleConfig = {
+  /* @NOTE Empty for now */
+};
+export let TauriPluginPathMockModuleConfig = {
+  ...DefaultTauriPluginPathMockModuleConfig,
+};
+
 export class TauriPluginPathMockModule {
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   public static handle(action: string, args: any) {
@@ -47,4 +54,10 @@ export class TauriPluginPathMockModule {
   public static join: MockHandlerWithRestArg<'paths', typeof TauriPath.join> = (args) => {
     return this.resolve(args);
   };
+
+  public static resetConfig(): void {
+    TauriPluginPathMockModuleConfig = {
+      ...DefaultTauriPluginPathMockModuleConfig,
+    };
+  }
 }

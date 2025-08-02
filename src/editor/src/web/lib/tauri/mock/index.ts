@@ -1,4 +1,4 @@
-import { mockIPC } from "@tauri-apps/api/mocks";
+import { clearMocks, mockIPC } from "@tauri-apps/api/mocks";
 
 import { BrowserMock } from "./BrowserMock";
 import { MockEventSystem } from "./MockEventSystem";
@@ -36,4 +36,15 @@ export function mockTauri(): void {
   mockIPC((cmd, args) =>
     mock.handle(cmd, args),
   );
+}
+
+export function clearTauriMock(): void {
+  BrowserMock.resetConfig();
+  clearMocks();
+
+  // Technically the `mockTauri()` function merges with an existing object on this property,
+  // whereas the mock just entirely deletes it. So `mockTauri()` => `clearTauriMock()` might
+  // not necessarily be idempotent. But I think realistically it will only ever be
+  // all or nothing with regard to Tauri's definition.
+  delete(window as any).__TAURI_INTERNALS__;
 }

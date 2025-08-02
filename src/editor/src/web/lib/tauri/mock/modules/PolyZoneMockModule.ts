@@ -23,6 +23,13 @@ const unzipAsync = (data: Uint8Array): Promise<Unzipped> => {
   });
 };
 
+export const DefaultPolyZoneMockModuleConfig = {
+  hashDataResult: '6f86d7a9413a517d',
+};
+export let PolyZoneMockModuleConfig = {
+  ...DefaultPolyZoneMockModuleConfig,
+};
+
 export class PolyZoneMockModule {
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   public static handle(action: string, args: any) {
@@ -88,10 +95,16 @@ export class PolyZoneMockModule {
   }
 
   public static async mockHashData(..._args: TauriCommandArgs<'hash_data'>): Promise<TauriCommandReturnType<'hash_data'>> {
-    return '6f86d7a9413a517d';
+    return PolyZoneMockModuleConfig.hashDataResult;
   }
 
   public static async notifyProjectFileUpdated(...args: TauriCommandArgs<'notify_project_file_updated'>): Promise<TauriCommandReturnType<'notify_project_file_updated'>> {
     // @NOTE No-op.
+  }
+
+  public static resetConfig(): void {
+    PolyZoneMockModuleConfig = {
+      ...DefaultPolyZoneMockModuleConfig,
+    };
   }
 }

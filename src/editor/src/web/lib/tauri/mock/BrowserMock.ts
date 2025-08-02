@@ -1,13 +1,21 @@
 import { Paths } from "./config";
 import {
   PolyZoneMockModule,
+  PolyZoneMockModuleConfig,
   TauriPluginDialogMockModule,
+  TauriPluginDialogMockModuleConfig,
   TauriPluginEventMockModule,
+  TauriPluginEventMockModuleConfig,
   TauriPluginFsMockModule,
+  TauriPluginFsMockModuleConfig,
   TauriPluginMenuMockModule,
+  TauriPluginMenuMockModuleConfig,
   TauriPluginPathMockModule,
+  TauriPluginPathMockModuleConfig,
   TauriPluginWebviewMockModule,
+  TauriPluginWebviewMockModuleConfig,
   TauriPluginWindowMockModule,
+  TauriPluginWindowMockModuleConfig,
 } from "./modules";
 import { throwUnhandled } from "./util";
 
@@ -22,11 +30,26 @@ interface TauriPlainCommand {
 }
 type ParsedTauriCommand = TauriPluginCommand | TauriPlainCommand;
 
+export const TauriMockConfig = {
+  get polyzone() { return PolyZoneMockModuleConfig; },
+  get dialog() { return TauriPluginDialogMockModuleConfig; },
+  get event() { return TauriPluginEventMockModuleConfig; },
+  get fs() { return TauriPluginFsMockModuleConfig; },
+  get menu() { return TauriPluginMenuMockModuleConfig; },
+  get path() { return TauriPluginPathMockModuleConfig; },
+  get webview() { return TauriPluginWebviewMockModuleConfig; },
+  get window() { return TauriPluginWindowMockModuleConfig; },
+};
+
 /**
  * A class that mocks the Tauri APIs when running in the browser, at least
  * good enough for the app to run somewhat.
  */
 export class BrowserMock {
+  public constructor() {
+    BrowserMock.resetConfig();
+  }
+
   public handle(cmd: string, args: any): any | Promise<any> {
     const parsed = this.parseCommand(cmd);
     // console.log(`[DEBUG] [BrowserMock] (handle) parsed: `, parsed, args);
@@ -86,5 +109,16 @@ export class BrowserMock {
 
   public mockConvertFileSrc(filePath: string, _protocol: string = 'asset'): string {
     return filePath.replace(Paths.MagicFileRoot, window.location.origin);
+  }
+
+  public static resetConfig(): void {
+    PolyZoneMockModule.resetConfig();
+    TauriPluginDialogMockModule.resetConfig();
+    TauriPluginEventMockModule.resetConfig();
+    TauriPluginFsMockModule.resetConfig();
+    TauriPluginMenuMockModule.resetConfig();
+    TauriPluginPathMockModule.resetConfig();
+    TauriPluginWebviewMockModule.resetConfig();
+    TauriPluginWindowMockModule.resetConfig();
   }
 }

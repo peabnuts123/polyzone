@@ -4,6 +4,13 @@ import { throwUnhandled } from "../util";
 import { WebviewOptions } from "@tauri-apps/api/webview";
 import { MockWindowSystem } from "../MockWindowSystem";
 
+export const DefaultTauriPluginWebviewMockModuleConfig = {
+  /* @NOTE Empty for now */
+};
+export let TauriPluginWebviewMockModuleConfig = {
+  ...DefaultTauriPluginWebviewMockModuleConfig,
+};
+
 export class TauriPluginWebviewMockModule {
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   public static handle(action: string, args: any) {
@@ -25,4 +32,10 @@ export class TauriPluginWebviewMockModule {
 
     MockWindowSystem.open(options.url, options.label);
   };
+
+  public static resetConfig(): void {
+    TauriPluginWebviewMockModuleConfig = {
+      ...DefaultTauriPluginWebviewMockModuleConfig,
+    };
+  }
 }

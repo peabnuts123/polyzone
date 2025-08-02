@@ -17,7 +17,7 @@ export class CreateNewMaterialAssetMutation implements IProjectMutation {
     this.path = path;
   }
 
-  apply({ ProjectController }: ProjectMutationArguments): void {
+  public async apply({ ProjectController }: ProjectMutationArguments): Promise<void> {
     // New Data
     const newAssetDefinition: MaterialAssetDefinition = {
       id: uuid(),
@@ -36,23 +36,24 @@ export class CreateNewMaterialAssetMutation implements IProjectMutation {
     // notify the frontend of the asset's hash. However, PolyZone has a principle that no
     // functionality within the app should rely on the FS watcher. So we manually
     // request the hash of the new asset and assign it, in case the FS watcher is not working.
-    invoke('hash_data', {
+    const hashDataPromise = invoke('hash_data', {
       data: Array.from(newMaterialJsoncBytes),
-    }).then((newAssetHash) => {
-      // ???. (later) - Update references to hash
-      const assetData = ProjectController.project.assets.getById(newAssetDefinition.id, AssetType.Material);
-      if (assetData !== undefined) {
-        assetData.hash = newAssetHash;
-      }
+    })
+      .then((newAssetHash) => {
+        // 4. (later) - Update references to hash
+        const assetData = ProjectController.project.assets.getById(newAssetDefinition.id, AssetType.Material);
+        if (assetData !== undefined) {
+          assetData.hash = newAssetHash;
+        }
 
-      const assetIndex = ProjectController.projectDefinition.assets.findIndex((asset) => asset.id === newAssetDefinition.id);
-      if (ProjectController.projectDefinition.assets[assetIndex].hash !== newAssetHash) {
-        const jsonPath = resolvePath((project: ProjectDefinition) => project.assets[assetIndex].hash);
-        ProjectController.projectJson.mutate(jsonPath, newAssetHash);
-        // @NOTE re-invoke persistChanges() after editing project file a second time
-        return ProjectController.mutator.persistChanges();
-      }
-    });
+        const assetIndex = ProjectController.projectDefinition.assets.findIndex((asset) => asset.id === newAssetDefinition.id);
+        if (ProjectController.projectDefinition.assets[assetIndex].hash !== newAssetHash) {
+          const jsonPath = resolvePath((project: ProjectDefinition) => project.assets[assetIndex].hash);
+          ProjectController.projectJson.mutate(jsonPath, newAssetHash);
+          // @NOTE re-invoke persistChanges() after editing project file a second time
+          return ProjectController.mutator.persistChanges();
+        }
+      });
 
     // 1. Update data
     ProjectController.project.assets.add(new MaterialAssetData({
@@ -71,6 +72,9 @@ export class CreateNewMaterialAssetMutation implements IProjectMutation {
       this.path,
       newMaterialJsoncBytes,
     );
+
+    // Ensure async logic has completed
+    await hashDataPromise;
   }
 
   undo(_args: ProjectMutationArguments): void {

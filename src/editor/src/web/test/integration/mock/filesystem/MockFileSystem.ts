@@ -35,6 +35,10 @@ export class MockFileSystem extends IWritableFileSystem {
     this.files[path] = data;
   }
 
+  public fileExists(path: string): boolean {
+    return this.files[path] !== undefined;
+  }
+
   public moveFile(oldPath: string, newPath: string): Promise<void> {
     return Promise.resolve(this.moveFileSync(oldPath, newPath));
   }

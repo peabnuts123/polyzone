@@ -3,6 +3,13 @@ import { EventName } from "@tauri-apps/api/event";
 import { throwUnhandled } from "../util";
 import { MockEventSystem } from '../MockEventSystem';
 
+export const DefaultTauriPluginEventMockModuleConfig = {
+  /* @NOTE Empty for now */
+};
+export let TauriPluginEventMockModuleConfig = {
+  ...DefaultTauriPluginEventMockModuleConfig,
+};
+
 export class TauriPluginEventMockModule {
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   public static handle(action: string, args: any) {
@@ -35,5 +42,11 @@ export class TauriPluginEventMockModule {
     const { event, payload } = args;
     console.log(`[TauriPluginEventMockModule] (emit) (event='${event}') Payload: `, payload);
     MockEventSystem.emit(event, payload);
+  }
+
+  public static resetConfig(): void {
+    TauriPluginEventMockModuleConfig = {
+      ...DefaultTauriPluginEventMockModuleConfig,
+    };
   }
 }

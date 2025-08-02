@@ -6,6 +6,13 @@ import type { Channel } from '@tauri-apps/api/core';
 
 import { throwUnhandled } from "../util";
 
+export const DefaultTauriPluginMenuMockModuleConfig = {
+  /* @NOTE Empty for now */
+};
+export let TauriPluginMenuMockModuleConfig = {
+  ...DefaultTauriPluginMenuMockModuleConfig,
+};
+
 export class TauriPluginMenuMockModule {
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   public static handle(action: string, args: any) {
@@ -28,5 +35,11 @@ export class TauriPluginMenuMockModule {
   public static popup({ }: { rid: number, kind: ItemKind, window: Window | null, at: unknown | null }): Promise<void> {
     // @NOTE None of this is implemented at this time, it just no-ops
     return Promise.resolve();
+  }
+
+  public static resetConfig(): void {
+    TauriPluginMenuMockModuleConfig = {
+      ...DefaultTauriPluginMenuMockModuleConfig,
+    };
   }
 }

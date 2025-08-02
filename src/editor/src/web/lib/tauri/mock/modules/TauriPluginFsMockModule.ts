@@ -6,6 +6,13 @@ import { Paths } from '../config';
 import { DebouncedWatchOptions, WatchEvent } from '@tauri-apps/plugin-fs';
 import { Channel } from '@tauri-apps/api/core';
 
+export const DefaultTauriPluginFsMockModuleConfig = {
+  /* @NOTE Empty for now */
+};
+export let TauriPluginFsMockModuleConfig = {
+  ...DefaultTauriPluginFsMockModuleConfig,
+};
+
 export class TauriPluginFsMockModule {
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   public static handle(action: string, args: any) {
@@ -62,4 +69,10 @@ export class TauriPluginFsMockModule {
     console.warn(`[TauriPluginFsMockModule] (watch) Tauri is mocked - 'exists()' will always return true`);
     return true;
   };
+
+  public static resetConfig(): void {
+    TauriPluginFsMockModuleConfig = {
+      ...DefaultTauriPluginFsMockModuleConfig,
+    };
+  }
 }

@@ -19,6 +19,7 @@ export default defineConfig({
     ],
     setupFiles: [
       'test/setup/deregisterAllFileSystems.ts',
+      'test/setup/mockTauri.ts',
     ],
     browser: {
       provider: 'playwright',
