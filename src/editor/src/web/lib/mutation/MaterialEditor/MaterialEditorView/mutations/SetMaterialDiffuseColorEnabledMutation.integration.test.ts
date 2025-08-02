@@ -49,8 +49,6 @@ describe(SetMaterialDiffuseColorEnabledMutation.name, () => {
     const updatedDataValue = mockMaterialEditorViewController.materialData.diffuseColor;
     const updatedBabylonColorValue = mockMaterialEditorViewController.materialInstance.diffuseColor;
     const updatedJsonValue = mockMaterialEditorViewController.materialJson.value.diffuseColor;
-
-    // Request modified asset from cache
     const updatedCachedAsset = await mockProjectController.assetCache.loadAsset(mockMaterialEditorViewController.materialAssetData, mockMaterialEditorViewController.scene);
 
     // Assert
@@ -105,8 +103,6 @@ describe(SetMaterialDiffuseColorEnabledMutation.name, () => {
     const updatedDataValue = mockMaterialEditorViewController.materialData.diffuseColor;
     const updatedBabylonColorValue = mockMaterialEditorViewController.materialInstance.diffuseColor;
     const updatedJsonValue = mockMaterialEditorViewController.materialJson.value.diffuseColor;
-
-    // Request modified asset from cache
     const updatedCachedAsset = await mockProjectController.assetCache.loadAsset(mockMaterialEditorViewController.materialAssetData, mockMaterialEditorViewController.scene);
 
     // Assert
