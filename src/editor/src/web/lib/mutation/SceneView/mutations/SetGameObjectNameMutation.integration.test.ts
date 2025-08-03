@@ -9,8 +9,9 @@ import { MockSceneViewController } from '@test/integration/mock/scene/MockSceneV
 import { SetGameObjectNameMutation } from './SetGameObjectNameMutation';
 
 describe(SetGameObjectNameMutation.name, () => {
-  test("Calling update() and then apply() updates state correctly", async () => {
+  test("Fully applying mutation updates state correctly", async () => {
     // Setup
+    const initialName = 'Mock object';
     let mockGameObjectDefinition!: GameObjectDefinition;
     const mock = new MockProject(({ manifest, scene }) => ({
       manifest: manifest(),
@@ -19,7 +20,7 @@ describe(SetGameObjectNameMutation.name, () => {
         scene('sample', ({ config, object }) => ({
           config: config(),
           objects: [
-            mockGameObjectDefinition = object('Mock object'),
+            mockGameObjectDefinition = object(initialName),
           ],
         })),
       ],
@@ -35,30 +36,45 @@ describe(SetGameObjectNameMutation.name, () => {
     const mockGameObject = await mockSceneViewController.createGameObject(mockGameObjectData);
     mockSceneViewController.findGameObjectById = () => mockGameObject;
 
-
+    const initialDataValue = mockGameObjectData.name;
+    const initialBabylonValue = mockGameObject.name;
     const initialDefinitionValue = mockSceneViewController.sceneDefinition.objects[0].name;
-    const initialGameObjectName = mockGameObjectData.name;
 
     const mutation = new SetGameObjectNameMutation(mockGameObjectData.id);
 
     // Test
     await mockSceneViewController.mutator.beginContinuous(mutation);
-    // Apply several mutations in series
-    let newGameObjectName: string = "";
+    // Apply several updates in series
+    let intermediateName: string = '';
     for (let i = 0; i < 3; i++) {
-      newGameObjectName = `${initialGameObjectName} (renamed ${i})`;
-      await mockSceneViewController.mutator.updateContinuous(mutation, { name: newGameObjectName });
+      intermediateName = `${initialName} (step ${i})`;
+      await mockSceneViewController.mutator.updateContinuous(mutation, { name: intermediateName });
 
-      expect(mockGameObjectData.name, "GameObject name should match mutation argument after mutation").toEqual(newGameObjectName);
+      // Each update should modify the data and Babylon state
+      expect(mockGameObjectData.name, `GameObject data should have intermediate name after update ${i}`).toEqual(intermediateName);
+      expect(mockGameObject.name, `Babylon GameObject should have intermediate name after update ${i}`).toEqual(intermediateName);
+
+      // But definition should not be updated until apply()
+      const afterUpdateDefinitionValue = mockSceneViewController.sceneDefinition.objects[0].name;
+      expect(afterUpdateDefinitionValue, `GameObject definition should still have initial name during update ${i}`).toEqual(initialName);
     }
-    const definitionValueAfterUpdating = mockSceneViewController.sceneDefinition.objects[0].name;
 
-    // Apply mutation
+    // Apply should only persist the final value
     await mockSceneViewController.mutator.apply(mutation);
-    const updatedDefinitionValue = mockSceneViewController.sceneDefinition.objects[0].name;
+
+    const finalDataValue = mockGameObjectData.name;
+    const finalBabylonValue = mockGameObject.name;
+    const finalDefinitionValue = mockSceneViewController.sceneDefinition.objects[0].name;
 
     // Assert
-    expect(definitionValueAfterUpdating, "GameObject definition should not be modified before calling apply()").toEqual(initialDefinitionValue);
-    expect(updatedDefinitionValue, "GameObject definition should match new name after mutation").toEqual(newGameObjectName);
+    /* Initial state */
+    expect(initialDataValue, "GameObject data should have the initial name").toEqual(initialName);
+    expect(initialBabylonValue, "Babylon GameObject should have the initial name").toEqual(initialName);
+    expect(initialDefinitionValue, "GameObject definition should have the initial name").toEqual(initialName);
+
+    /* After apply - only final value should be persisted */
+    expect(finalDataValue, "GameObject data should have the final name").toEqual(intermediateName);
+    expect(finalBabylonValue, "Babylon GameObject should have the final name").toEqual(intermediateName);
+    expect(finalDefinitionValue, "GameObject definition should have the final name persisted").toEqual(intermediateName);
   });
 });
