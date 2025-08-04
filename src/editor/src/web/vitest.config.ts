@@ -49,7 +49,7 @@ export default defineConfig({
         /* Unit tests */
         extends: true,
         test: {
-          name: "Unit tests",
+          name: "Unit",
           exclude: [
             '**\/node_modules/**',
             '**\/.git/**',
@@ -62,7 +62,7 @@ export default defineConfig({
         /* Integration tests */
         extends: true,
         test: {
-          name: "Integration tests",
+          name: "Integration",
           testTimeout: 3000,
           include: [
             `**/*.integration.test.${ScriptFileExtensionGlob}`,

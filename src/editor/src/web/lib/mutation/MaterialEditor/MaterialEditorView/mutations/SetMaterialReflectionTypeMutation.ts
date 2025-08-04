@@ -16,7 +16,7 @@ export class SetMaterialReflectionTypeMutation implements IMaterialEditorViewMut
     this.reflectionType = reflectionType;
   }
 
-  public apply({ ProjectController, MaterialEditorViewController }: MaterialEditorViewMutationArguments): void {
+  public async apply({ ProjectController, MaterialEditorViewController }: MaterialEditorViewMutationArguments): Promise<void> {
     const { materialData, materialInstance } = MaterialEditorViewController;
 
     // 0. Store undo data
@@ -92,10 +92,8 @@ export class SetMaterialReflectionTypeMutation implements IMaterialEditorViewMut
     // @NOTE This is currently not possible, since we JUST cleared out any texture data or whatever
     // but we leave it here for forward compatibility?
     if (materialData.reflection !== undefined) {
-      ReflectionLoading.load(materialData.reflection, ProjectController.assetCache, MaterialEditorViewController.scene)
-        .then((reflection) => {
-          materialInstance.overridesFromMaterial.reflectionTexture = reflection?.texture;
-        });
+      const reflection = await ReflectionLoading.load(materialData.reflection, ProjectController.assetCache, MaterialEditorViewController.scene);
+      materialInstance.overridesFromMaterial.reflectionTexture = reflection?.texture;
     } else {
       materialInstance.overridesFromMaterial.reflectionTexture = undefined;
     }
