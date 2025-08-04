@@ -18,7 +18,7 @@ export class SetMaterialReflectionSeparateTextureMutation implements IMaterialEd
     this.whichTexture = whichTexture;
   }
 
-  public apply({ ProjectController, MaterialEditorViewController }: MaterialEditorViewMutationArguments): void {
+  public async apply({ ProjectController, MaterialEditorViewController }: MaterialEditorViewMutationArguments): Promise<void> {
     const reflectionTextureAssetData = this.reflectionTextureAssetId ? ProjectController.project.assets.getById(this.reflectionTextureAssetId, AssetType.Texture) : undefined;
     const { materialData, materialInstance } = MaterialEditorViewController;
 
@@ -36,10 +36,8 @@ export class SetMaterialReflectionSeparateTextureMutation implements IMaterialEd
     // 2. Update Babylon state
     if (reflectionTextureAssetData) {
       /* @NOTE Will only return a defined texture when all 6 textures are defined */
-      ReflectionLoading.loadSeparate(materialData.reflection, ProjectController.assetCache, MaterialEditorViewController.scene)
-        .then((reflection) => {
-          materialInstance.overridesFromMaterial.reflectionTexture = reflection?.texture;
-        });
+      const reflection = await ReflectionLoading.loadSeparate(materialData.reflection, ProjectController.assetCache, MaterialEditorViewController.scene);
+      materialInstance.overridesFromMaterial.reflectionTexture = reflection?.texture;
     } else {
       materialInstance.overridesFromMaterial.reflectionTexture = undefined;
     }

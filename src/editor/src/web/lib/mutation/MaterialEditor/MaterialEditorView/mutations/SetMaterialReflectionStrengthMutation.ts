@@ -19,7 +19,7 @@ export class SetMaterialReflectionStrengthMutation implements IMaterialEditorVie
     const { materialData } = MaterialEditorViewController;
 
     if (materialData.reflection?.type === undefined) {
-      throw new Error(`Cannot set reflection texture for material - the material doesn't have the correct reflection type set`);
+      throw new Error(`Cannot set reflection strength for material - the material doesn't have the correct reflection type set`);
     }
 
     // 0. Store undo data
@@ -30,7 +30,7 @@ export class SetMaterialReflectionStrengthMutation implements IMaterialEditorVie
     const { materialData, materialInstance } = MaterialEditorViewController;
 
     if (materialData.reflection?.type === undefined) {
-      throw new Error(`Cannot set reflection texture for material - the material doesn't have the correct reflection type set`);
+      throw new Error(`Cannot set reflection strength for material - the material doesn't have the correct reflection type set`);
     }
 
     // 1. Update data
@@ -46,7 +46,7 @@ export class SetMaterialReflectionStrengthMutation implements IMaterialEditorVie
     const { materialData } = MaterialEditorViewController;
 
     if (materialData.reflection?.type === undefined) {
-      throw new Error(`Cannot set reflection texture for material - the material doesn't have the correct reflection type set`);
+      throw new Error(`Cannot set reflection strength for material - the material doesn't have the correct reflection type set`);
     }
 
     // 3. Update JSONC

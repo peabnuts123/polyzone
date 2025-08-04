@@ -15,7 +15,7 @@ export class SetMaterialReflectionEnabledMutation implements IMaterialEditorView
     this.reflectionEnabled = reflectionEnabled;
   }
 
-  public apply({ ProjectController, MaterialEditorViewController }: MaterialEditorViewMutationArguments): void {
+  public async apply({ ProjectController, MaterialEditorViewController }: MaterialEditorViewMutationArguments): Promise<void> {
     const { materialData, materialInstance } = MaterialEditorViewController;
 
     // 0. Store undo data
@@ -28,10 +28,8 @@ export class SetMaterialReflectionEnabledMutation implements IMaterialEditorView
     if (materialData.reflection !== undefined) {
       // Enabling override
       // Set the material's reflection texture IF one is fully defined in the override data
-      ReflectionLoading.load(materialData.reflection, ProjectController.assetCache, MaterialEditorViewController.scene)
-        .then((reflection) => {
-          materialInstance.overridesFromMaterial.reflectionTexture = reflection?.texture;
-        });
+      const reflection = await ReflectionLoading.load(materialData.reflection, ProjectController.assetCache, MaterialEditorViewController.scene);
+      materialInstance.overridesFromMaterial.reflectionTexture = reflection?.texture;
     } else {
       // Disabling override
       materialInstance.overridesFromMaterial.reflectionTexture = undefined;

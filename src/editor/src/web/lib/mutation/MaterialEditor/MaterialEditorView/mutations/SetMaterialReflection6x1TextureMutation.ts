@@ -15,7 +15,7 @@ export class SetMaterialReflection6x1TextureMutation implements IMaterialEditorV
     this.reflectionTextureAssetId = reflectionTextureAssetId;
   }
 
-  public apply({ ProjectController, MaterialEditorViewController }: MaterialEditorViewMutationArguments): void {
+  public async apply({ ProjectController, MaterialEditorViewController }: MaterialEditorViewMutationArguments): Promise<void> {
     const reflectionTextureAssetData = this.reflectionTextureAssetId ? ProjectController.project.assets.getById(this.reflectionTextureAssetId, AssetType.Texture) : undefined;
     const { materialData, materialInstance } = MaterialEditorViewController;
 
@@ -31,10 +31,8 @@ export class SetMaterialReflection6x1TextureMutation implements IMaterialEditorV
 
     // 2. Update Babylon state
     if (reflectionTextureAssetData) {
-      ReflectionLoading.load6x1(materialData.reflection, ProjectController.assetCache, MaterialEditorViewController.scene)
-        .then((reflection) => {
-          materialInstance.overridesFromMaterial.reflectionTexture = reflection?.texture;
-        });
+      const reflection = await ReflectionLoading.load6x1(materialData.reflection, ProjectController.assetCache, MaterialEditorViewController.scene);
+      materialInstance.overridesFromMaterial.reflectionTexture = reflection?.texture;
     } else {
       materialInstance.overridesFromMaterial.reflectionTexture = undefined;
     }
