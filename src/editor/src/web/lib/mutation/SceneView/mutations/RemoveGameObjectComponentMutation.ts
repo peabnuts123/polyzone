@@ -22,7 +22,7 @@ export class RemoveGameObjectComponentMutation implements ISceneMutation {
     this.componentToRemove = componentToRemove;
   }
 
-  apply({ SceneViewController }: SceneViewMutationArguments): void {
+  public apply({ SceneViewController }: SceneViewMutationArguments): void {
     // 1. Update data
     const gameObjectData = SceneViewController.scene.getGameObject(this.gameObjectId);
     const componentToRemoveDataIndex = gameObjectData.components.findIndex((component) => component.id === this.componentToRemove.id);

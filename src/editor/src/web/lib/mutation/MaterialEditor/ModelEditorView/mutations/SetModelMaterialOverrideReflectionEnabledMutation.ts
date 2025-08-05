@@ -19,7 +19,7 @@ export class SetModelMaterialOverrideReflectionEnabledMutation implements IModel
     this.reflectionEnabled = reflectionEnabled;
   }
 
-  public apply({ ProjectController, ModelEditorViewController }: ModelEditorViewMutationArguments): void {
+  public async apply({ ProjectController, ModelEditorViewController }: ModelEditorViewMutationArguments): Promise<void> {
     const meshAssetData = ProjectController.project.assets.getById(this.modelAssetId, AssetType.Mesh);
     let materialOverridesData = meshAssetData.getOverridesForMaterial(this.materialName);
     const material = ModelEditorViewController.getMaterialByName(this.materialName);
@@ -37,10 +37,8 @@ export class SetModelMaterialOverrideReflectionEnabledMutation implements IModel
     if (materialOverridesData.reflection !== undefined) {
       // Enabling override
       // Set the material's reflection texture IF one is fully defined in the override data
-      ReflectionLoading.load(materialOverridesData.reflection, ProjectController.assetCache, ModelEditorViewController.scene)
-        .then((reflection) => {
-          material.overridesFromAsset.reflectionTexture = reflection?.texture;
-        });
+      const reflection = await ReflectionLoading.load(materialOverridesData.reflection, ProjectController.assetCache, ModelEditorViewController.scene);
+      material.overridesFromAsset.reflectionTexture = reflection?.texture;
     } else {
       // Disabling override
       material.overridesFromAsset.reflectionTexture = undefined;

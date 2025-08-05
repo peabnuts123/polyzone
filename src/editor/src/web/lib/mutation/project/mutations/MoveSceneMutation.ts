@@ -17,7 +17,7 @@ export class MoveSceneMutation implements IProjectMutation {
     }
   }
 
-  apply({ ProjectController }: ProjectMutationArguments): void {
+  public async apply({ ProjectController }: ProjectMutationArguments): Promise<void> {
     const scene = ProjectController.project.scenes.getById(this.sceneId);
     if (scene === undefined) throw new Error(`Cannot move scene - No scene exists with Id '${this.sceneId}'`);
     const oldPath = scene.data.path;
@@ -33,7 +33,7 @@ export class MoveSceneMutation implements IProjectMutation {
     ProjectController.projectJson.mutate(jsonPath, this.newPath);
 
     // 3. Move asset on disk
-    void ProjectController.fileSystem.moveFile(
+    await ProjectController.fileSystem.moveFile(
       oldPath,
       this.newPath,
     );

@@ -13,7 +13,7 @@ export class DeleteGameObjectMutation implements ISceneMutation {
     this.gameObjectName = gameObject.name;
   }
 
-  apply({ SceneViewController }: SceneViewMutationArguments): void {
+  public apply({ SceneViewController }: SceneViewMutationArguments): void {
     // Find object's parent - we're going to remove the object from the parent's children
     const gameObjectData = SceneViewController.scene.getGameObject(this.gameObjectId);
     const gameObjectParentData = SceneViewController.scene.getGameObjectParent(this.gameObjectId);

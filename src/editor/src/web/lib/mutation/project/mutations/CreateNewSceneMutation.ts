@@ -1,3 +1,4 @@
+import { runInAction } from 'mobx';
 import { v4 as uuid } from 'uuid';
 
 import { ComponentDefinitionType } from '@polyzone/runtime/src/cartridge';
@@ -16,51 +17,33 @@ export class CreateNewSceneMutation implements IProjectMutation {
     this.path = path;
   }
 
-  apply({ ProjectController }: ProjectMutationArguments): void {
+  public async apply({ ProjectController }: ProjectMutationArguments): Promise<void> {
     // New Data
-    const newSceneManifest: SceneManifest = {
-      id: uuid(),
-      hash: "", // @NOTE calculated asynchronously
-      path: this.path,
-    };
     const newSceneJsonc = this.createNewSceneDefinition();
     const newSceneJsoncBytes = new TextEncoder().encode(
       newSceneJsonc.toString(),
     );
-
-    // 0. Calculate hash (asynchronously)
-    // @NOTE We could just delete this whole block and rely on the FS watcher to
-    // notify the frontend of the scene's hash. However, PolyZone has a principle that no
-    // functionality within the app should rely on the FS watcher. So we manually
-    // request the hash of the new scene and assign it, in case the FS watcher is not working.
-    invoke('hash_data', {
+    // Calculate new scene's hash (async)
+    const newSceneHash = await invoke('hash_data', {
       data: Array.from(newSceneJsoncBytes),
-    }).then((newSceneHash) => {
-      // ???. (later) - Update references to hash
-      const scene = ProjectController.project.scenes.getById(newSceneManifest.id);
-      if (scene !== undefined) {
-        scene.data.hash = newSceneHash;
-        scene.manifest.hash = newSceneHash;
-      }
-
-      const sceneIndex = ProjectController.projectDefinition.scenes.findIndex((scene) => scene.id === newSceneManifest.id);
-      if (ProjectController.projectDefinition.scenes[sceneIndex].hash !== newSceneHash) {
-        const jsonPath = resolvePath((project: ProjectDefinition) => project.scenes[sceneIndex].hash);
-        ProjectController.projectJson.mutate(jsonPath, newSceneHash);
-        // @NOTE re-invoke persistChanges() after editing project file a second time
-        return ProjectController.mutator.persistChanges();
-      }
     });
+    const newSceneManifest: SceneManifest = {
+      id: uuid(),
+      hash: newSceneHash,
+      path: this.path,
+    };
 
     // 1. Update data
-    ProjectController.project.scenes.add(newSceneManifest, newSceneJsonc);
+    runInAction(() => {
+      ProjectController.project.scenes.add(newSceneManifest, newSceneJsonc);
+    });
 
     // 2. Update JSON
     const jsonPath = resolvePath((project: ProjectDefinition) => project.scenes[ProjectController.projectDefinition.scenes.length]);
     ProjectController.projectJson.mutate(jsonPath, newSceneManifest, { isArrayInsertion: true });
 
     // 3. Create new asset on disk
-    void ProjectController.fileSystem.writeFile(
+    await ProjectController.fileSystem.writeFile(
       this.path,
       newSceneJsoncBytes,
     );

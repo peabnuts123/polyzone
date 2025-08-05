@@ -1,3 +1,4 @@
+import { runInAction } from 'mobx';
 import { v4 as uuid } from 'uuid';
 
 import { GameObjectDefinition } from "@polyzone/runtime/src/cartridge";
@@ -42,8 +43,8 @@ export class CreateBlankGameObjectMutation implements ISceneMutation {
       // 2. Update Scene
       const parentGameObject = SceneViewController.findGameObjectById(this.parentGameObjectId);
       if (parentGameObject === undefined) throw new Error(`Cannot apply mutation - no game object exists in the scene with id '${this.parentGameObjectId}'`);
-      // @NOTE Async logic not awaited until the end - keep processing mutation while we wait
-      const createGameObjectPromise = SceneViewController.createGameObject(newGameObjectData, parentGameObject.transform).then((newGameObject) => {
+      const newGameObject = await SceneViewController.createGameObject(newGameObjectData, parentGameObject.transform);
+      runInAction(() => {
         // Kind of entirely un-necessary 🤷‍♀️ Because the default values will already match
         newGameObject.transform.localPosition.setValue(toVector3Core(newObjectDefinition.transform.position));
         newGameObject.transform.localRotation.setValue(Quaternion.fromEuler(toVector3Core(newObjectDefinition.transform.rotation)));
@@ -57,9 +58,6 @@ export class CreateBlankGameObjectMutation implements ISceneMutation {
         (parentGameObject) => parentGameObject.children![parentGameObjectData.children.length],
       );
       SceneViewController.sceneJson.mutate(mutationPath, newObjectDefinition, { isArrayInsertion: true });
-
-      // Ensure async logic has completed
-      await createGameObjectPromise;
     } else {
       // Add directly to scene
       // 1. Update Data

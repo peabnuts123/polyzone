@@ -20,7 +20,7 @@ export class SetModelMaterialOverrideReflectionBoxNetTextureMutation implements 
     this.reflectionTextureAssetId = reflectionTextureAssetId;
   }
 
-  public apply({ ProjectController, ModelEditorViewController }: ModelEditorViewMutationArguments): void {
+  public async apply({ ProjectController, ModelEditorViewController }: ModelEditorViewMutationArguments): Promise<void> {
     const meshAssetData = ProjectController.project.assets.getById(this.modelAssetId, AssetType.Mesh);
     const reflectionTextureAssetData = this.reflectionTextureAssetId ? ProjectController.project.assets.getById(this.reflectionTextureAssetId, AssetType.Texture) : undefined;
     const materialOverridesData = meshAssetData.getOverridesForMaterial(this.materialName);
@@ -40,10 +40,8 @@ export class SetModelMaterialOverrideReflectionBoxNetTextureMutation implements 
 
     // 2. Update Babylon state
     if (reflectionTextureAssetData) {
-      ReflectionLoading.loadBoxNet(materialOverridesData.reflection, ProjectController.assetCache, ModelEditorViewController.scene)
-        .then((reflection) => {
-          material.overridesFromAsset.reflectionTexture = reflection?.texture;
-        });
+      const reflection = await ReflectionLoading.loadBoxNet(materialOverridesData.reflection, ProjectController.assetCache, ModelEditorViewController.scene);
+      material.overridesFromAsset.reflectionTexture = reflection?.texture;
     } else {
       material.overridesFromAsset.reflectionTexture = undefined;
     }

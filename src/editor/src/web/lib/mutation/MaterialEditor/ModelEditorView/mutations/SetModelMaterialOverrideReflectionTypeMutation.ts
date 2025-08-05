@@ -19,7 +19,7 @@ export class SetModelMaterialOverrideReflectionTypeMutation implements IModelEdi
     this.reflectionType = reflectionType;
   }
 
-  public apply({ ProjectController, ModelEditorViewController }: ModelEditorViewMutationArguments): void {
+  public async apply({ ProjectController, ModelEditorViewController }: ModelEditorViewMutationArguments): Promise<void> {
     const meshAssetData = ProjectController.project.assets.getById(this.modelAssetId, AssetType.Mesh);
     let materialOverridesData = meshAssetData.getOverridesForMaterial(this.materialName);
     const material = ModelEditorViewController.getMaterialByName(this.materialName);
@@ -101,10 +101,8 @@ export class SetModelMaterialOverrideReflectionTypeMutation implements IModelEdi
     // @NOTE This is currently not possible, since we JUST cleared out any texture data or whatever
     // but we leave it here for forward compatibility?
     if (materialOverridesData.reflection !== undefined) {
-      ReflectionLoading.load(materialOverridesData.reflection, ProjectController.assetCache, ModelEditorViewController.scene)
-        .then((reflection) => {
-          material.overridesFromAsset.reflectionTexture = reflection?.texture;
-        });
+      const reflection = await ReflectionLoading.load(materialOverridesData.reflection, ProjectController.assetCache, ModelEditorViewController.scene);
+      material.overridesFromAsset.reflectionTexture = reflection?.texture;
     } else {
       material.overridesFromAsset.reflectionTexture = undefined;
     }

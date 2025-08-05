@@ -18,7 +18,7 @@ export class SetModelMaterialOverrideDiffuseTextureMutation implements IModelEdi
     this.diffuseTextureAssetId = diffuseTextureAssetId;
   }
 
-  public apply({ ProjectController, ModelEditorViewController }: ModelEditorViewMutationArguments): void {
+  public async apply({ ProjectController, ModelEditorViewController }: ModelEditorViewMutationArguments): Promise<void> {
     const meshAssetData = ProjectController.project.assets.getById(this.modelAssetId, AssetType.Mesh);
     const diffuseTextureAssetData = this.diffuseTextureAssetId ? ProjectController.project.assets.getById(this.diffuseTextureAssetId, AssetType.Texture) : undefined;
     let materialOverridesData = meshAssetData.getOverridesForMaterial(this.materialName);
@@ -35,10 +35,8 @@ export class SetModelMaterialOverrideDiffuseTextureMutation implements IModelEdi
     // 2. Update Babylon state
     materialOverridesData = meshAssetData.getOverridesForMaterial(this.materialName)!;
     if (materialOverridesData.diffuseTexture !== undefined) {
-      ProjectController.assetCache.loadAsset(materialOverridesData.diffuseTexture, ModelEditorViewController.scene)
-        .then((textureAsset) => {
-          material.overridesFromAsset.diffuseTexture = textureAsset.texture;
-        });
+      const textureAsset = await ProjectController.assetCache.loadAsset(materialOverridesData.diffuseTexture, ModelEditorViewController.scene);
+      material.overridesFromAsset.diffuseTexture = textureAsset.texture;
     } else {
       material.overridesFromAsset.diffuseTexture = undefined;
     }

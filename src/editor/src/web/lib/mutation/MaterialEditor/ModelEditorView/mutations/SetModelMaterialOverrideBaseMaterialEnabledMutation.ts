@@ -19,7 +19,7 @@ export class SetModelMaterialOverrideBaseMaterialEnabledMutation implements IMod
     this.baseMaterialEnabled = baseMaterialEnabled;
   }
 
-  public apply({ ProjectController, ModelEditorViewController }: ModelEditorViewMutationArguments): void {
+  public async apply({ ProjectController, ModelEditorViewController }: ModelEditorViewMutationArguments): Promise<void> {
     const meshAssetData = ProjectController.project.assets.getById(this.modelAssetId, AssetType.Mesh);
     let materialOverridesData = meshAssetData.getOverridesForMaterial(this.materialName);
     const material = ModelEditorViewController.getMaterialByName(this.materialName);
@@ -37,10 +37,8 @@ export class SetModelMaterialOverrideBaseMaterialEnabledMutation implements IMod
     if (this.baseMaterialEnabled) {
       // Enabling override
       if (materialOverridesData.material !== undefined) {
-        ProjectController.assetCache.loadAsset(materialOverridesData.material, ModelEditorViewController.scene)
-          .then((materialAsset) => {
-            material.readOverridesFromMaterial(materialAsset);
-          });
+        const materialAsset = await ProjectController.assetCache.loadAsset(materialOverridesData.material, ModelEditorViewController.scene);
+        material.readOverridesFromMaterial(materialAsset);
       }
     } else {
       // Disabling override

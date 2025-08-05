@@ -18,7 +18,7 @@ export class SetModelMaterialOverrideBaseMaterialMutation implements IModelEdito
     this.baseMaterialAssetId = baseMaterialAssetId;
   }
 
-  public apply({ ProjectController, ModelEditorViewController }: ModelEditorViewMutationArguments): void {
+  public async apply({ ProjectController, ModelEditorViewController }: ModelEditorViewMutationArguments): Promise<void> {
     const meshAssetData = ProjectController.project.assets.getById(this.modelAssetId, AssetType.Mesh);
     const baseMaterialAssetData = this.baseMaterialAssetId ? ProjectController.project.assets.getById(this.baseMaterialAssetId, AssetType.Material) : undefined;
     let materialOverridesData = meshAssetData.getOverridesForMaterial(this.materialName);
@@ -36,10 +36,8 @@ export class SetModelMaterialOverrideBaseMaterialMutation implements IModelEdito
     materialOverridesData = meshAssetData.getOverridesForMaterial(this.materialName)!;
     if (baseMaterialAssetData) {
       if (materialOverridesData.material !== undefined) {
-        ProjectController.assetCache.loadAsset(materialOverridesData.material, ModelEditorViewController.scene)
-          .then((materialAsset) => {
-            material.readOverridesFromMaterial(materialAsset);
-          });
+        const materialAsset = await ProjectController.assetCache.loadAsset(materialOverridesData.material, ModelEditorViewController.scene);
+        material.readOverridesFromMaterial(materialAsset);
       }
     } else {
       material.readOverridesFromMaterial(undefined);

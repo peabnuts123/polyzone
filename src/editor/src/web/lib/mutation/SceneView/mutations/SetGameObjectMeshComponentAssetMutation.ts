@@ -18,7 +18,7 @@ export class SetGameObjectMeshComponentAssetMutation implements ISceneMutation {
     this.meshAsset = meshAsset;
   }
 
-  apply({ SceneViewController }: SceneViewMutationArguments): void {
+  public async apply({ SceneViewController }: SceneViewMutationArguments): Promise<void> {
     // 1. Update data
     const gameObjectData = SceneViewController.scene.getGameObject(this.gameObjectId);
     const componentData = gameObjectData.getComponent(this.componentId, MeshComponentData);
@@ -26,7 +26,7 @@ export class SetGameObjectMeshComponentAssetMutation implements ISceneMutation {
     componentData.meshAsset = this.meshAsset;
 
     // 2. Update babylon scene
-    /* @NOTE async */ void SceneViewController.reinitializeComponentInstance(componentData, gameObjectData);
+    await SceneViewController.reinitializeComponentInstance(componentData, gameObjectData);
 
     // 3. Modify JSONC
     // - Replace ID of asset in component definition

@@ -16,7 +16,7 @@ export class MoveAssetMutation implements IProjectMutation {
     this.newPath = newPath;
   }
 
-  apply({ ProjectController }: ProjectMutationArguments): void {
+  public async apply({ ProjectController }: ProjectMutationArguments): Promise<void> {
     const assetData = ProjectController.project.assets.findById(this.assetId);
     if (assetData === undefined) throw new Error(`Cannot move asset - No asset exists with Id '${this.assetId}'`);
     const oldPath = assetData.path;
@@ -30,7 +30,7 @@ export class MoveAssetMutation implements IProjectMutation {
     ProjectController.projectJson.mutate(jsonPath, this.newPath);
 
     // 3. Move asset on disk
-    void ProjectController.fileSystem.moveFile(
+    await ProjectController.fileSystem.moveFile(
       oldPath,
       this.newPath,
     );

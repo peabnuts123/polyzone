@@ -1,5 +1,5 @@
 import { modify, JSONPath, ModificationOptions, applyEdits, parse } from 'jsonc-parser';
-import { makeAutoObservable } from 'mobx';
+import { makeAutoObservable, runInAction } from 'mobx';
 
 const DefaultOptions: ModificationOptions = {
   formattingOptions: {
@@ -27,50 +27,54 @@ export class JsoncContainer<TRawType extends object> {
   public mutate<TValue>(pathSelector: ResolvePathSelector<TRawType, TValue>, value: TValue extends undefined ? never : TValue, options?: ModificationOptions): void;
   public mutate<TValue>(path: MutationPath<TValue>, value: TValue extends undefined ? never : TValue, options?: ModificationOptions): void;
   public mutate<TValue>(pathOrSelector: ResolvePathSelector<TRawType, TValue> | MutationPath<TValue>, value: TValue extends undefined ? never : TValue, options?: ModificationOptions): void {
-    // Validate for sanity (typechecking should disallow, but...)
-    if (value === undefined) throw new Error('Cannot set JSON value to `undefined`. Use `delete()` to remove a value, or `null` to set it to null.');
+    runInAction(() => {
+      // Validate for sanity (typechecking should disallow, but...)
+      if (value === undefined) throw new Error('Cannot set JSON value to `undefined`. Use `delete()` to remove a value, or `null` to set it to null.');
 
-    // Merge options with default options
-    options = (options === undefined) ?
-      DefaultOptions :
-      {
-        ...DefaultOptions,
-        ...options,
-      };
+      // Merge options with default options
+      options = (options === undefined) ?
+        DefaultOptions :
+        {
+          ...DefaultOptions,
+          ...options,
+        };
 
-    let path: MutationPath<TValue>;
-    if (Array.isArray(pathOrSelector)) {
-      // Path
-      path = pathOrSelector;
-    } else {
-      // Selector
-      path = resolvePath(pathOrSelector);
-    }
+      let path: MutationPath<TValue>;
+      if (Array.isArray(pathOrSelector)) {
+        // Path
+        path = pathOrSelector;
+      } else {
+        // Selector
+        path = resolvePath(pathOrSelector);
+      }
 
-    if (LogMutationDiffs) console.log(`[JsoncContainer] (mutate) Before: `, this.text);
+      if (LogMutationDiffs) console.log(`[JsoncContainer] (mutate) Before: `, this.text);
 
-    const edits = modify(this.text, path, value, options);
-    this.text = applyEdits(this.text, edits);
-    if (LogMutationDiffs) console.log(`[JsoncContainer] (mutate) After: `, this.text);
+      const edits = modify(this.text, path, value, options);
+      this.text = applyEdits(this.text, edits);
+      if (LogMutationDiffs) console.log(`[JsoncContainer] (mutate) After: `, this.text);
+    });
   }
 
   public delete(path: JSONPath): void {
-    if (LogMutationDiffs) console.log(`[JsoncContainer] (delete) Before: `, this.text);
+    runInAction(() => {
+      if (LogMutationDiffs) console.log(`[JsoncContainer] (delete) Before: `, this.text);
 
-    // Iterate the path into the value
-    // If we ever encounter `undefined`, we don't need to delete anything.
-    let currentProperty: any = this.value;
-    for (const pathSegment of path) {
-      if (currentProperty[pathSegment] === undefined) {
-        if (LogMutationDiffs) console.log(`[JsoncContainer] (delete) After: `, this.text);
-        return;
-      } else {
-        currentProperty = currentProperty[pathSegment];
+      // Iterate the path into the value
+      // If we ever encounter `undefined`, we don't need to delete anything.
+      let currentProperty: any = this.value;
+      for (const pathSegment of path) {
+        if (currentProperty[pathSegment] === undefined) {
+          if (LogMutationDiffs) console.log(`[JsoncContainer] (delete) After: `, this.text);
+          return;
+        } else {
+          currentProperty = currentProperty[pathSegment];
+        }
       }
-    }
-    const edits = modify(this.text, path, undefined, DefaultOptions);
-    this.text = applyEdits(this.text, edits);
-    if (LogMutationDiffs) console.log(`[JsoncContainer] (delete) After: `, this.text);
+      const edits = modify(this.text, path, undefined, DefaultOptions);
+      this.text = applyEdits(this.text, edits);
+      if (LogMutationDiffs) console.log(`[JsoncContainer] (delete) After: `, this.text);
+    });
   }
 
   public toString(): string {
