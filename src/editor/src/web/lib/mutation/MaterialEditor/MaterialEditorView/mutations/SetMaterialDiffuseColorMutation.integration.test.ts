@@ -1,4 +1,6 @@
 import { describe, test, expect } from 'vitest';
+import { Color3 as Color3Babylon } from '@babylonjs/core/Maths/math.color';
+
 
 import { AssetType } from '@polyzone/runtime/src/cartridge';
 import { Color3 } from '@polyzone/core/src/util';
@@ -36,16 +38,23 @@ describe(SetMaterialDiffuseColorMutation.name, () => {
       mockMaterial.definition,
     );
 
+    /* Test selector utilities */
+    async function getCachedMaterialDiffuseColor(): Promise<Color3Babylon | undefined> {
+      const materialAsset = await mockProjectController.assetCache.loadAsset(mockMaterialEditorViewController.materialAssetData, mockMaterialEditorViewController.scene);
+      return materialAsset.diffuseColor;
+    }
+
     // Enable diffuse color first (simulating user checking the "enabled" box in UI)
     mockMaterialEditorViewController.materialData.diffuseColorEnabled = true;
 
     const initialDataValue = mockMaterialEditorViewController.materialData.diffuseColor;
     const initialBabylonColorValue = mockMaterialEditorViewController.materialInstance.diffuseColor;
     const initialJsonValue = mockMaterialEditorViewController.materialJson.value.diffuseColor;
-    const initialCachedAsset = await mockProjectController.assetCache.loadAsset(mockMaterialEditorViewController.materialAssetData, mockMaterialEditorViewController.scene);
+    const initialCachedMaterialColor = await getCachedMaterialDiffuseColor();
 
     const newColor = new Color3(255, 128, 64);
     const mutation = new SetMaterialDiffuseColorMutation();
+
 
     // Test continuous mutation flow
     await mockMaterialEditorViewController.mutator.beginContinuous(mutation);
@@ -53,30 +62,34 @@ describe(SetMaterialDiffuseColorMutation.name, () => {
 
     const afterUpdateDataValue = mockMaterialEditorViewController.materialData.diffuseColor;
     const afterUpdateBabylonColorValue = mockMaterialEditorViewController.materialInstance.diffuseColor;
+    const afterUpdateJsonValue = mockMaterialEditorViewController.materialJson.value.diffuseColor;
+    const afterUpdateCachedMaterialColor = await getCachedMaterialDiffuseColor();
 
     await mockMaterialEditorViewController.mutator.apply(mutation);
 
     const finalDataValue = mockMaterialEditorViewController.materialData.diffuseColor;
     const finalBabylonColorValue = mockMaterialEditorViewController.materialInstance.diffuseColor;
     const finalJsonValue = mockMaterialEditorViewController.materialJson.value.diffuseColor;
-    const finalCachedAsset = await mockProjectController.assetCache.loadAsset(mockMaterialEditorViewController.materialAssetData, mockMaterialEditorViewController.scene);
+    const finalMaterialColor = await getCachedMaterialDiffuseColor();
 
     // Assert
     /* Initial state */
     expect(initialDataValue, "Material data should not have a diffuse color defined initially").toBeUndefined();
     expect(initialBabylonColorValue, "Babylon material should not have a diffuse color defined initially").toBeUndefined();
     expect(initialJsonValue, "Material asset should not have a diffuse color defined initially").toBeUndefined();
-    expect(initialCachedAsset.diffuseColor, "Cached material should not have a diffuse color defined initially").toBeUndefined();
+    expect(initialCachedMaterialColor, "Cached material should not have a diffuse color defined initially").toBeUndefined();
 
     /* After update() */
     expect(afterUpdateDataValue, "Material data should have the new diffuse color after update").toEqual(newColor);
     expect(afterUpdateBabylonColorValue, "Babylon material should have the correct color after update").toEqual(toColor3Babylon(newColor));
+    expect(afterUpdateJsonValue, "Material asset should not have a diffuse color defined after update").toBeUndefined();
+    expect(afterUpdateCachedMaterialColor, "Cached material should not have a diffuse color defined after update").toBeUndefined();
 
     /* After apply() */
     expect(finalDataValue, "Material data should still have the new diffuse color after apply").toEqual(newColor);
     expect(finalBabylonColorValue, "Babylon material should still have the correct color after apply").toEqual(toColor3Babylon(newColor));
     expect(finalJsonValue, "Material asset should have the new diffuse color persisted").toEqual(toColor3Definition(newColor));
-    expect(finalCachedAsset.diffuseColor, "Cached material should have the correct color").toEqual(toColor3Babylon(newColor));
+    expect(finalMaterialColor, "Cached material should have the correct color").toEqual(toColor3Babylon(newColor));
   });
 
   test("Updating existing diffuse color on material", async () => {

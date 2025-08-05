@@ -53,6 +53,8 @@ describe(SetMaterialEmissionColorMutation.name, () => {
 
     const afterUpdateDataValue = mockMaterialEditorViewController.materialData.emissionColor;
     const afterUpdateBabylonColorValue = mockMaterialEditorViewController.materialInstance.emissionColor;
+    const afterUpdateJsonValue = mockMaterialEditorViewController.materialJson.value.emissionColor;
+    const afterUpdateCachedAsset = await mockProjectController.assetCache.loadAsset(mockMaterialEditorViewController.materialAssetData, mockMaterialEditorViewController.scene);
 
     await mockMaterialEditorViewController.mutator.apply(mutation);
 
@@ -71,6 +73,8 @@ describe(SetMaterialEmissionColorMutation.name, () => {
     /* After update() */
     expect(afterUpdateDataValue, "Material data should have the new emission color after update").toEqual(newColor);
     expect(afterUpdateBabylonColorValue, "Babylon material should have the correct color after update").toEqual(toColor3Babylon(newColor));
+    expect(afterUpdateJsonValue, "Material asset should not have an emission color defined initially").toBeUndefined();
+    expect(afterUpdateCachedAsset.emissionColor, "Cached material should not have an emission color defined initially").toBeUndefined();
 
     /* After apply() */
     expect(finalDataValue, "Material data should still have the new emission color after apply").toEqual(newColor);
