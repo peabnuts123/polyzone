@@ -19,7 +19,7 @@ export class SetModelMaterialOverrideDiffuseTextureEnabledMutation implements IM
     this.diffuseTextureEnabled = diffuseTextureEnabled;
   }
 
-  public apply({ ProjectController, ModelEditorViewController }: ModelEditorViewMutationArguments): void {
+  public async apply({ ProjectController, ModelEditorViewController }: ModelEditorViewMutationArguments): Promise<void> {
     const meshAssetData = ProjectController.project.assets.getById(this.modelAssetId, AssetType.Mesh);
     let materialOverridesData = meshAssetData.getOverridesForMaterial(this.materialName);
     const material = ModelEditorViewController.getMaterialByName(this.materialName);
@@ -36,10 +36,8 @@ export class SetModelMaterialOverrideDiffuseTextureEnabledMutation implements IM
     materialOverridesData = meshAssetData.getOverridesForMaterial(this.materialName)!;
     if (materialOverridesData.diffuseTexture !== undefined) {
       // Enabling override
-      ProjectController.assetCache.loadAsset(materialOverridesData.diffuseTexture, ModelEditorViewController.scene)
-        .then((textureAsset) => {
-          material.overridesFromAsset.diffuseTexture = textureAsset.texture;
-        });
+      const textureAsset = await ProjectController.assetCache.loadAsset(materialOverridesData.diffuseTexture, ModelEditorViewController.scene);
+      material.overridesFromAsset.diffuseTexture = textureAsset.texture;
     } else {
       // Disabling override
       material.overridesFromAsset.diffuseTexture = undefined;
