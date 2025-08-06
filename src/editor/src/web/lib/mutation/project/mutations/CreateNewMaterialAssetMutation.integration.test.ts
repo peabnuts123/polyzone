@@ -1,9 +1,11 @@
 import { describe, test, expect } from 'vitest';
-import { CreateNewMaterialAssetMutation } from './CreateNewMaterialAssetMutation';
+
+import { TauriMockConfig } from '@lib/tauri/mock/BrowserMock';
 import { MockProject } from '@test/integration/mock/project/MockProject';
 import { MockProjectController } from '@test/integration/mock/project/MockProjectController';
 import { randomHash } from '@test/util';
-import { TauriMockConfig } from '@lib/tauri/mock/BrowserMock';
+
+import { CreateNewMaterialAssetMutation } from './CreateNewMaterialAssetMutation';
 
 describe(CreateNewMaterialAssetMutation.name, () => {
   test("Calling apply() updates state correctly", async () => {
