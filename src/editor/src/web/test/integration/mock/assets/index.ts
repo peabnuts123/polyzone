@@ -41,9 +41,7 @@ function stringToByteArray(str: string): Uint8Array {
  * Set of mock assets, ready to be used as mocks.
  * Assets are encoded as raw bytes.
  */
-export const MockAssets: {
-  [AssetKind: string]: Record<string, Uint8Array>,
-} = {
+export const MockAssets = {
   models: {
     sphereObj: base64StringToByteArray(sphereObj),
     sphereMtl: base64StringToByteArray(sphereMtl),
@@ -55,5 +53,7 @@ export const MockAssets: {
     asphaltPng: base64StringToByteArray(asphaltPng),
     stonesPng: base64StringToByteArray(stonesPng),
   },
+} satisfies {
+  [AssetKind: string]: Record<string, Uint8Array>,
 };
 
