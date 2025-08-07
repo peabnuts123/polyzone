@@ -21,7 +21,10 @@ export class AddGameObjectComponentMutation implements ISceneMutation {
     // 2. Update scene
     const gameObject = SceneViewController.findGameObjectById(this.gameObjectId);
     if (gameObject === undefined) throw new Error(`Cannot apply mutation - no game object exists in the scene with id '${this.gameObjectId}'`);
-    await SceneViewController.createGameObjectComponent(gameObjectData, gameObject, this.newComponent);
+    const component = await SceneViewController.createGameObjectComponent(gameObjectData, gameObject, this.newComponent);
+    if (component !== undefined) {
+      gameObject.addComponent(component);
+    }
 
     // 3. Update JSONC
     const newComponentDefinition = this.newComponent.toComponentDefinition();

@@ -297,10 +297,6 @@ export class SceneViewController implements ISceneViewController {
       ),
     );
 
-    if (component !== undefined) {
-      gameObject.addComponent(component);
-    }
-
     return component;
   }
 
@@ -362,7 +358,10 @@ export class SceneViewController implements ISceneViewController {
     gameObjectInstance.removeComponent(componentInstance.id);
 
     // Re-create component instance
-    await this.createGameObjectComponent(gameObjectData, gameObjectInstance, componentData);
+    const component = await this.createGameObjectComponent(gameObjectData, gameObjectInstance, componentData);
+    if (component !== undefined) {
+      gameObjectInstance.addComponent(component);
+    }
   }
 
   public async reloadSceneData(scene: SceneDbRecord): Promise<void> {
