@@ -32,8 +32,7 @@ describe(AddGameObjectComponentMutation.name, () => {
       mockScene,
     );
     const mockGameObjectData = mockScene.data.getGameObject(mockGameObjectDefinition.id);
-    const mockGameObject = await mockSceneViewController.createGameObject(mockGameObjectData);
-    mockSceneViewController.findGameObjectById = () => mockGameObject;
+    const mockGameObject = mockSceneViewController.findGameObjectById(mockGameObjectData.id)!;
 
     const newMeshComponent = MeshComponentData.createDefault();
     const initialDataComponents = [...mockGameObjectData.components];

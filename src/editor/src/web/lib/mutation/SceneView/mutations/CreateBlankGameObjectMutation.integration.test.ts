@@ -76,8 +76,7 @@ describe(CreateBlankGameObjectMutation.name, () => {
       mockScene,
     );
     const mockParentGameObjectData = mockScene.data.getGameObject(mockParentGameObjectDefinition.id);
-    const mockParentGameObject = await mockSceneViewController.createGameObject(mockParentGameObjectData);
-    mockSceneViewController.findGameObjectById = () => mockParentGameObject;
+    const mockParentGameObject = mockSceneViewController.findGameObjectById(mockParentGameObjectData.id)!;
 
     const initialDataObjects = [...mockScene.data.objects];
     const initialParentChildren = [...mockParentGameObjectData.children];

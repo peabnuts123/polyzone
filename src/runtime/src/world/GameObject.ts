@@ -43,7 +43,7 @@ export class GameObject extends GameObjectCore {
     this.transform.children.forEach((child) => child.gameObject.update(deltaTime));
   }
   public destroy(): void {
-    this.transform.children.forEach((child) => child.gameObject.destroy());
+    this.transform.destroy();
     World.destroyObject(this);
   }
   public onDestroy(): void {

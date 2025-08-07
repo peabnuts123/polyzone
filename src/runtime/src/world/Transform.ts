@@ -96,6 +96,11 @@ export class Transform extends TransformCore {
     this._localScale.setValue(transform.scale);
   }
 
+  public destroy(): void {
+    this.children.forEach((child) => child.gameObject.destroy());
+    this.node.dispose();
+  }
+
   /* Position */
   public get absolutePosition(): Vector3 { return this._absolutePosition; }
   public set absolutePosition(value: Vector3) { this._absolutePosition.setValue(value); }

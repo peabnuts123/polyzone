@@ -32,9 +32,7 @@ describe(SetGameObjectNameMutation.name, () => {
       mockScene,
     );
     const mockGameObjectData = mockScene.data.getGameObject(mockGameObjectDefinition.id);
-    /* Mock `findGameObjectById` to return mock instance */
-    const mockGameObject = await mockSceneViewController.createGameObject(mockGameObjectData);
-    mockSceneViewController.findGameObjectById = () => mockGameObject;
+    const mockGameObject = mockSceneViewController.findGameObjectById(mockGameObjectData.id)!;
 
     const initialDataValue = mockGameObjectData.name;
     const initialBabylonValue = mockGameObject.name;

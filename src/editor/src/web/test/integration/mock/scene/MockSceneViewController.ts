@@ -33,6 +33,7 @@ export class MockSceneViewController implements ISceneViewController {
   public sceneJson: JsoncContainer<SceneDefinition>;
   public mutator: MockSceneViewMutator;
   public selectionManager: SelectionManager;
+  public gameObjectInstances: GameObjectRuntime[];
 
   private constructor(
     projectController: MockProjectController,
@@ -48,19 +49,32 @@ export class MockSceneViewController implements ISceneViewController {
     this.babylonScene = babylonScene;
     this.mutator = new MockSceneViewMutator(this, projectController);
     this.selectionManager = new SelectionManager(this.babylonScene, this);
+    this.gameObjectInstances = [];
   }
 
-  public static create(projectController: MockProjectController, scene: SceneDbRecord): MockSceneViewController {
+  public static async create(projectController: MockProjectController, scene: SceneDbRecord): Promise<MockSceneViewController> {
     const canvas = document.createElement('canvas');
     const babylonEngine = new Engine(canvas);
     const babylonScene = new BabylonScene(babylonEngine);
 
-    return new MockSceneViewController(
+    const sceneViewController = new MockSceneViewController(
       projectController,
       canvas,
       babylonScene,
       scene.data,
       scene.jsonc,
+    );
+
+    await sceneViewController.createScene();
+
+    return sceneViewController;
+  }
+
+  private async createScene(): Promise<void> {
+    await Promise.all(
+      this.scene.objects.map((sceneObject) =>
+        this.createGameObject(sceneObject),
+      ),
     );
   }
 
@@ -79,8 +93,8 @@ export class MockSceneViewController implements ISceneViewController {
   removeFromSelectionCache: (component: ISelectableObject) => void = () => {
     /* No-op */
   };
-  createGameObject: (gameObjectData: GameObjectData, parentTransform?: TransformRuntime) => Promise<GameObjectRuntime> = (gameObjectData, parentTransform) => {
-    return createGameObject(
+  createGameObject: (gameObjectData: GameObjectData, parentTransform?: TransformRuntime) => Promise<GameObjectRuntime> = async (gameObjectData, parentTransform) => {
+    const gameObject = await createGameObject(
       gameObjectData,
       parentTransform,
       this.babylonScene,
@@ -90,6 +104,18 @@ export class MockSceneViewController implements ISceneViewController {
         componentData as IComposerComponentData,
       ),
     );
+
+    // Flatten tree of game object instances
+    // We have to manually keep a record of these instances anyway
+    const collectGameObjectInstances = (gameObject: GameObjectRuntime): void => {
+      this.addGameObject(gameObject);
+      for (const childTransform of gameObject.transform.children) {
+        collectGameObjectInstances(childTransform.gameObject);
+      }
+    };
+    collectGameObjectInstances(gameObject);
+
+    return gameObject;
   };
   createGameObjectComponent: (gameObjectData: GameObjectData, gameObject: GameObjectRuntime, componentData: IComposerComponentData) => Promise<GameObjectComponent | undefined> = (gameObjectData, gameObject, componentData) => {
     return createEditorGameObjectComponent(
@@ -107,14 +133,17 @@ export class MockSceneViewController implements ISceneViewController {
   reloadSceneData: (scene: SceneDbRecord) => Promise<void> = () => {
     return Promise.resolve();
   };
-  findGameObjectById: (gameObjectId: string) => GameObjectRuntime | undefined = () => {
-    return undefined;
+  findGameObjectById: (gameObjectId: string) => GameObjectRuntime | undefined = (gameObjectId) => {
+    return this.gameObjectInstances.find((gameObject) => gameObject.id === gameObjectId);
   };
-  addGameObject: (gameObject: GameObjectRuntime) => void = () => {
-    /* No-op */
+  addGameObject: (gameObject: GameObjectRuntime) => void = (gameObject) => {
+    this.gameObjectInstances.push(gameObject);
   };
-  removeGameObject: (gameObject: GameObjectRuntime) => void = () => {
-    /* No-op */
+  removeGameObject: (gameObject: GameObjectRuntime) => void = (gameObject) => {
+    const index = this.gameObjectInstances.findIndex((existingGameObject) => existingGameObject.id === gameObject.id);
+    if (index !== -1) {
+      this.gameObjectInstances.splice(index, 1);
+    }
   };
 
   public get sceneDefinition(): SceneDefinition {
