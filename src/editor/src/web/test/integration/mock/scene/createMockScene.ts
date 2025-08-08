@@ -71,8 +71,8 @@ export function createMockScene(name: string, ctor?: (tools: CreateMockSceneTool
 }
 
 export interface CreateMockGameObjectTools {
-  meshComponent(meshAsset: AssetDefinitionOfType<AssetType.Mesh>): MeshComponentDefinition;
-  scriptComponent(scriptAsset: AssetDefinitionOfType<AssetType.Script>): ScriptComponentDefinition;
+  meshComponent(meshAsset?: AssetDefinitionOfType<AssetType.Mesh>): MeshComponentDefinition;
+  scriptComponent(scriptAsset?: AssetDefinitionOfType<AssetType.Script>): ScriptComponentDefinition;
   cameraComponent(): CameraComponentDefinition;
   directionalLightComponent(options?: Partial<Pick<DirectionalLightComponentDefinition, 'intensity' | 'color'>>): DirectionalLightComponentDefinition;
   pointLightComponent(options?: Partial<Pick<PointLightComponentDefinition, 'intensity' | 'color'>>): PointLightComponentDefinition;
@@ -86,7 +86,7 @@ export function createMockGameObject(name: string, ctor?: (tools: CreateMockGame
       meshComponent(meshAsset) {
         return {
           id: uuid(),
-          meshFileId: meshAsset.id,
+          meshFileId: meshAsset?.id ?? null, // @TODO lol we have GOT to sort out `null`
           type: ComponentDefinitionType.Mesh,
         };
       },
@@ -94,7 +94,7 @@ export function createMockGameObject(name: string, ctor?: (tools: CreateMockGame
         return {
           id: uuid(),
           type: ComponentDefinitionType.Script,
-          scriptFileId: scriptAsset.id,
+          scriptFileId: scriptAsset?.id,
         };
       },
       cameraComponent() {

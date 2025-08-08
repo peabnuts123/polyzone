@@ -177,9 +177,7 @@ describe(RemoveGameObjectComponentMutation.name, () => {
       mockScene,
     );
 
-    // // Add the GameObject to the data layer but not to the Babylon scene
-    // @TODO loadDefinition or whatever, this will fail
-    // const mockGameObjectData = mockScene.data.getGameObject(mockGameObjectDefinition.id);
+    // Add the GameObject to the data layer but not to the Babylon scene
     const mockGameObjectData = loadObjectDefinition(
       mockGameObjectDefinition,
       mockProjectController.project.assets,
