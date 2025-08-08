@@ -102,28 +102,20 @@ describe(SetGameObjectPositionMutation.name, () => {
 
   test("Error when GameObject doesn't exist in scene", async () => {
     // Setup
-    let mockGameObjectDefinition!: GameObjectDefinition;
+    let mockNonExistentGameObjectDefinition!: GameObjectDefinition;
     const mock = new MockProject(({ manifest, scene }) => {
-      // Create a non-existent GameObject definition but don't add it to the scene
-      mockGameObjectDefinition = {
-        id: 'non-existent-id',
-        name: 'Non-existent Object',
-        transform: {
-          position: { x: 0, y: 0, z: 0 },
-          rotation: { x: 0, y: 0, z: 0 },
-          scale: { x: 1, y: 1, z: 1 },
-        },
-        children: [],
-        components: [],
-      };
       return {
         manifest: manifest(),
         assets: [],
         scenes: [
-          scene('sample', ({ config }) => ({
-            config: config(),
-            objects: [], // Empty - GameObject exists in definition but not in scene
-          })),
+          scene('sample', ({ config, object }) => {
+            // Create a non-existent GameObject definition but don't add it to the scene
+            mockNonExistentGameObjectDefinition = object('Non-existent object');
+            return {
+              config: config(),
+              objects: [], // Empty - GameObject exists in definition but not in scene
+            };
+          }),
         ],
       };
     });
@@ -136,7 +128,7 @@ describe(SetGameObjectPositionMutation.name, () => {
 
     // Create a GameObject that exists in data but not in Babylon scene
     const nonExistentGameObjectData = loadObjectDefinition(
-      mockGameObjectDefinition,
+      mockNonExistentGameObjectDefinition,
       mockProjectController.project.assets,
     );
 
