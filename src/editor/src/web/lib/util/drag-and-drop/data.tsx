@@ -67,7 +67,7 @@ function createDragAndDropData() {
      */
     endDrag() {
       if (currentDrag === undefined) return;
-      const currentDragType = currentDrag!.type;
+      const currentDragType = currentDrag.type;
 
       // Clear out current drag data
       setCurrentDrag(undefined);

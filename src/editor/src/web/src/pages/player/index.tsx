@@ -18,7 +18,7 @@ const PlayerPage: FunctionComponent<Props> = ({ }) => {
         name: 'PolyZone Cartridge',
         extensions: ['pzcart'],
       }],
-    }) as string | null;
+    });
     if (selected === null) return;
 
     const bytes = await readFile(selected);

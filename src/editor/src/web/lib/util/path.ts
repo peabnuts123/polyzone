@@ -66,7 +66,7 @@ export function createDirView<TItem, TFile, TDirectory>(
 export function convertToSafeFileName(s: string): string {
   // @NOTE Remove characters that will make FS go brrrrr
   // Might need to be more restrictive with this later
-  return s.replace(/[\/:*?"<>|]/g, '');
+  return s.replace(/[/:*?"<>|]/g, '');
 }
 
 export function joinToNativePath(...pathSegments: string[]): string {

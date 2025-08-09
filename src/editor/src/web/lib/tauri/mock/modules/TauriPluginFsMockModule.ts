@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/only-throw-error */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import type * as TauriFs from '@tauri-apps/plugin-fs';
 

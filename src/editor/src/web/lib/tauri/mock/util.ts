@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /**
  * Error throwing utility. Logs an error and then throws a generic "unmocked API" message.
  * @param details Error message logged to the console before throwing

@@ -64,16 +64,17 @@ export function showModal<TData, TResult>(modalUri: string, data: TData, options
   });
 
   return new Promise<TResult>((resolve, reject) => {
-    webview.once(eventName(ModalEvent.Result), (e) => {
+    void webview.once(eventName(ModalEvent.Result), (e) => {
       resolve(e.payload as TResult);
     });
 
-    webview.once('tauri://created', function () {
+    void webview.once('tauri://created', function () {
       if (options.onCreated !== undefined) {
         options.onCreated();
       }
     });
-    webview.once('tauri://error', function (e) {
+
+    void webview.once('tauri://error', function (e) {
       reject(e);
     });
   });

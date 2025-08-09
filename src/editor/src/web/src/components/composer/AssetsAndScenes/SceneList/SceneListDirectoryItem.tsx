@@ -31,7 +31,7 @@ export const SceneListDirectoryItem: FunctionComponent<SceneListDirectoryItemPro
       const newPath = currentDirectory
         .concat(directory.name, baseName(sceneData.path))
         .join('/');
-      ProjectController.mutator.apply(new MoveSceneMutation(sceneData, newPath));
+      void ProjectController.mutator.apply(new MoveSceneMutation(sceneData, newPath));
     },
   );
 

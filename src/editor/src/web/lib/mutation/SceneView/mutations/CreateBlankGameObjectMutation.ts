@@ -64,7 +64,7 @@ export class CreateBlankGameObjectMutation implements ISceneMutation {
       SceneViewController.scene.objects.push(newGameObjectData);
 
       // 2. Update Scene
-      SceneViewController.createGameObject(newGameObjectData);
+      await SceneViewController.createGameObject(newGameObjectData);
 
       // 3. Update JSONC
       SceneViewController.sceneJson.mutate((scene) => scene.objects[SceneViewController.sceneDefinition.objects.length], newObjectDefinition, { isArrayInsertion: true });

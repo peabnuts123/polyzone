@@ -51,8 +51,8 @@ export default defineConfig({
         test: {
           name: "Unit",
           exclude: [
-            '**\/node_modules/**',
-            '**\/.git/**',
+            '**/node_modules/**',
+            '**/.git/**',
             `**/*.integration.test.${ScriptFileExtensionGlob}`,
           ],
           environment: 'happy-dom', // @TODO Needed?

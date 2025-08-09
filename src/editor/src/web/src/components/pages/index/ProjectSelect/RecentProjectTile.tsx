@@ -46,7 +46,7 @@ export const RecentProjectTile: FunctionComponent<RecentProjectTileProps> = obse
    * e.g. "C:\Users\jeff\Documents" => ["C:\", "Users\", "jeff\", "Documents"]
    */
   const segmentifyPath = (path: string): string[] => {
-    return path.split(/([\\\/])/)   // Split into segments via slashes like [`/`, `Users`, `/`, ...] or [`C:`, `\`, `Users`, ...]
+    return path.split(/([\\/])/)   // Split into segments via slashes like [`/`, `Users`, `/`, ...] or [`C:`, `\`, `Users`, ...]
       .filter(Boolean)                        // Remove falsey (empty) strings
       .reduce((curr, next, index) => { // Combine into tuplets e.g. [`/Users`, `/jeff`, ...]
         // Odd token: Append to previous

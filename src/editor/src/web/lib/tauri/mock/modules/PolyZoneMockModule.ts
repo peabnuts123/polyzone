@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Unzipped, unzipSync, zip } from 'fflate';
 
@@ -49,6 +50,7 @@ export class PolyZoneMockModule {
       case 'notify_project_file_updated':
         return this.notifyProjectFileUpdated(args);
       default:
+        // eslint-disable-next-line @typescript-eslint/only-throw-error
         throw throwUnhandled(`[PolyZoneMockModule] (handle) Unimplemented action. (action='${action}') args: `, args);
     }
   }
@@ -73,6 +75,7 @@ export class PolyZoneMockModule {
       const resultBytes = await zipAsync(cartridgeData);
       return Array.from(resultBytes);
     } else {
+      // eslint-disable-next-line @typescript-eslint/only-throw-error
       throw throwUnhandled(`[PolyZoneMockModule] (create_cartridge) Failed fetching mock cartridge: `, result);
     }
   }
@@ -85,17 +88,17 @@ export class PolyZoneMockModule {
     // @NOTE No-op.
   }
 
-  public static async mockStartWatchingProjectFiles(...{ }: TauriCommandArgs<'start_watching_project_files'>): Promise<TauriCommandReturnType<'start_watching_project_files'>> {
+  public static mockStartWatchingProjectFiles(...{ }: TauriCommandArgs<'start_watching_project_files'>): Promise<TauriCommandReturnType<'start_watching_project_files'>> {
     console.warn(`[PolyZoneMockModule] (start_watching_project_files) Tauri is mocked - project files will not be watched`);
-    return "This command is mocked";
+    return Promise.resolve("This command is mocked");
   }
 
   public static async mockStopWatchingProjectAssets(...{ }: TauriCommandArgs<'stop_watching_project_assets'>): Promise<TauriCommandReturnType<'stop_watching_project_assets'>> {
     // @NOTE No-op.
   }
 
-  public static async mockHashData(..._args: TauriCommandArgs<'hash_data'>): Promise<TauriCommandReturnType<'hash_data'>> {
-    return PolyZoneMockModuleConfig.hashDataResult;
+  public static mockHashData(..._args: TauriCommandArgs<'hash_data'>): Promise<TauriCommandReturnType<'hash_data'>> {
+    return Promise.resolve(PolyZoneMockModuleConfig.hashDataResult);
   }
 
   public static async notifyProjectFileUpdated(...args: TauriCommandArgs<'notify_project_file_updated'>): Promise<TauriCommandReturnType<'notify_project_file_updated'>> {

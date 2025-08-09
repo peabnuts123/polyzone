@@ -1,4 +1,5 @@
 import { describe, test, expect } from 'vitest';
+import { v4 as uuid } from 'uuid';
 
 import { DirectionalLightComponent, PointLightComponent } from '@polyzone/runtime/src/world';
 import { DirectionalLightComponentDefinition, GameObjectDefinition, PointLightComponentDefinition } from '@polyzone/runtime/src/cartridge';
@@ -10,6 +11,7 @@ import { MockProjectController } from '@test/integration/mock/project/MockProjec
 import { MockSceneViewController } from '@test/integration/mock/scene/MockSceneViewController';
 
 import { SetGameObjectLightComponentIntensityMutation } from './SetGameObjectLightComponentIntensityMutation';
+import { Color3 } from '@polyzone/core/src/util/Color3';
 
 describe(SetGameObjectLightComponentIntensityMutation.name, () => {
   test("Changing DirectionalLight intensity updates state correctly", async () => {
@@ -243,9 +245,10 @@ describe(SetGameObjectLightComponentIntensityMutation.name, () => {
     const mockGameObjectData = mockScene.data.objects[0];
 
     // Create mutation with non-existent component ID
+    const nonExistentComponentData = new PointLightComponentData(uuid(), 1, Color3.white());
     const mutationWithInvalidComponentId = new SetGameObjectLightComponentIntensityMutation(
       mockGameObjectData,
-      { id: 'non-existent-component-id' } as any,
+      nonExistentComponentData,
     );
 
     // Test

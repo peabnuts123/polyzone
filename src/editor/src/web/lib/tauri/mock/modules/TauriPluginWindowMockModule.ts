@@ -1,4 +1,5 @@
-
+/* eslint-disable @typescript-eslint/only-throw-error */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { throwUnhandled } from "../util";
 import { MockEventSystem } from "../MockEventSystem";
 import { MockWindowSystem } from "../MockWindowSystem";

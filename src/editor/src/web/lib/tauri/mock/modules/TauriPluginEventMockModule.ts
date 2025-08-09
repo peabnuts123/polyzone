@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/only-throw-error */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { EventName } from "@tauri-apps/api/event";
 
 import { throwUnhandled } from "../util";

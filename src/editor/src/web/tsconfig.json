@@ -30,6 +30,7 @@
     "**/*.ts",
     "**/*.tsx",
     "vitest.config.ts",
+    "postcss.config.js",
   ],
   "exclude": [
     "../../../../node_modules",

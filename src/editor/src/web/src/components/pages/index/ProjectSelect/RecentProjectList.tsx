@@ -36,7 +36,7 @@ export const RecentProjectList: FunctionComponent<RecentProjectListProps> = obse
         name: 'PolyZone Project',
         extensions: ['pzproj'],
       }],
-    }) as string | null;
+    });
 
     if (selected === null) return;
 

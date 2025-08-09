@@ -75,7 +75,7 @@ export class SceneViewController implements ISceneViewController {
 
   private _gameObjectInstances: GameObjectRuntime[];
 
-  public constructor(scene: SceneData, sceneJson: JsoncContainer<SceneDefinition>, projectController: IProjectController) {
+  private constructor(scene: SceneData, sceneJson: JsoncContainer<SceneDefinition>, projectController: IProjectController) {
     this._scene = scene;
     this._sceneJson = sceneJson;
     this.projectController = projectController;
@@ -94,9 +94,6 @@ export class SceneViewController implements ISceneViewController {
     this.engine = new Engine(this.canvas, true, { preserveDrawingBuffer: true }, true);
     this.babylonScene = new BabylonScene(this.engine);
     this._selectionManager = new SelectionManager(this.babylonScene, this);
-
-    // Build scene
-    void this.buildScene();
 
     const stopListeningToProjectFileEvents = projectController.filesWatcher.onProjectFileChanged((event) => {
       if (event.type === ProjectFileEventType.Modify) {
@@ -122,7 +119,7 @@ export class SceneViewController implements ISceneViewController {
     const stopListeningToAssetEvents = projectController.filesWatcher.onAssetChanged((event) => {
       switch (event.type) {
         case ProjectAssetEventType.Modify:
-        case ProjectAssetEventType.Delete:
+        case ProjectAssetEventType.Delete: {
           /**
            * Collect all assets that will need to be reloaded.
            * Updated asset + any assets that depend on it
@@ -146,6 +143,7 @@ export class SceneViewController implements ISceneViewController {
             void this.reinitializeComponentInstance(componentData, gameObjectData);
           }
           break;
+        }
         case ProjectAssetEventType.Create:
         case ProjectAssetEventType.Rename:
           break;
@@ -161,6 +159,12 @@ export class SceneViewController implements ISceneViewController {
     };
 
     makeAutoObservable(this);
+  }
+
+  public static async create(scene: SceneData, sceneJson: JsoncContainer<SceneDefinition>, projectController: IProjectController): Promise<SceneViewController> {
+    const sceneViewController = new SceneViewController(scene, sceneJson, projectController);
+    await sceneViewController.buildScene();
+    return sceneViewController;
   }
 
   private async buildScene(): Promise<void> {
@@ -229,7 +233,7 @@ export class SceneViewController implements ISceneViewController {
     for (const gameObjectInstance of this._gameObjectInstances) {
       gameObjectInstance.destroy();
     }
-    this.projectController.assetCache.disposeSceneInstances(this.babylonScene);
+    void this.projectController.assetCache.disposeSceneInstances(this.babylonScene);
   }
 
   private async createScene(): Promise<void> {
@@ -424,6 +428,6 @@ export class SceneViewController implements ISceneViewController {
   }
 
   public get selectionManager(): SelectionManager {
-    return this._selectionManager!;
+    return this._selectionManager;
   }
 }

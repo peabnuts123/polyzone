@@ -1,7 +1,6 @@
 import { describe, test, expect } from 'vitest';
 
 import { AssetType } from '@polyzone/runtime/src/cartridge';
-import { MaterialAsset } from '@polyzone/runtime/src/world';
 
 import { MaterialAssetDefinition, TextureAssetDefinition } from '@lib/project/definition';
 import { MockProject } from '@test/integration/mock/project/MockProject';
@@ -52,7 +51,7 @@ describe(SetMaterialReflectionEnabledMutation.name, () => {
     const initialDataValue = mockMaterialEditorViewController.materialData.reflection;
     const initialBabylonTextureValue = mockMaterialEditorViewController.materialInstance.reflectionTexture;
     const initialJsonValue = mockMaterialEditorViewController.materialJson.value.reflection;
-    const initialCachedAsset = await mockProjectController.assetCache.loadAsset(mockMaterialEditorViewController.materialAssetData, mockMaterialEditorViewController.scene) as MaterialAsset;
+    const initialCachedAsset = await mockProjectController.assetCache.loadAsset(mockMaterialEditorViewController.materialAssetData, mockMaterialEditorViewController.scene);
 
     // Test: Disable the reflection
     const disableMutation = new SetMaterialReflectionEnabledMutation(false);
@@ -62,7 +61,7 @@ describe(SetMaterialReflectionEnabledMutation.name, () => {
     const disabledDataValue = mockMaterialEditorViewController.materialData.reflection;
     const disabledBabylonTextureValue = mockMaterialEditorViewController.materialInstance.reflectionTexture;
     const disabledJsonValue = mockMaterialEditorViewController.materialJson.value.reflection;
-    const disabledCachedAsset = await mockProjectController.assetCache.loadAsset(mockMaterialEditorViewController.materialAssetData, mockMaterialEditorViewController.scene) as MaterialAsset;
+    const disabledCachedAsset = await mockProjectController.assetCache.loadAsset(mockMaterialEditorViewController.materialAssetData, mockMaterialEditorViewController.scene);
 
     // Test: Re-enable the reflection
     const enableMutation = new SetMaterialReflectionEnabledMutation(true);
@@ -72,7 +71,7 @@ describe(SetMaterialReflectionEnabledMutation.name, () => {
     const enabledDataValue = mockMaterialEditorViewController.materialData.reflection;
     const enabledBabylonTextureValue = mockMaterialEditorViewController.materialInstance.reflectionTexture;
     const enabledJsonValue = mockMaterialEditorViewController.materialJson.value.reflection;
-    const enabledCachedAsset = await mockProjectController.assetCache.loadAsset(mockMaterialEditorViewController.materialAssetData, mockMaterialEditorViewController.scene) as MaterialAsset;
+    const enabledCachedAsset = await mockProjectController.assetCache.loadAsset(mockMaterialEditorViewController.materialAssetData, mockMaterialEditorViewController.scene);
 
     // Assert
     /* Initial state (reflection enabled) */

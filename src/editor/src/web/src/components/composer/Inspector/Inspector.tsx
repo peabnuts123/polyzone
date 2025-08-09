@@ -57,7 +57,7 @@ export const Inspector: FunctionComponent<Props> = observer(({ sceneViewControll
         throw new Error(`Cannot add new component. Unimplemented component type: '${type}'`);
     }
 
-    sceneViewController.mutator.apply(new AddGameObjectComponentMutation(
+    void sceneViewController.mutator.apply(new AddGameObjectComponentMutation(
       selectedObjectData!.id,
       newComponent,
     ));
@@ -86,7 +86,7 @@ export const Inspector: FunctionComponent<Props> = observer(({ sceneViewControll
                 value={selectedObjectData.name}
                 onChange={(newName) => {
                   if (newName && newName.trim()) {
-                    sceneViewController.mutator.debounceContinuous(
+                    void sceneViewController.mutator.debounceContinuous(
                       SetGameObjectNameMutation,
                       selectedObjectData,
                       () => new SetGameObjectNameMutation(selectedObjectData.id),
@@ -100,7 +100,7 @@ export const Inspector: FunctionComponent<Props> = observer(({ sceneViewControll
               <VectorInput
                 label="Position"
                 vector={selectedObjectData.transform.position}
-                onChange={(newValue) => sceneViewController.mutator.debounceContinuous(
+                onChange={(newValue) => void sceneViewController.mutator.debounceContinuous(
                   SetGameObjectPositionMutation,
                   selectedObjectData,
                   () => new SetGameObjectPositionMutation(selectedObjectData.id),
@@ -114,7 +114,7 @@ export const Inspector: FunctionComponent<Props> = observer(({ sceneViewControll
                 vector={selectedObjectData.transform.rotation}
                 incrementInterval={Math.PI / 8}
                 // @TODO Parse value and limit to rotational values
-                onChange={(newValue) => sceneViewController.mutator.debounceContinuous(
+                onChange={(newValue) => void sceneViewController.mutator.debounceContinuous(
                   SetGameObjectRotationMutation,
                   selectedObjectData,
                   () => new SetGameObjectRotationMutation(selectedObjectData.id),
@@ -127,7 +127,7 @@ export const Inspector: FunctionComponent<Props> = observer(({ sceneViewControll
                 label="Scale"
                 vector={selectedObjectData.transform.scale}
                 incrementInterval={0.25}
-                onChange={(newValue) => sceneViewController.mutator.debounceContinuous(
+                onChange={(newValue) => void sceneViewController.mutator.debounceContinuous(
                   SetGameObjectScaleMutation,
                   selectedObjectData,
                   () => new SetGameObjectScaleMutation(selectedObjectData.id),
@@ -144,7 +144,7 @@ export const Inspector: FunctionComponent<Props> = observer(({ sceneViewControll
                 key={index}
                 component={component}
                 controller={sceneViewController}
-                gameObject={selectedObjectData!}
+                gameObject={selectedObjectData}
               />;
             })}
 

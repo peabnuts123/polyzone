@@ -224,7 +224,7 @@ describe(Mutator.name, () => {
     // Test
     // Start first debounced mutation
     actions.push(`queue(${firstMutationNewValue}):${mutator.mockState.value}`);
-    mutator.debounceContinuous(
+    void mutator.debounceContinuous(
       SetMockValueContinuousMutation,
       mockDebounceMutationTarget,
       () => new SetMockValueContinuousMutation(
@@ -297,7 +297,7 @@ describe(Mutator.name, () => {
     // Test
     // Start first debounced mutation
     actions.push(`queue(${firstMutationNewValue}):${mutator.mockState.value}`);
-    mutator.debounceContinuous(
+    void mutator.debounceContinuous(
       SetMockValueContinuousMutation,
       mockDebounceMutationTargetA,
       () => new SetMockValueContinuousMutation(
@@ -374,7 +374,7 @@ describe(Mutator.name, () => {
     // Test
     // Start debounced mutation
     actions.push(`queue(${firstMutationNewValue}):${mutator.mockState.value}`);
-    mutator.debounceContinuous(
+    void mutator.debounceContinuous(
       SetMockValueContinuousMutation,
       mockDebounceMutationTarget,
       () => new SetMockValueContinuousMutation(

@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/only-throw-error */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import type { Window } from '@tauri-apps/api/window';
 import type { ItemKind } from '@tauri-apps/api/menu/base';
@@ -32,7 +34,7 @@ export class TauriPluginMenuMockModule {
     return Promise.resolve([rid, id]);
   }
 
-  public static popup({ }: { rid: number, kind: ItemKind, window: Window | null, at: unknown | null }): Promise<void> {
+  public static popup({ }: { rid: number, kind: ItemKind, window: Window | null, at: unknown }): Promise<void> {
     // @NOTE None of this is implemented at this time, it just no-ops
     return Promise.resolve();
   }

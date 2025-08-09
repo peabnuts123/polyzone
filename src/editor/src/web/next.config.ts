@@ -25,11 +25,13 @@ const nextConfig: NextConfig = {
 if (Bundler === 'webpack') {
   /* Webpack config */
   nextConfig.webpack = (config) => {
+    /* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return */
     config.module.rules.push({
       test: /\.fx$/,
       type: 'asset/source', // This will import the file as a string
     });
     return config;
+    /* eslint-enable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return */
   };
 } else if (Bundler === 'turbopack') {
   /* Turbopack config */

@@ -68,7 +68,7 @@ export const SceneListFileItem: FunctionComponent<SceneListFileItemProps> = obse
     setIsRenaming(false);
     if (newBaseName !== fileName) {
       const newPath = rename(file.scene.path, newBaseName);
-      ProjectController.mutator.apply(new MoveSceneMutation(file.scene, newPath));
+      void ProjectController.mutator.apply(new MoveSceneMutation(file.scene, newPath));
     }
   };
 

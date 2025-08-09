@@ -9,7 +9,7 @@ import { RemoveGameObjectComponentMutation } from "@lib/mutation/SceneView/mutat
 
 export const InspectorComponentBase: FunctionComponent<PropsWithChildren<InspectorComponentProps<IComposerComponentData>>> = observer(({ children, gameObject, component, controller }) => {
   const onClickDeleteComponent = (): void => {
-    controller.mutator.apply(new RemoveGameObjectComponentMutation(gameObject, component));
+    void controller.mutator.apply(new RemoveGameObjectComponentMutation(gameObject, component));
   };
 
   return (
@@ -17,7 +17,7 @@ export const InspectorComponentBase: FunctionComponent<PropsWithChildren<Inspect
       <div className="p-1 bg-gradient-to-b from-[blue] to-slate-200 text-white text-retro-shadow flex flex-row justify-between items-center">
         {/* Header */}
         <span className="font-bold">{component.componentName}</span>
-        <button className="button is-shallow m-0" onClick={(_e) => onClickDeleteComponent()}><TrashIcon className="icon w-4" /></button>
+        <button className="button is-shallow m-0" onClick={onClickDeleteComponent}><TrashIcon className="icon w-4" /></button>
       </div>
       <div className="p-2 bg-slate-200">
         {/* UI */}

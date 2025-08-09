@@ -48,5 +48,5 @@ export function getInspectorFor<TComponentType extends IComposerComponentData>(g
   } else {
     result = UnimplementedComponentInspector;
   }
-  return result;
+  return result as InspectorComponent<TComponentType>;
 }

@@ -2,7 +2,6 @@ import { CubeTexture } from '@babylonjs/core/Materials/Textures/cubeTexture';
 import { describe, test, expect } from 'vitest';
 
 import { AssetType, ITextureAssetData, MeshAssetMaterialOverrideReflection6x1Data, MeshAssetMaterialOverrideReflection6x1Definition } from '@polyzone/runtime/src/cartridge';
-import { MaterialAsset } from '@polyzone/runtime/src/world';
 
 import { MaterialAssetDefinition, TextureAssetDefinition } from '@lib/project/definition';
 import { MockProject } from '@test/integration/mock/project/MockProject';
@@ -59,7 +58,7 @@ describe(SetMaterialReflection6x1TextureMutation.name, () => {
       return (mockMaterialEditorViewController.materialJson.value.reflection as MeshAssetMaterialOverrideReflection6x1Definition)?.textureAssetId;
     }
     async function getCachedAssetReflectionTexture(): Promise<CubeTexture | undefined> {
-      const asset = await mockProjectController.assetCache.loadAsset(mockMaterialEditorViewController.materialAssetData, mockMaterialEditorViewController.scene) as MaterialAsset;
+      const asset = await mockProjectController.assetCache.loadAsset(mockMaterialEditorViewController.materialAssetData, mockMaterialEditorViewController.scene);
       return asset.reflectionTexture;
     }
 
@@ -142,7 +141,7 @@ describe(SetMaterialReflection6x1TextureMutation.name, () => {
       return (mockMaterialEditorViewController.materialJson.value.reflection as MeshAssetMaterialOverrideReflection6x1Definition)?.textureAssetId;
     }
     async function getCachedAssetReflectionTexture(): Promise<CubeTexture | undefined> {
-      const asset = await mockProjectController.assetCache.loadAsset(mockMaterialEditorViewController.materialAssetData, mockMaterialEditorViewController.scene) as MaterialAsset;
+      const asset = await mockProjectController.assetCache.loadAsset(mockMaterialEditorViewController.materialAssetData, mockMaterialEditorViewController.scene);
       return asset.reflectionTexture;
     }
 
@@ -222,7 +221,7 @@ describe(SetMaterialReflection6x1TextureMutation.name, () => {
       return (mockMaterialEditorViewController.materialJson.value.reflection as MeshAssetMaterialOverrideReflection6x1Definition)?.textureAssetId;
     }
     async function getCachedAssetReflectionTexture(): Promise<CubeTexture | undefined> {
-      const asset = await mockProjectController.assetCache.loadAsset(mockMaterialEditorViewController.materialAssetData, mockMaterialEditorViewController.scene) as MaterialAsset;
+      const asset = await mockProjectController.assetCache.loadAsset(mockMaterialEditorViewController.materialAssetData, mockMaterialEditorViewController.scene);
       return asset.reflectionTexture;
     }
 

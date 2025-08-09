@@ -1,4 +1,5 @@
 import { describe, test, expect } from 'vitest';
+import { v4 as uuid } from 'uuid';
 
 import { Color3 } from '@polyzone/core/src/util';
 import { toColor3Core } from '@polyzone/runtime/src/util/color';
@@ -247,9 +248,10 @@ describe(SetGameObjectLightComponentColorMutation.name, () => {
     const mockGameObjectData = mockScene.data.objects[0];
 
     // Create mutation with non-existent component ID
+    const nonExistentComponentData = new PointLightComponentData(uuid(), 1, Color3.white());
     const mutationWithInvalidComponentId = new SetGameObjectLightComponentColorMutation(
       mockGameObjectData,
-      { id: 'non-existent-component-id' } as any,
+      nonExistentComponentData,
     );
 
     // Test

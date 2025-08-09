@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/only-throw-error */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import type * as TauriPath from '@tauri-apps/api/path';
 import { BaseDirectory } from '@tauri-apps/api/path';
 
@@ -29,7 +31,7 @@ export class TauriPluginPathMockModule {
   }
 
   public static basename: MockHandlerWith2Args<'path', 'ext', typeof TauriPath.basename> = ({ path, ext }) => {
-    const segments = path.split(/[\/\\]/);
+    const segments = path.split(/[/\\]/);
     const baseName = segments[segments.length - 1];
     if (ext) {
       throw throwUnhandled(`[TauriPluginPathMockModule] (basename) 'ext' param not yet implemented`);

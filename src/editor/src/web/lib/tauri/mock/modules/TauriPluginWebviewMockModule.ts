@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/only-throw-error */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { WindowOptions } from "@tauri-apps/api/window";
 
 import { throwUnhandled } from "../util";

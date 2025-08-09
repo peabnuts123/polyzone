@@ -13,7 +13,7 @@ const MeshAssetReference = createAssetReferenceComponentOfType<AssetType.Mesh>()
 
 export const MeshComponentInspector: InspectorComponent<MeshComponentData> = observer(({ component, controller, gameObject }) => {
   const onUpdateMeshAsset = (meshAsset: MeshAssetData | undefined): void => {
-    controller.mutator.apply(
+    void controller.mutator.apply(
       new SetGameObjectMeshComponentAssetMutation(
         gameObject,
         component,

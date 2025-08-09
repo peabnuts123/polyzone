@@ -17,7 +17,7 @@ export class ApplicationDataController {
     if (isRunningInBrowser()) {
       this.initMockAppData();
     } else {
-      this.initAppData();
+      void this.initAppData();
     }
 
     makeAutoObservable(this);

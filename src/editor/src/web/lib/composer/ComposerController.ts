@@ -71,7 +71,7 @@ export class ComposerController implements IComposerController {
           tab.sceneViewController.destroy();
         }
 
-        const sceneViewController = new SceneViewController(
+        const sceneViewController = await SceneViewController.create(
           scene.data,
           scene.jsonc,
           this.projectController,

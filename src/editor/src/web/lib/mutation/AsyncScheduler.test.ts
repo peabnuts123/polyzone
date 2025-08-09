@@ -55,7 +55,7 @@ describe(AsyncScheduler.name, () => {
     // Test
     // Schedule a task that will not finish until the deferred is resolved
     const deferred = createDeferred();
-    scheduler.runTask(() => deferred.promise);
+    void scheduler.runTask(() => deferred.promise);
 
     // Schedule a second task
     let hasSecondTaskRun = false;

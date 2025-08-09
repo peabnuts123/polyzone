@@ -28,6 +28,7 @@ class CurrentDebounceState<TMutationArgs> {
     onDebounceExpire: (earlyExpire: boolean) => Promise<void>,
   ) {
     this.typeCtor = typeCtor;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     this.mutationTarget = mutationTarget;
     this.mutation = mutation;
     // @NOTE wrap `onDebounceExpire` in a function that
@@ -301,7 +302,7 @@ export abstract class Mutator<TMutationArgs> {
       } else {
         // This is a new debounced action, apply the previous action first
         // Apply and expire the previous debounce action immediately
-        this.currentDebounceState.onDebounceExpire(true);
+        await this.currentDebounceState.onDebounceExpire(true);
 
         // Re-invoke this method now that current debounce state has been cleared
         await this.__debounceContinuousImmediate(

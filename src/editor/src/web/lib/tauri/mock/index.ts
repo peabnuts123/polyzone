@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { clearMocks, mockIPC } from "@tauri-apps/api/mocks";
 
 import { BrowserMock } from "./BrowserMock";

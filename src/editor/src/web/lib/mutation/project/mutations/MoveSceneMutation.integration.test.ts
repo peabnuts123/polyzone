@@ -1,5 +1,9 @@
 import { describe, test, expect } from 'vitest';
+import { v4 as uuid } from 'uuid';
 
+import { SceneDefinition, SceneManifest } from '@lib/project';
+import { SceneData } from '@lib/project/data';
+import { randomHash } from '@test/util';
 import { MockProject } from '@test/integration/mock/project/MockProject';
 import { MockProjectController } from '@test/integration/mock/project/MockProjectController';
 
@@ -59,25 +63,42 @@ describe(MoveSceneMutation.name, () => {
 
   test("Attempting to move a non-existent scene throws an error", async () => {
     // Setup
-    const mock = new MockProject(({ manifest }) => ({
-      manifest: manifest(),
-      assets: [],
-      scenes: [],
-    }));
+    const mock = new MockProject(({ manifest }) => {
+      return {
+        manifest: manifest(),
+        assets: [],
+        scenes: [],
+      };
+    });
     const mockProjectController = await MockProjectController.create(mock);
 
     const mockNewPath = 'scenes/newScene.pzscene';
     // Create a scene data object with a non-existent ID
-    const fakeSceneData = {
-      id: 'non-existent-scene-id',
-      path: 'fake/path.pzscene',
-    } as any;
-    const mutation = new MoveSceneMutation(fakeSceneData, mockNewPath);
+    const mockNonExistentSceneDefinition: SceneDefinition = {
+      config: {
+        clearColor: { r: 0, g: 0, b: 0 },
+        lighting: {
+          ambient: {
+            color: { r: 255, g: 255, b: 255 },
+            intensity: 1,
+          },
+        },
+      },
+      objects: [],
+    };
+    const mockNonExistentSceneManifest: SceneManifest = {
+      id: uuid(),
+      hash: randomHash(),
+      path: 'scenes/non-existent-scene.pzscene',
+    };
+    const mockNonExistentScenedata = new SceneData(mockNonExistentSceneDefinition, mockNonExistentSceneManifest, mockProjectController.project.assets);
+
+    const mutation = new MoveSceneMutation(mockNonExistentScenedata, mockNewPath);
 
     // Test
     const testFunc = (): Promise<void> => mockProjectController.mutator.apply(mutation);
 
     // Assert
-    await expect(testFunc).rejects.toThrow(`Cannot move scene - No scene exists with Id '${fakeSceneData.id}'`);
+    await expect(testFunc).rejects.toThrow(`Cannot move scene - No scene exists with Id '${mockNonExistentScenedata.id}'`);
   });
 });

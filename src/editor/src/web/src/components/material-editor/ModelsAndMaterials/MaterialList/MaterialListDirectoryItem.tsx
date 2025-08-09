@@ -33,7 +33,7 @@ export const MaterialListDirectoryItem: FunctionComponent<MaterialListDirectoryI
       const newPath = currentDirectory
         .concat(directory.name, baseName(assetData.path))
         .join('/');
-      ProjectController.mutator.apply(new MoveAssetMutation(assetData.id, newPath));
+      void ProjectController.mutator.apply(new MoveAssetMutation(assetData.id, newPath));
     },
   );
 

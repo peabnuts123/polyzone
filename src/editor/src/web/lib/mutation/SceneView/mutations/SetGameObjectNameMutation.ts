@@ -40,7 +40,7 @@ export class SetGameObjectNameMutation implements ISceneMutation, IContinuousSce
     // - 1. Data
     gameObjectData.name = name;
     // - 2. Babylon state
-    gameObject!.name = name;
+    gameObject.name = name;
   }
 
   public apply({ SceneViewController }: SceneViewMutationArguments): void {

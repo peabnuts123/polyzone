@@ -20,7 +20,7 @@ export class JsoncContainer<TRawType extends object> {
 
   public constructor(jsonc: string) {
     this._text = jsonc;
-    this.currentValue = parse(jsonc);
+    this.currentValue = parse(jsonc) as TRawType;
     makeAutoObservable(this);
   }
 
@@ -62,6 +62,7 @@ export class JsoncContainer<TRawType extends object> {
 
       // Iterate the path into the value
       // If we ever encounter `undefined`, we don't need to delete anything.
+      /* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment */
       let currentProperty: any = this.value;
       for (const pathSegment of path) {
         if (currentProperty[pathSegment] === undefined) {
@@ -71,6 +72,7 @@ export class JsoncContainer<TRawType extends object> {
           currentProperty = currentProperty[pathSegment];
         }
       }
+      /* eslint-enable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment */
       const edits = modify(this.text, path, undefined, DefaultOptions);
       this.text = applyEdits(this.text, edits);
       if (LogMutationDiffs) console.log(`[JsoncContainer] (delete) After: `, this.text);
@@ -84,7 +86,7 @@ export class JsoncContainer<TRawType extends object> {
   private get text(): string { return this._text; }
   private set text(value: string) {
     this._text = value;
-    this.currentValue = parse(value);
+    this.currentValue = parse(value) as TRawType;
   }
 
   public get value(): TRawType { return this.currentValue; }
@@ -152,7 +154,7 @@ function createPathProxy<TTarget extends object>(path: MutationPath<any> = []): 
       }
 
       // Recursively create a new proxy for the sub property
-      return createPathProxy(path);
+      return createPathProxy<TTarget>(path);
     },
   });
 }

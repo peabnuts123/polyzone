@@ -68,7 +68,7 @@ export const MaterialListFileItem: FunctionComponent<MaterialListFileItemProps> 
     setIsRenaming(false);
     if (newBaseName !== fileName) {
       const newPath = rename(file.material.path, newBaseName);
-      ProjectController.mutator.apply(new MoveAssetMutation(file.material.id, newPath));
+      void ProjectController.mutator.apply(new MoveAssetMutation(file.material.id, newPath));
     }
   };
 

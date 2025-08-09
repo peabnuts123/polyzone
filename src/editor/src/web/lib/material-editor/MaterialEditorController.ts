@@ -62,7 +62,7 @@ export class MaterialEditorController implements IMaterialEditorController {
     // Unload possible previously-loaded model
     this.destroyTabController(tab);
 
-    const controller = new ModelEditorViewController(
+    const controller = await ModelEditorViewController.create(
       model,
       this.projectController,
     );
@@ -88,7 +88,7 @@ export class MaterialEditorController implements IMaterialEditorController {
     // Unload possible previously-loaded material
     this.destroyTabController(tab);
 
-    const controller = new MaterialEditorViewController(
+    const controller = await MaterialEditorViewController.create(
       material,
       this.projectController,
     );

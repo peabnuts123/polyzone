@@ -20,7 +20,7 @@ export interface HierarchyObjectProps {
   gameObject: GameObjectData;
   parentGameObject: GameObjectData | undefined;
   contextActions: {
-    createNewObject: (parent?: GameObjectData | undefined) => void;
+    createNewObject: (parent?: GameObjectData) => void;
     deleteObject: (gameObject: GameObjectData) => void;
   };
   previousSiblingId: string | undefined;
@@ -170,25 +170,15 @@ export const HierarchyObject: FunctionComponent<HierarchyObjectProps> = observer
   };
 
   const onDropIntoRearrangeSlot = (data: HierarchyObjectDragData, type: 'before' | 'after'): void => {
-    // @NOTE TypeScript isn't smart enough to recognise use of property indexer `[type]` will satisfy the constraint
-    //  so, manually specify properties `before` and `after`
-    if (type === 'before') {
-      controller.mutator.apply(new SetGameObjectParentMutation({
-        gameObject: data.gameObject,
-        newParent: parentGameObject,
-        before: gameObject,
-      }));
-    } else {
-      controller.mutator.apply(new SetGameObjectParentMutation({
-        gameObject: data.gameObject,
-        newParent: parentGameObject,
-        after: gameObject,
-      }));
-    }
+    void controller.mutator.apply(new SetGameObjectParentMutation({
+      gameObject: data.gameObject,
+      newParent: parentGameObject,
+      [type]: gameObject,
+    }));
   };
 
   const onDropIntoNewParent = (data: HierarchyObjectDragData): void => {
-    controller.mutator.apply(new SetGameObjectParentMutation({
+    void controller.mutator.apply(new SetGameObjectParentMutation({
       gameObject: data.gameObject,
       newParent: gameObject,
     }));

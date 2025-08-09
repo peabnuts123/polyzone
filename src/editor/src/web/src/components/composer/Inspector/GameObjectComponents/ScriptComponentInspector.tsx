@@ -13,7 +13,7 @@ const ScriptAssetReference = createAssetReferenceComponentOfType<AssetType.Scrip
 
 export const ScriptComponentInspector: InspectorComponent<ScriptComponentData> = observer(({ component, controller, gameObject }) => {
   const onUpdateScriptAsset = (scriptAsset: ScriptAssetData | undefined): void => {
-    controller.mutator.apply(
+    void controller.mutator.apply(
       new SetGameObjectScriptComponentAssetMutation(
         gameObject,
         component,

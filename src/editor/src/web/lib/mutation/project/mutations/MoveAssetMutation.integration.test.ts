@@ -6,11 +6,12 @@ import { MockProjectController } from '@test/integration/mock/project/MockProjec
 import { MockAssets } from '@test/integration/mock/assets';
 
 import { MoveAssetMutation } from './MoveAssetMutation';
+import { TextureAssetDefinition } from '@lib/project';
 
 describe(MoveAssetMutation.name, () => {
   test("Moving an asset to a new path updates all state correctly", async () => {
     // Setup
-    let mockAssetDefinition!: any;
+    let mockAssetDefinition!: TextureAssetDefinition;
     const mockOldPath = 'textures/oldTexture.png';
     const mockNewPath = 'textures/newTexture.png';
 

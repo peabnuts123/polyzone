@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/only-throw-error */
 import { Paths } from "./config";
 import {
   PolyZoneMockModule,
@@ -50,7 +51,7 @@ export class BrowserMock {
     BrowserMock.resetConfig();
   }
 
-  public handle(cmd: string, args: any): any | Promise<any> {
+  public handle(cmd: string, args: any): any {
     const parsed = this.parseCommand(cmd);
     // console.log(`[DEBUG] [BrowserMock] (handle) parsed: `, parsed, args);
 
@@ -96,8 +97,8 @@ export class BrowserMock {
     if (match !== null) {
       return {
         isPlugin: true,
-        plugin: match[1]!,
-        action: match[2]!,
+        plugin: match[1],
+        action: match[2],
       } satisfies TauriPluginCommand;
     } else {
       return {

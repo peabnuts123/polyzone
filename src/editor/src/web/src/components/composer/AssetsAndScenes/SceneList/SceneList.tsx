@@ -49,7 +49,7 @@ export const SceneList: FunctionComponent<Props> = observer(({ openScene }) => {
       const newPath = currentDirectory.slice(0, currentDirectory.length - 1)
         .concat(baseName(sceneData.path))
         .join('/');
-      ProjectController.mutator.apply(new MoveSceneMutation(sceneData, newPath));
+      void ProjectController.mutator.apply(new MoveSceneMutation(sceneData, newPath));
     },
   );
 
@@ -71,7 +71,7 @@ export const SceneList: FunctionComponent<Props> = observer(({ openScene }) => {
 
   const onFinishedNamingNewScene = (newScenePath: string): void => {
     setTempCreatePath(undefined);
-    ProjectController.mutator.apply(new CreateNewSceneMutation(newScenePath));
+    void ProjectController.mutator.apply(new CreateNewSceneMutation(newScenePath));
   };
 
   const onCancelCreateNewScene = (): void => {

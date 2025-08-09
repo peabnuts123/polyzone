@@ -116,6 +116,7 @@ function __hackNextJsServerSideRenderingForTauri(): void {
       },
     };
     // Define `window`
+    /* eslint-disable @typescript-eslint/no-unsafe-member-access */
     (global as any)['window'] = mockWindow;
     // Define all properties of `window` on the global object to simulate `window` containing itself
     for (const prop in mockWindow) {
@@ -125,15 +126,18 @@ function __hackNextJsServerSideRenderingForTauri(): void {
         throw new Error(`Failed to mock property '${prop}' on window: ${e}`);
       }
     }
+    /* eslint-enable @typescript-eslint/no-unsafe-member-access */
   }
 }
 
 function __storeMobxGlobalsForDebugging(): void {
+  /* eslint-disable @typescript-eslint/no-unsafe-member-access */
   if (typeof window !== 'undefined') {
     (window as any).Mobx = {
       toJS: Mobx.toJS,
     };
   }
+  /* eslint-enable @typescript-eslint/no-unsafe-member-access */
 }
 
 function __registerDebugModule(): void {

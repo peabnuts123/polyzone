@@ -67,9 +67,9 @@ export const Inspector: FunctionComponent<Props> = observer(({ materialEditorVie
             enabled={currentDiffuseColorEnabled}
             containerRef={outerContainerRef}
             onEnabledChange={(newValue) => {
-              controller.mutator.apply(new SetMaterialDiffuseColorEnabledMutation(newValue));
+              void controller.mutator.apply(new SetMaterialDiffuseColorEnabledMutation(newValue));
             }}
-            onColorChange={(newValue) => controller.mutator.debounceContinuous(
+            onColorChange={(newValue) => void controller.mutator.debounceContinuous(
               SetMaterialDiffuseColorMutation,
               controller.materialData,
               () => new SetMaterialDiffuseColorMutation(),
@@ -85,10 +85,10 @@ export const Inspector: FunctionComponent<Props> = observer(({ materialEditorVie
             assetType={AssetType.Texture}
             enabled={currentDiffuseTextureEnabled}
             onEnabledChange={(newValue) => {
-              controller.mutator.apply(new SetMaterialDiffuseTextureEnabledMutation(newValue));
+              void controller.mutator.apply(new SetMaterialDiffuseTextureEnabledMutation(newValue));
             }}
             onAssetChange={(newValue) => {
-              controller.mutator.apply(new SetMaterialDiffuseTextureMutation(newValue?.id));
+              void controller.mutator.apply(new SetMaterialDiffuseTextureMutation(newValue?.id));
             }}
           />
 
@@ -100,9 +100,9 @@ export const Inspector: FunctionComponent<Props> = observer(({ materialEditorVie
             enabled={currentEmissionColorEnabled}
             containerRef={outerContainerRef}
             onEnabledChange={(newValue) => {
-              controller.mutator.apply(new SetMaterialEmissionColorEnabledMutation(newValue));
+              void controller.mutator.apply(new SetMaterialEmissionColorEnabledMutation(newValue));
             }}
-            onColorChange={(newValue) => controller.mutator.debounceContinuous(
+            onColorChange={(newValue) => void controller.mutator.debounceContinuous(
               SetMaterialEmissionColorMutation,
               controller.materialData,
               () => new SetMaterialEmissionColorMutation(),
@@ -139,9 +139,9 @@ export const ReflectionInput: FunctionComponent<ReflectionInputProps> = observer
     if (type === "") {
       reflectionType = undefined;
     } else {
-      reflectionType = type as MeshAssetMaterialOverrideReflectionType;
+      reflectionType = type;
     }
-    controller.mutator.apply(new SetMaterialReflectionTypeMutation(reflectionType));
+    void controller.mutator.apply(new SetMaterialReflectionTypeMutation(reflectionType));
   };
 
   const ReflectionStrength = observer(() => {
@@ -162,7 +162,7 @@ export const ReflectionInput: FunctionComponent<ReflectionInputProps> = observer
             minValue={0}
             maxValue={1}
             onChange={(newValue) => {
-              controller.mutator.debounceContinuous(
+              void controller.mutator.debounceContinuous(
                 SetMaterialReflectionStrengthMutation,
                 controller.materialData,
                 () => new SetMaterialReflectionStrengthMutation(),
@@ -181,7 +181,7 @@ export const ReflectionInput: FunctionComponent<ReflectionInputProps> = observer
             disabled={!currentReflectionEnabled}
             onChange={(e) => {
               const newValue = Number(e.target.value);
-              controller.mutator.debounceContinuous(
+              void controller.mutator.debounceContinuous(
                 SetMaterialReflectionStrengthMutation,
                 controller.materialData,
                 () => new SetMaterialReflectionStrengthMutation(),
@@ -204,7 +204,7 @@ export const ReflectionInput: FunctionComponent<ReflectionInputProps> = observer
             checked={currentReflectionEnabled}
             onChange={(e) => {
               const newValue = e.target.checked;
-              controller.mutator.apply(new SetMaterialReflectionEnabledMutation(newValue));
+              void controller.mutator.apply(new SetMaterialReflectionEnabledMutation(newValue));
             }}
           />
           Reflection
@@ -239,7 +239,7 @@ export const ReflectionInput: FunctionComponent<ReflectionInputProps> = observer
                 asset={currentReflection.texture as TextureAssetData}
                 assetType={AssetType.Texture}
                 onAssetChange={(newValue) => {
-                  controller.mutator.apply(new SetMaterialReflectionBoxNetTextureMutation(newValue?.id));
+                  void controller.mutator.apply(new SetMaterialReflectionBoxNetTextureMutation(newValue?.id));
                 }}
               />
               {/* Reflection strength */}
@@ -255,7 +255,7 @@ export const ReflectionInput: FunctionComponent<ReflectionInputProps> = observer
                 asset={currentReflection.texture as TextureAssetData}
                 assetType={AssetType.Texture}
                 onAssetChange={(newValue) => {
-                  controller.mutator.apply(new SetMaterialReflection6x1TextureMutation(newValue?.id));
+                  void controller.mutator.apply(new SetMaterialReflection6x1TextureMutation(newValue?.id));
                 }}
               />
               {/* Reflection strength */}
@@ -271,7 +271,7 @@ export const ReflectionInput: FunctionComponent<ReflectionInputProps> = observer
                 asset={currentReflection.texture as TextureAssetData}
                 assetType={AssetType.Texture}
                 onAssetChange={(newValue) => {
-                  controller.mutator.apply(new SetMaterialReflection3x2TextureMutation(newValue?.id));
+                  void controller.mutator.apply(new SetMaterialReflection3x2TextureMutation(newValue?.id));
                 }}
               />
               {/* Reflection strength */}
@@ -286,7 +286,7 @@ export const ReflectionInput: FunctionComponent<ReflectionInputProps> = observer
                 asset={currentReflection.pxTexture as TextureAssetData}
                 assetType={AssetType.Texture}
                 onAssetChange={(newValue) => {
-                  controller.mutator.apply(new SetMaterialReflectionSeparateTextureMutation(newValue?.id, ReflectionSeparateTexture.positiveX));
+                  void controller.mutator.apply(new SetMaterialReflectionSeparateTextureMutation(newValue?.id, ReflectionSeparateTexture.positiveX));
                 }}
               />
               {/* Negative X reflection texture */}
@@ -296,7 +296,7 @@ export const ReflectionInput: FunctionComponent<ReflectionInputProps> = observer
                 asset={currentReflection.nxTexture as TextureAssetData}
                 assetType={AssetType.Texture}
                 onAssetChange={(newValue) => {
-                  controller.mutator.apply(new SetMaterialReflectionSeparateTextureMutation(newValue?.id, ReflectionSeparateTexture.negativeX));
+                  void controller.mutator.apply(new SetMaterialReflectionSeparateTextureMutation(newValue?.id, ReflectionSeparateTexture.negativeX));
                 }}
               />
               {/* Positive Y reflection texture */}
@@ -306,7 +306,7 @@ export const ReflectionInput: FunctionComponent<ReflectionInputProps> = observer
                 asset={currentReflection.pyTexture as TextureAssetData}
                 assetType={AssetType.Texture}
                 onAssetChange={(newValue) => {
-                  controller.mutator.apply(new SetMaterialReflectionSeparateTextureMutation(newValue?.id, ReflectionSeparateTexture.positiveY));
+                  void controller.mutator.apply(new SetMaterialReflectionSeparateTextureMutation(newValue?.id, ReflectionSeparateTexture.positiveY));
                 }}
               />
               {/* Negative Y reflection texture */}
@@ -316,7 +316,7 @@ export const ReflectionInput: FunctionComponent<ReflectionInputProps> = observer
                 asset={currentReflection.nyTexture as TextureAssetData}
                 assetType={AssetType.Texture}
                 onAssetChange={(newValue) => {
-                  controller.mutator.apply(new SetMaterialReflectionSeparateTextureMutation(newValue?.id, ReflectionSeparateTexture.negativeY));
+                  void controller.mutator.apply(new SetMaterialReflectionSeparateTextureMutation(newValue?.id, ReflectionSeparateTexture.negativeY));
                 }}
               />
               {/* Positive Z reflection texture */}
@@ -326,7 +326,7 @@ export const ReflectionInput: FunctionComponent<ReflectionInputProps> = observer
                 asset={currentReflection.pzTexture as TextureAssetData}
                 assetType={AssetType.Texture}
                 onAssetChange={(newValue) => {
-                  controller.mutator.apply(new SetMaterialReflectionSeparateTextureMutation(newValue?.id, ReflectionSeparateTexture.positiveZ));
+                  void controller.mutator.apply(new SetMaterialReflectionSeparateTextureMutation(newValue?.id, ReflectionSeparateTexture.positiveZ));
                 }}
               />
               {/* Negative Z reflection texture */}
@@ -337,7 +337,7 @@ export const ReflectionInput: FunctionComponent<ReflectionInputProps> = observer
                 asset={currentReflection.nzTexture as TextureAssetData}
                 assetType={AssetType.Texture}
                 onAssetChange={(newValue) => {
-                  controller.mutator.apply(new SetMaterialReflectionSeparateTextureMutation(newValue?.id, ReflectionSeparateTexture.negativeZ));
+                  void controller.mutator.apply(new SetMaterialReflectionSeparateTextureMutation(newValue?.id, ReflectionSeparateTexture.negativeZ));
                 }}
               />
               {/* Reflection strength */}

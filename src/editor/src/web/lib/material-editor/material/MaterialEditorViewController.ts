@@ -53,7 +53,7 @@ export class MaterialEditorViewController implements IMaterialEditorViewControll
 
   private _materialInstance: RetroMaterial | undefined = undefined;
 
-  public constructor(material: MaterialAssetData, projectController: IProjectController) {
+  private constructor(material: MaterialAssetData, projectController: IProjectController) {
     this._materialAssetData = material;
     this.projectController = projectController;
     this._mutator = new MaterialEditorViewMutator(
@@ -71,9 +71,6 @@ export class MaterialEditorViewController implements IMaterialEditorViewControll
     // @NOTE `preserveDrawingBuffer` needed to be able to capture canvas contents
     this.engine = new Engine(this.canvas, true, { preserveDrawingBuffer: true }, true);
     this.babylonScene = new BabylonScene(this.engine);
-
-    // Build scene
-    void this.buildScene();
 
     const stopListeningToProjectFileEvents = projectController.filesWatcher.onProjectFileChanged((event) => {
       if (event.type === ProjectFileEventType.Modify) {
@@ -95,7 +92,7 @@ export class MaterialEditorViewController implements IMaterialEditorViewControll
             return;
           }
         // @NOTE Fall-through
-        case ProjectAssetEventType.Modify:
+        case ProjectAssetEventType.Modify: {
           // Collect all assets that are dependent on the asset that updated
           const allAffectedAssets: string[] = [
             event.asset.id,
@@ -105,9 +102,10 @@ export class MaterialEditorViewController implements IMaterialEditorViewControll
           // Reload the scene if the material is dependent on one of the assets that changed
           if (allAffectedAssets.includes(this.materialAssetData.id)) {
             console.log(`[${MaterialEditorViewController.name}] (onAssetChanged) Reloading scene due to asset change: (assetId='${event.asset.id}')`);
-            this.reloadSceneData();
+            void this.reloadSceneData();
           }
           break;
+        }
         case ProjectAssetEventType.Create:
         case ProjectAssetEventType.Rename:
           break;
@@ -122,6 +120,12 @@ export class MaterialEditorViewController implements IMaterialEditorViewControll
     };
 
     makeAutoObservable(this);
+  }
+
+  public static async create(material: MaterialAssetData, projectController: IProjectController): Promise<MaterialEditorViewController> {
+    const controller = new MaterialEditorViewController(material, projectController);
+    await controller.buildScene();
+    return controller;
   }
 
   private async loadMaterial(): Promise<void> {

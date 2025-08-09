@@ -194,28 +194,31 @@ export class MeshAssetData extends BaseAssetData<AssetType.Mesh> implements IMes
 
 export function reflectionDataToDefinition<TReflectionType extends MeshAssetMaterialOverrideReflectionType>(reflection: MeshAssetMaterialOverrideReflectionDataOfType<TReflectionType>): MeshAssetMaterialOverrideReflectionDefinitionOfType<TReflectionType> {
   switch (reflection.type) {
-    case "box-net":
+    case "box-net": {
       const reflectionBoxNet = reflection as MeshAssetMaterialOverrideReflectionBoxNetData;
       return {
         type: reflectionBoxNet.type,
         strength: reflectionBoxNet.strength,
         textureAssetId: reflectionBoxNet.texture?.id,
       } as MeshAssetMaterialOverrideReflectionDefinitionOfType<TReflectionType>;
-    case "3x2":
+    }
+    case "3x2": {
       const reflection3x2 = reflection as MeshAssetMaterialOverrideReflection3x2Data;
       return {
         type: reflection3x2.type,
         strength: reflection3x2.strength,
         textureAssetId: reflection3x2.texture?.id,
       } as MeshAssetMaterialOverrideReflectionDefinitionOfType<TReflectionType>;
-    case "6x1":
+    }
+    case "6x1": {
       const reflection6x1 = reflection as MeshAssetMaterialOverrideReflection6x1Data;
       return {
         type: reflection6x1.type,
         strength: reflection6x1.strength,
         textureAssetId: reflection6x1.texture?.id,
       } as MeshAssetMaterialOverrideReflectionDefinitionOfType<TReflectionType>;
-    case "separate":
+    }
+    case "separate": {
       const reflectionSeparate = reflection as MeshAssetMaterialOverrideReflectionSeparateData;
       return {
         type: reflectionSeparate.type,
@@ -227,7 +230,8 @@ export function reflectionDataToDefinition<TReflectionType extends MeshAssetMate
         pzTextureAssetId: reflectionSeparate.pzTexture?.id,
         nzTextureAssetId: reflectionSeparate.nzTexture?.id,
       } as MeshAssetMaterialOverrideReflectionDefinitionOfType<TReflectionType>;
+    }
     default:
-      throw new Error(`Unimplemented reflection data type: '${(reflection as any).type}'`);
+      throw new Error(`Unimplemented reflection data type: '${reflection.type}'`);
   }
 }

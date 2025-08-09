@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/only-throw-error */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import type * as TauriDialog from '@tauri-apps/plugin-dialog';
 import { MockHandlerWith1Arg, throwUnhandled } from '../util';
 import { Paths } from '../config';

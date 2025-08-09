@@ -18,10 +18,10 @@ interface Props {
 export const Hierarchy: FunctionComponent<Props> = observer(({ controller }) => {
   // Functions
   const createNewObject = (parent: GameObjectData | undefined = undefined): void => {
-    controller.mutator.apply(new CreateBlankGameObjectMutation(parent));
+    void controller.mutator.apply(new CreateBlankGameObjectMutation(parent));
   };
   const deleteObject = (gameObjectData: GameObjectData): void => {
-    controller.mutator.apply(new DeleteGameObjectMutation(gameObjectData));
+    void controller.mutator.apply(new DeleteGameObjectMutation(gameObjectData));
   };
   const showContextMenu: MouseEventHandler = async (e) => {
     // @NOTE Skip context menu in browser

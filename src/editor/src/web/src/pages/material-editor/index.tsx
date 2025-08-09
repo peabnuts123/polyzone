@@ -97,7 +97,7 @@ const MaterialEditorPage: FunctionComponent = observer(({ }) => {
     const existingMaterialTab = MaterialEditorController.currentlyOpenTabs.find((tab) => tab.type === 'material' && tab.materialEditorController?.materialAssetData.id === modelOrMaterial.id);
     if (existingModelTab !== undefined || existingMaterialTab !== undefined) {
       // @NOTE At least one of the the values must be defined
-      TabState.setCurrentTabPageId((existingModelTab?.id || existingMaterialTab?.id)!);
+      TabState.setCurrentTabPageId(existingModelTab?.id || existingMaterialTab?.id);
       return;
     }
 

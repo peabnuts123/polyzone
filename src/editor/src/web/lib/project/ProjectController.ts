@@ -150,7 +150,7 @@ export class ProjectController implements IProjectController {
     // warnings when the response is sent back after the page has reloaded.
     // See: https://github.com/tauri-apps/tauri/issues/10266
     if (this.hasLoadedProject) {
-      invoke('unload_project');
+      void invoke('unload_project');
     }
     this._filesWatcher?.onDestroy();
     this.problemScanner?.onDestroy();

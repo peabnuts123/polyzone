@@ -14,5 +14,6 @@ export function sleep(timeMs: number): Promise<void> {
  * Generate a random hash string, in xxHash format (16 hex digits).
  */
 export function randomHash(): string {
-  return (0x10000000_00000000 + (Math.random() * 0xEFFFFFFF_FFFFFFFF)).toString(16);
+  // @NOTE `0xEFFFFFFF_FFFFF000` because `0xEFFFFFFF_FFFFFFFF` is an overflow and MAY produce strings that are too long
+  return (0x10000000_00000000 + (Math.random() * 0xEFFFFFFF_FFFFF000)).toString(16);
 }

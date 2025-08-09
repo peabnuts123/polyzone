@@ -53,7 +53,6 @@ const ComposerPage: FunctionComponent<Props> = observer(({ }) => {
 
   // Functions
   const debug_exportScene = async (): Promise<void> => {
-
     const bytes = await ComposerController.debug_buildCartridge();
 
     await showSavePrompt(bytes, {
@@ -70,7 +69,7 @@ const ComposerPage: FunctionComponent<Props> = observer(({ }) => {
     setTempCartridge(bytes);
   };
 
-  const debug_stopPlaying = async (): Promise<void> => {
+  const debug_stopPlaying = (): void => {
     setTempCartridge(undefined);
   };
 
@@ -97,7 +96,7 @@ const ComposerPage: FunctionComponent<Props> = observer(({ }) => {
       ) : (
         /* Playing scene */
         <>
-          <Player cartridge={tempCartridge!} />
+          <Player cartridge={tempCartridge} />
         </>
       )}
     </>

@@ -75,7 +75,7 @@ describe(SetModelMaterialOverrideReflectionStrengthMutation.name, () => {
 
     // Test
     await mockModelEditorViewController.mutator.beginContinuous(mutation);
-    mockModelEditorViewController.mutator.updateContinuous(mutation, { reflectionStrength: newStrength });
+    await mockModelEditorViewController.mutator.updateContinuous(mutation, { reflectionStrength: newStrength });
     await mockModelEditorViewController.mutator.apply(mutation);
 
     /* Capture updated state */

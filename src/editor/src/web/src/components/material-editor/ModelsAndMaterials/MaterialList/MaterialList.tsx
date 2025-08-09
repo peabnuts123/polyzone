@@ -52,7 +52,7 @@ export const MaterialList: FunctionComponent<Props> = observer(({ openMaterial: 
       const newPath = currentDirectory.slice(0, currentDirectory.length - 1)
         .concat(baseName(assetData.path))
         .join('/');
-      ProjectController.mutator.apply(new MoveAssetMutation(assetData.id, newPath));
+      void ProjectController.mutator.apply(new MoveAssetMutation(assetData.id, newPath));
     },
   );
 
@@ -74,7 +74,7 @@ export const MaterialList: FunctionComponent<Props> = observer(({ openMaterial: 
 
   const onFinishedNamingNewMaterial = (newMaterialPath: string): void => {
     setTempCreatePath(undefined);
-    ProjectController.mutator.apply(new CreateNewMaterialAssetMutation(newMaterialPath));
+    void ProjectController.mutator.apply(new CreateNewMaterialAssetMutation(newMaterialPath));
   };
 
   const onCancelCreateNewMaterial = (): void => {

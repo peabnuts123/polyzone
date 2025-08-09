@@ -56,7 +56,7 @@ export class ModelEditorViewController implements IModelEditorViewController {
 
   private _selectedMaterialName: string | undefined = undefined;
 
-  public constructor(model: MeshAssetData, projectController: IProjectController) {
+  private constructor(model: MeshAssetData, projectController: IProjectController) {
     this._model = model;
     this.projectController = projectController;
     this.componentDependencyManager = new ComponentDependencyManager();
@@ -71,9 +71,6 @@ export class ModelEditorViewController implements IModelEditorViewController {
     // @NOTE `preserveDrawingBuffer` needed to be able to capture canvas contents
     this.engine = new Engine(this.canvas, true, { preserveDrawingBuffer: true }, true);
     this.babylonScene = new BabylonScene(this.engine);
-
-    // Build scene
-    void this.buildScene();
 
     const stopListeningToProjectFileEvents = projectController.filesWatcher.onProjectFileChanged((event) => {
       if (event.type === ProjectFileEventType.Modify) {
@@ -95,7 +92,7 @@ export class ModelEditorViewController implements IModelEditorViewController {
             return;
           }
         // @NOTE Fall-through
-        case ProjectAssetEventType.Modify:
+        case ProjectAssetEventType.Modify: {
           // Collect all assets that are dependent on the asset that updated
           const allAffectedAssets: string[] = [
             event.asset.id,
@@ -115,9 +112,10 @@ export class ModelEditorViewController implements IModelEditorViewController {
               console.log(`[${ModelEditorViewController.name}] (onAssetChanged) Reloading scene due to TRANSITIVE asset change: (source assetId='${event.asset.id}') (componentId='${componentData.id}') (gameObjectId='${gameObjectData.id}')`);
             }
 
-            this.reloadSceneData();
+            void this.reloadSceneData();
           }
           break;
+        }
         case ProjectAssetEventType.Create:
         case ProjectAssetEventType.Rename:
           break;
@@ -132,6 +130,12 @@ export class ModelEditorViewController implements IModelEditorViewController {
     };
 
     makeAutoObservable(this);
+  }
+
+  public static async create(model: MeshAssetData, projectController: IProjectController): Promise<ModelEditorViewController> {
+    const controller = new ModelEditorViewController(model, projectController);
+    await controller.buildScene();
+    return controller;
   }
 
   private async buildScene(): Promise<void> {
@@ -204,7 +208,7 @@ export class ModelEditorViewController implements IModelEditorViewController {
     const transformData = new TransformData(Vector3.zero(), Vector3.zero(), Vector3.one());
     const transform = new Transform(
       gameObjectName,
-      this.babylonScene!,
+      this.babylonScene,
       undefined,
       transformData,
     );

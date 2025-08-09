@@ -54,7 +54,7 @@ export class SelectionManager {
     this.moveGizmo.planarGizmoEnabled = true;
     this.moveGizmo.onDragStartObservable.add(() => {
       this.currentMoveMutation = new SetGameObjectPositionMutation(this.selectedObjectId!);
-      sceneViewController.mutator.beginContinuous(this.currentMoveMutation);
+      void sceneViewController.mutator.beginContinuous(this.currentMoveMutation);
     });
     this.moveGizmo.onDragObservable.add((_eventData) => {
       if (this.selectedObjectId !== undefined) {
@@ -76,13 +76,13 @@ export class SelectionManager {
         if (parentScale.z <= Number.EPSILON) console.warn(`[${SelectionManager.name}] (moveGizmo.onDragObservable) Moving object whose parentScale.z is 0. z coordinate can not be extrapolated and will remain unmodified`);
         else newPosition.z = this.fakeTransformTarget!.position.z / parentScale.z;
 
-        sceneViewController.mutator.updateContinuous(this.currentMoveMutation!, {
+        void sceneViewController.mutator.updateContinuous(this.currentMoveMutation!, {
           position: newPosition,
         });
       }
     });
     this.moveGizmo.onDragEndObservable.add(() => {
-      sceneViewController.mutator.apply(this.currentMoveMutation!);
+      void sceneViewController.mutator.apply(this.currentMoveMutation!);
       this.currentMoveMutation = undefined;
     });
 
@@ -90,7 +90,7 @@ export class SelectionManager {
     this.rotateGizmo = new RotationGizmo(utilityLayer, 32, true, 6, this.gizmoManager);
     this.rotateGizmo.onDragStartObservable.add(() => {
       this.currentRotateMutation = new SetGameObjectRotationMutation(this.selectedObjectId!);
-      sceneViewController.mutator.beginContinuous(this.currentRotateMutation);
+      void sceneViewController.mutator.beginContinuous(this.currentRotateMutation);
     });
     this.rotateGizmo.onDragObservable.add((_eventData) => {
       if (this.selectedObjectId !== undefined) {
@@ -101,13 +101,13 @@ export class SelectionManager {
           throw new Error(`Rotation quaternion is undefined somehow`);
         }
 
-        sceneViewController.mutator.updateContinuous(this.currentRotateMutation!, {
+        void sceneViewController.mutator.updateContinuous(this.currentRotateMutation!, {
           rotation: toQuaternionCore(rotation),
         });
       }
     });
     this.rotateGizmo.onDragEndObservable.add((_eventData) => {
-      sceneViewController.mutator.apply(this.currentRotateMutation!);
+      void sceneViewController.mutator.apply(this.currentRotateMutation!);
       this.currentRotateMutation = undefined;
     });
 
@@ -115,12 +115,12 @@ export class SelectionManager {
     this.scaleGizmo = new ScaleGizmo(utilityLayer, 2, this.gizmoManager);
     this.scaleGizmo.onDragStartObservable.add(() => {
       this.currentScaleMutation = new SetGameObjectScaleMutation(this.selectedObjectId!);
-      sceneViewController.mutator.beginContinuous(this.currentScaleMutation);
+      void sceneViewController.mutator.beginContinuous(this.currentScaleMutation);
     });
     this.scaleGizmo.onDragObservable.add((_eventData) => {
       if (this.selectedObjectId !== undefined) {
         // Scaling is handled as a percentage to accommodate rotation
-        sceneViewController.mutator.updateContinuous(this.currentScaleMutation!, {
+        void sceneViewController.mutator.updateContinuous(this.currentScaleMutation!, {
           scaleDelta: toVector3Core(this.fakeTransformTarget!.scaling),
         });
         // @NOTE Reset scaling to uniform scale, because rotation doesn't work with non-uniform scaling
@@ -128,7 +128,7 @@ export class SelectionManager {
       }
     });
     this.scaleGizmo.onDragEndObservable.add(() => {
-      sceneViewController.mutator.apply(this.currentScaleMutation!);
+      void sceneViewController.mutator.apply(this.currentScaleMutation!);
       this.currentScaleMutation = undefined;
     });
 
