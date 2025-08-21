@@ -158,3 +158,18 @@ function createPathProxy<TTarget extends object>(path: MutationPath<any> = []): 
     },
   });
 }
+
+/**
+ * Read the real value of a path from a given scene.
+ * @param path The path from which to read within the scene.
+ * @param target Scene from which to read the value.
+ */
+export function readValueAtPath<TPathTarget, TTarget>(path: MutationPath<TPathTarget>, target: TTarget): TPathTarget {
+  let currentValue: any = target;
+  for (const pathSegment of path) {
+    // @NOTE We yoloing
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+    currentValue = currentValue[pathSegment as keyof typeof currentValue];
+  }
+  return currentValue as TPathTarget;
+}

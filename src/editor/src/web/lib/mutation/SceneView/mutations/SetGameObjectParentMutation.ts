@@ -2,8 +2,8 @@ import { GameObjectDefinition } from "@polyzone/runtime/src/cartridge";
 import { toVector3Definition } from "@polyzone/runtime/src/util";
 
 import { GameObjectData } from "@lib/project/data";
-import { readPathInScene, resolvePathForSceneObjectMutation } from "@lib/mutation/util";
-import { MutationPath, resolvePath } from "@lib/util/JsoncContainer";
+import { resolvePathForSceneObjectMutation } from "@lib/mutation/util";
+import { MutationPath, readValueAtPath, resolvePath } from "@lib/util/JsoncContainer";
 import { SceneDefinition } from "@lib/project/definition/scene/SceneDefinition";
 import { ISceneMutation } from "../ISceneMutation";
 import { SceneViewMutationArguments } from "../SceneViewMutationArguments";
@@ -132,7 +132,7 @@ export class SetGameObjectParentMutation implements ISceneMutation {
       SceneViewController.sceneDefinition,
     );
     // Store the current definition of the game object being reparented
-    const currentDefinitionValue = readPathInScene(currentPath, SceneViewController.sceneDefinition);
+    const currentDefinitionValue = readValueAtPath(currentPath, SceneViewController.sceneDefinition);
     // Remove the target game object from the scene definition
     SceneViewController.sceneJson.delete(currentPath);
 
@@ -148,7 +148,7 @@ export class SetGameObjectParentMutation implements ISceneMutation {
         this.newParentId,
         SceneViewController.sceneDefinition,
       );
-      newParentDefinition = readPathInScene(newParentPath, SceneViewController.sceneDefinition);
+      newParentDefinition = readValueAtPath(newParentPath, SceneViewController.sceneDefinition);
     }
 
     // Find the new path of the thing

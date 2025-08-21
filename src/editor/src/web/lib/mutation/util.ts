@@ -105,21 +105,6 @@ export function resolvePathForAssetMutation<TPathTarget>(assetId: string, projec
   return assetPath.concat(relativePath);
 }
 
-/**
- * Read the real value of a path from a given scene.
- * @param path The path from which to read within the scene.
- * @param scene Scene from which to read the value.
- */
-export function readPathInScene<TPathTarget>(path: MutationPath<TPathTarget>, scene: SceneDefinition): TPathTarget {
-  let currentValue: any = scene;
-  for (const pathSegment of path) {
-    // @NOTE We yoloing
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-    currentValue = currentValue[pathSegment as keyof typeof currentValue];
-  }
-  return currentValue as TPathTarget;
-}
-
 function pathToString(path: (string | number)[]): string {
   /*
    * Convert numeric segments into [4]
