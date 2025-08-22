@@ -9,7 +9,7 @@ import { MockSceneViewController } from '@test/integration/mock/scene/MockSceneV
 
 import { loadObjectDefinition } from '@lib/project/data';
 import { SetGameObjectScaleMutation } from './SetGameObjectScaleMutation';
-import { IVector3Like } from '@babylonjs/core/Maths/math.like';
+import { expectVector3ToEqual } from '@test/util/assert';
 
 describe(SetGameObjectScaleMutation.name, () => {
   test("Fully applying continuous mutation with absolute scale updates state correctly", async () => {
@@ -52,18 +52,6 @@ describe(SetGameObjectScaleMutation.name, () => {
     // Test
     await mockSceneViewController.mutator.beginContinuous(mutation);
 
-    /*
-      Test assertion utilities
-      There are several variants of Vector3 classes (WrappedVector3Babylon, ObservableVector3, etc.)
-      which makes equality a bit difficult. So, asserting X/Y/Z individually.
-     */
-    const expectVector3ToEqual = (actual: IVector3Like, expected: IVector3Like, formatAssertMessage: (propertyName: string) => string): void => {
-      // @TODO could actually just map these to a new object with x/y/z on it for better diffs.
-      expect(actual.x, formatAssertMessage('X')).toBe(expected.x);
-      expect(actual.y, formatAssertMessage('Y')).toBe(expected.y);
-      expect(actual.z, formatAssertMessage('Z')).toBe(expected.z);
-    };
-
     // Apply several scale updates in series
     let finalScale: Vector3 = new Vector3(0, 0, 0);
     for (let i = 0; i < 3; i++) {
@@ -73,12 +61,12 @@ describe(SetGameObjectScaleMutation.name, () => {
       });
 
       // Each update should modify the data and Babylon state
-      expectVector3ToEqual(mockGameObjectData.transform.scale, finalScale, (property) => `GameObject data scale ${property} should be updated after step ${i}`);
-      expectVector3ToEqual(mockGameObject.transform.localScale, finalScale, (property) => `Babylon GameObject scale ${property} should be updated after step ${i}`);
+      expectVector3ToEqual(mockGameObjectData.transform.scale, finalScale, `GameObject data scale should be updated after step ${i}`);
+      expectVector3ToEqual(mockGameObject.transform.localScale, finalScale, `Babylon GameObject scale should be updated after step ${i}`);
 
       // But definition should not be updated until apply()
       const afterUpdateDefinitionScale = mockSceneViewController.sceneDefinition.objects[0].transform.scale;
-      expectVector3ToEqual(afterUpdateDefinitionScale, initialScale, (property) => `GameObject definition scale ${property} should remain initial during update ${i}`);
+      expectVector3ToEqual(afterUpdateDefinitionScale, initialScale, `GameObject definition scale should remain initial during update ${i}`);
     }
 
     // Apply should only persist the final value
@@ -90,14 +78,14 @@ describe(SetGameObjectScaleMutation.name, () => {
 
     // Assert
     /* Initial state */
-    expectVector3ToEqual(initialDataScale, initialScale, (property) => `GameObject data should have the initial scale ${property}`);
-    expectVector3ToEqual(initialBabylonScale, initialScale, (property) => `Babylon GameObject should have the initial scale ${property}`);
-    expectVector3ToEqual(initialDefinitionScale, initialScale, (property) => `GameObject definition should have the initial scale ${property}`);
+    expectVector3ToEqual(initialDataScale, initialScale, `GameObject data should have the initial scale`);
+    expectVector3ToEqual(initialBabylonScale, initialScale, `Babylon GameObject should have the initial scale`);
+    expectVector3ToEqual(initialDefinitionScale, initialScale, `GameObject definition should have the initial scale`);
 
     /* Final state - only final value should be persisted */
-    expectVector3ToEqual(finalDataScale, finalScale, (property) => `GameObject data should have the final scale ${property}`);
-    expectVector3ToEqual(finalBabylonScale, finalScale, (property) => `Babylon GameObject should have the final scale ${property}`);
-    expectVector3ToEqual(finalDefinitionScale, finalScale, (property) => `GameObject definition should have the final scale ${property} persisted`);
+    expectVector3ToEqual(finalDataScale, finalScale, `GameObject data should have the final scale`);
+    expectVector3ToEqual(finalBabylonScale, finalScale, `Babylon GameObject should have the final scale`);
+    expectVector3ToEqual(finalDefinitionScale, finalScale, `GameObject definition should have the final scale persisted`);
   });
 
   test("Fully applying continuous mutation with delta scale updates state correctly", async () => {
@@ -140,12 +128,6 @@ describe(SetGameObjectScaleMutation.name, () => {
     // Test
     await mockSceneViewController.mutator.beginContinuous(mutation);
 
-    const expectVector3ToEqual = (actual: IVector3Like, expected: IVector3Like, formatAssertMessage: (propertyName: string) => string): void => {
-      expect(actual.x, formatAssertMessage('X')).toBe(expected.x);
-      expect(actual.y, formatAssertMessage('Y')).toBe(expected.y);
-      expect(actual.z, formatAssertMessage('Z')).toBe(expected.z);
-    };
-
     // Apply several delta scale updates in series
     const deltaScales = [
       new Vector3(1.5, 2.0, 0.5),
@@ -163,12 +145,12 @@ describe(SetGameObjectScaleMutation.name, () => {
       });
 
       // Each update should modify the data and Babylon state
-      expectVector3ToEqual(mockGameObjectData.transform.scale, expectedScale, (property) => `GameObject data scale ${property} should be updated after delta step ${i}`);
-      expectVector3ToEqual(mockGameObject.transform.localScale, expectedScale, (property) => `Babylon GameObject scale ${property} should be updated after delta step ${i}`);
+      expectVector3ToEqual(mockGameObjectData.transform.scale, expectedScale, `GameObject data scale should be updated after delta step ${i}`);
+      expectVector3ToEqual(mockGameObject.transform.localScale, expectedScale, `Babylon GameObject scale should be updated after delta step ${i}`);
 
       // But definition should not be updated until apply()
       const afterUpdateDefinitionScale = mockSceneViewController.sceneDefinition.objects[0].transform.scale;
-      expectVector3ToEqual(afterUpdateDefinitionScale, initialScale, (property) => `GameObject definition scale ${property} should remain initial during delta update ${i}`);
+      expectVector3ToEqual(afterUpdateDefinitionScale, initialScale, `GameObject definition scale should remain initial during delta update ${i}`);
     }
 
     // Apply should only persist the final value
@@ -180,14 +162,14 @@ describe(SetGameObjectScaleMutation.name, () => {
 
     // Assert
     /* Initial state */
-    expectVector3ToEqual(initialDataScale, initialScale, (property) => `GameObject data should have the initial scale ${property}`);
-    expectVector3ToEqual(initialBabylonScale, initialScale, (property) => `Babylon GameObject should have the initial scale ${property}`);
-    expectVector3ToEqual(initialDefinitionScale, initialScale, (property) => `GameObject definition should have the initial scale ${property}`);
+    expectVector3ToEqual(initialDataScale, initialScale, `GameObject data should have the initial scale`);
+    expectVector3ToEqual(initialBabylonScale, initialScale, `Babylon GameObject should have the initial scale`);
+    expectVector3ToEqual(initialDefinitionScale, initialScale, `GameObject definition should have the initial scale`);
 
     /* Final state - only final value should be persisted */
-    expectVector3ToEqual(finalDataScale, expectedScale, (property) => `GameObject data should have the final scale ${property}`);
-    expectVector3ToEqual(finalBabylonScale, expectedScale, (property) => `Babylon GameObject should have the final scale ${property}`);
-    expectVector3ToEqual(finalDefinitionScale, expectedScale, (property) => `GameObject definition should have the final scale ${property} persisted`);
+    expectVector3ToEqual(finalDataScale, expectedScale, `GameObject data should have the final scale`);
+    expectVector3ToEqual(finalBabylonScale, expectedScale, `Babylon GameObject should have the final scale`);
+    expectVector3ToEqual(finalDefinitionScale, expectedScale, `GameObject definition should have the final scale persisted`);
   });
 
   test("Error when GameObject doesn't exist in scene", async () => {

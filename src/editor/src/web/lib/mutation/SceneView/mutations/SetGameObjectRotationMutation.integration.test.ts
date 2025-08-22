@@ -12,6 +12,7 @@ import { MockSceneViewController } from '@test/integration/mock/scene/MockSceneV
 import { loadObjectDefinition } from '@lib/project/data';
 import { SetGameObjectRotationMutation } from './SetGameObjectRotationMutation';
 import { IVector3Like } from '@babylonjs/core/Maths/math.like';
+import { expectQuaternionToEqual, expectVector3ToEqual } from '@test/util/assert';
 
 describe(SetGameObjectRotationMutation.name, () => {
   test("Fully applying continuous mutation updates state correctly", async () => {
@@ -51,25 +52,18 @@ describe(SetGameObjectRotationMutation.name, () => {
 
     const mutation = new SetGameObjectRotationMutation(mockGameObjectData.id);
 
+    // Test utilities
+    /**
+     * Truncate the precision of a Vector3, for "close-enough" test assertions
+     */
+    const truncateVector3 = (vector: IVector3Like): IVector3Like => ({
+      x: Number(vector.x.toFixed(4)),
+      y: Number(vector.y.toFixed(4)),
+      z: Number(vector.z.toFixed(4)),
+    });
+
     // Test
     await mockSceneViewController.mutator.beginContinuous(mutation);
-
-    /*
-      Test assertion utilities
-      There are several variants of Vector3 and Quaternion classes (WrappedVector3Babylon, ObservableVector3, etc.)
-      which makes equality a bit difficult. So, asserting X/Y/Z/W individually.
-     */
-    const expectVector3ToEqual = (actual: IVector3Like, expected: IVector3Like, formatAssertMessage: (propertyName: string) => string): void => {
-      expect(actual.x, formatAssertMessage('X')).toBeCloseTo(expected.x, 4);
-      expect(actual.y, formatAssertMessage('Y')).toBeCloseTo(expected.y, 4);
-      expect(actual.z, formatAssertMessage('Z')).toBeCloseTo(expected.z, 4);
-    };
-    const expectQuaternionToEqual = (actual: Quaternion, expected: Quaternion, formatAssertMessage: (propertyName: string) => string): void => {
-      expect(actual.x, formatAssertMessage('X')).toBeCloseTo(expected.x, 4);
-      expect(actual.y, formatAssertMessage('Y')).toBeCloseTo(expected.y, 4);
-      expect(actual.z, formatAssertMessage('Z')).toBeCloseTo(expected.z, 4);
-      expect(actual.w, formatAssertMessage('W')).toBeCloseTo(expected.w, 4);
-    };
 
     // Apply several rotation updates in series
     let finalRotationQuaternion: Quaternion = Quaternion.fromEuler(new Vector3(0, 0, 0));
@@ -83,12 +77,12 @@ describe(SetGameObjectRotationMutation.name, () => {
       });
 
       // Each update should modify the data and Babylon state
-      expectVector3ToEqual(mockGameObjectData.transform.rotation, finalRotationEuler, (property) => `GameObject data rotation ${property} should be updated after step ${i}`);
-      expectQuaternionToEqual(mockGameObject.transform.localRotation, finalRotationQuaternion, (property) => `Babylon GameObject rotation ${property} should be updated after step ${i}`);
+      expectVector3ToEqual(truncateVector3(mockGameObjectData.transform.rotation), finalRotationEuler, `GameObject data rotation should be updated after step ${i}`);
+      expectQuaternionToEqual(mockGameObject.transform.localRotation, finalRotationQuaternion, `Babylon GameObject rotation should be updated after step ${i}`);
 
       // But definition should not be updated until apply()
       const afterUpdateDefinitionRotation = mockSceneViewController.sceneDefinition.objects[0].transform.rotation;
-      expectVector3ToEqual(afterUpdateDefinitionRotation, initialRotation, (property) => `GameObject definition rotation ${property} should remain initial during update ${i}`);
+      expectVector3ToEqual(afterUpdateDefinitionRotation, initialRotation, `GameObject definition rotation should remain initial during update ${i}`);
     }
 
     // Apply should only persist the final value
@@ -100,14 +94,14 @@ describe(SetGameObjectRotationMutation.name, () => {
 
     // Assert
     /* Initial state */
-    expectVector3ToEqual(initialDataRotation, initialRotation, (property) => `GameObject data should have the initial rotation ${property}`);
-    expectQuaternionToEqual(initialBabylonRotation, Quaternion.fromEuler(toVector3Core(initialRotation)), (property) => `Babylon GameObject should have the initial rotation ${property}`);
-    expectVector3ToEqual(initialDefinitionRotation, initialRotation, (property) => `GameObject definition should have the initial rotation ${property}`);
+    expectVector3ToEqual(initialDataRotation, initialRotation, `GameObject data should have the initial rotation`);
+    expectQuaternionToEqual(initialBabylonRotation, Quaternion.fromEuler(toVector3Core(initialRotation)), `Babylon GameObject should have the initial rotation`);
+    expectVector3ToEqual(initialDefinitionRotation, initialRotation, `GameObject definition should have the initial rotation`);
 
     /* Final state - only final value should be persisted */
-    expectVector3ToEqual(finalDataRotation, finalRotationEuler, (property) => `GameObject data should have the final rotation ${property}`);
-    expectQuaternionToEqual(finalBabylonRotation, finalRotationQuaternion, (property) => `Babylon GameObject should have the final rotation ${property}`);
-    expectVector3ToEqual(finalDefinitionRotation, finalRotationEuler, (property) => `GameObject definition should have the final rotation ${property} persisted`);
+    expectVector3ToEqual(truncateVector3(finalDataRotation), finalRotationEuler, `GameObject data should have the final rotation`);
+    expectQuaternionToEqual(finalBabylonRotation, finalRotationQuaternion, `Babylon GameObject should have the final rotation`);
+    expectVector3ToEqual(truncateVector3(finalDefinitionRotation), finalRotationEuler, `GameObject definition should have the final rotation`);
   });
 
   test("Error when GameObject doesn't exist in scene", async () => {
