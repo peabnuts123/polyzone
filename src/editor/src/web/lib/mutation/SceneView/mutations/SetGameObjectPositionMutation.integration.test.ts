@@ -9,7 +9,7 @@ import { MockSceneViewController } from '@test/integration/mock/scene/MockSceneV
 
 import { loadObjectDefinition } from '@lib/project/data';
 import { SetGameObjectPositionMutation } from './SetGameObjectPositionMutation';
-import { IVector3Like } from '@babylonjs/core/Maths/math.like';
+import { expectVector3ToEqual } from '@test/util/assert';
 
 describe(SetGameObjectPositionMutation.name, () => {
   test("Fully applying continuous mutation updates state correctly", async () => {
@@ -50,39 +50,27 @@ describe(SetGameObjectPositionMutation.name, () => {
     const mutation = new SetGameObjectPositionMutation(mockGameObjectData.id);
 
     // Test
-    await mockSceneViewController.mutator.beginContinuous(mutation);
-
-    /*
-      @NOTE Easiest just to assert everything as .x .y .z separately since there are multiple
-      different types of Vector3 at play here, and none of them ~quite work with .toEqual() because
-      of different internal properties.
-    */
-    const expectVector3ToEqual = (actual: IVector3Like, expected: IVector3Like, formatAssertMessage: (propertyName: string) => string): void => {
-      // @TODO could actually just map these to a new object with x/y/z on it for better diffs.
-      expect(actual.x, formatAssertMessage('X')).toBe(expected.x);
-      expect(actual.y, formatAssertMessage('Y')).toBe(expected.y);
-      expect(actual.z, formatAssertMessage('Z')).toBe(expected.z);
-    };
+    await mockSceneViewController.mutatorNew.beginContinuous(mutation);
 
     // Apply several position updates in series
     let finalPosition: Vector3 = new Vector3(0, 0, 0);
     for (let i = 0; i < 3; i++) {
       finalPosition = new Vector3(5 + i * 2, 10 + i * 3, 15 + i * 4);
-      await mockSceneViewController.mutator.updateContinuous(mutation, {
+      await mockSceneViewController.mutatorNew.updateContinuous(mutation, {
         position: finalPosition,
       });
 
       // Each update should modify the data and Babylon state
-      expectVector3ToEqual(mockGameObjectData.transform.position, finalPosition, (property) => `GameObject data position ${property} should be updated after step ${i}`);
-      expectVector3ToEqual(mockGameObject.transform.localPosition, finalPosition, (property) => `Babylon GameObject position ${property} should be updated after step ${i}`);
+      expectVector3ToEqual(mockGameObjectData.transform.position, finalPosition, `GameObject data position should be updated after step ${i}`);
+      expectVector3ToEqual(mockGameObject.transform.localPosition, finalPosition, `Babylon GameObject position should be updated after step ${i}`);
 
       // But definition should not be updated until apply()
       const afterUpdateDefinitionPosition = mockSceneViewController.sceneDefinition.objects[0].transform.position;
-      expectVector3ToEqual(afterUpdateDefinitionPosition, initialPosition, (property) => `GameObject definition position ${property} should remain initial during update ${i}`);
+      expectVector3ToEqual(afterUpdateDefinitionPosition, initialPosition, `GameObject definition position should remain initial value during update ${i}`);
     }
 
     // Apply should only persist the final value
-    await mockSceneViewController.mutator.apply(mutation);
+    await mockSceneViewController.mutatorNew.apply(mutation);
 
     const finalDataPosition = mockGameObjectData.transform.position;
     const finalBabylonPosition = mockGameObject.transform.localPosition;
@@ -90,14 +78,14 @@ describe(SetGameObjectPositionMutation.name, () => {
 
     // Assert
     /* Initial state */
-    expectVector3ToEqual(initialDataPosition, initialPosition, (property) => `GameObject data should have the initial position ${property}`);
-    expectVector3ToEqual(initialBabylonPosition, initialPosition, (property) => `Babylon GameObject should have the initial position ${property}`);
-    expectVector3ToEqual(initialDefinitionPosition, initialPosition, (property) => `GameObject definition should have the initial position ${property}`);
+    expectVector3ToEqual(initialDataPosition, initialPosition, `GameObject data should have the initial position`);
+    expectVector3ToEqual(initialBabylonPosition, initialPosition, `Babylon GameObject should have the initial position`);
+    expectVector3ToEqual(initialDefinitionPosition, initialPosition, `GameObject definition should have the initial position`);
 
     /* Final state - only final value should be persisted */
-    expectVector3ToEqual(finalDataPosition, finalPosition, (property) => `GameObject data should have the final position ${property}`);
-    expectVector3ToEqual(finalBabylonPosition, finalPosition, (property) => `Babylon GameObject should have the final position ${property}`);
-    expectVector3ToEqual(finalDefinitionPosition, finalPosition, (property) => `GameObject definition should have the final position ${property} persisted`);
+    expectVector3ToEqual(finalDataPosition, finalPosition, `GameObject data should have the final position`);
+    expectVector3ToEqual(finalBabylonPosition, finalPosition, `Babylon GameObject should have the final position`);
+    expectVector3ToEqual(finalDefinitionPosition, finalPosition, `GameObject definition should have the final position`);
   });
 
   test("Error when GameObject doesn't exist in scene", async () => {
@@ -136,10 +124,83 @@ describe(SetGameObjectPositionMutation.name, () => {
 
     // Test
     const testFunc = async (): Promise<void> => {
-      await mockSceneViewController.mutator.beginContinuous(mutation);
+      await mockSceneViewController.mutatorNew.beginContinuous(mutation);
     };
 
     // Assert
     await expect(testFunc(), "Should throw error when GameObject doesn't exist in scene").rejects.toThrow(`No GameObject exists with ID '${nonExistentGameObjectData.id}' in scene`);
+  });
+
+  test("Undo reverts position mutation to original state", async () => {
+    // Setup
+    const initialPosition = { x: 1, y: 2, z: 3 };
+    const newPosition = new Vector3(10, 20, 30);
+    let mockGameObjectDefinition!: GameObjectDefinition;
+    const mock = new MockProject(({ manifest, scene }) => ({
+      manifest: manifest(),
+      assets: [],
+      scenes: [
+        scene('sample', ({ config, object }) => ({
+          config: config(),
+          objects: [
+            mockGameObjectDefinition = object('Mock object', () => ({
+              transform: {
+                position: initialPosition,
+                rotation: { x: 0, y: 0, z: 0 },
+                scale: { x: 1, y: 1, z: 1 },
+              },
+            })),
+          ],
+        })),
+      ],
+    }));
+    const mockProjectController = await MockProjectController.create(mock);
+    const mockScene = mockProjectController.project.scenes.getByPath(mock.scenes[0].path)!;
+    const mockSceneViewController = await MockSceneViewController.create(
+      mockProjectController,
+      mockScene,
+    );
+    const mockGameObjectData = mockScene.data.getGameObject(mockGameObjectDefinition.id);
+    const mockGameObject = mockSceneViewController.findGameObjectById(mockGameObjectData.id)!;
+
+    // Capture initial state
+    const initialDataPosition = mockGameObjectData.transform.position;
+    const initialBabylonPosition = mockGameObject.transform.localPosition.clone();
+    const initialDefinitionPosition = mockSceneViewController.sceneDefinition.objects[0].transform.position;
+
+    const mutation = new SetGameObjectPositionMutation(mockGameObjectData.id);
+
+    // Apply mutation (begin + update + apply)
+    await mockSceneViewController.mutatorNew.applyInstantly(mutation, {
+      position: newPosition,
+    });
+
+    // Capture state after mutation
+    const afterMutationDataPosition = mockGameObjectData.transform.position;
+    const afterMutationBabylonPosition = mockGameObject.transform.localPosition.clone();
+    const afterMutationDefinitionPosition = mockSceneViewController.sceneDefinition.objects[0].transform.position;
+
+    // Undo the mutation
+    await mockSceneViewController.mutatorNew.undo();
+
+    // Capture state after undo
+    const afterUndoDataPosition = mockGameObjectData.transform.position;
+    const afterUndoBabylonPosition = mockGameObject.transform.localPosition.clone();
+    const afterUndoDefinitionPosition = mockSceneViewController.sceneDefinition.objects[0].transform.position;
+
+    // Assert initial state
+    expectVector3ToEqual(initialDataPosition, initialPosition, `GameObject data should have initial position`);
+    expectVector3ToEqual(initialBabylonPosition, initialPosition, `Babylon GameObject should have initial position`);
+    expectVector3ToEqual(initialDefinitionPosition, initialPosition, `GameObject definition should have initial position`);
+
+    // Assert state after mutation
+    expectVector3ToEqual(afterMutationDataPosition, newPosition, `GameObject data should have new position`);
+    expectVector3ToEqual(afterMutationBabylonPosition, newPosition, `Babylon GameObject should have new position`);
+    expectVector3ToEqual(afterMutationDefinitionPosition, newPosition, `GameObject definition should have new position`);
+
+    // Assert state after undo matches initial state
+    expectVector3ToEqual(afterUndoDataPosition, initialPosition, `GameObject data should have initial position`);
+    expectVector3ToEqual(afterUndoBabylonPosition, initialPosition, `Babylon GameObject should have initial position`);
+    expectVector3ToEqual(afterUndoDefinitionPosition, initialPosition, `GameObject definition should have initial position`);
   });
 });

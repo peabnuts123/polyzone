@@ -20,7 +20,7 @@ import { createGameObject } from '@polyzone/runtime/src/world/createGameObject';
 
 import { JsoncContainer } from '@lib/util/JsoncContainer';
 import type { IProjectController } from '@lib/project/ProjectController';
-import { SceneViewMutator } from '@lib/mutation/SceneView';
+import { SceneViewMutator, SceneViewMutatorNew } from '@lib/mutation/SceneView';
 import { SceneDefinition } from '@lib/project/definition';
 import { IComposerComponentData } from '@lib/project/data/components';
 import { SceneData, GameObjectData } from '@lib/project/data';
@@ -52,7 +52,9 @@ export interface ISceneViewController {
   get scene(): SceneData;
   get sceneJson(): JsoncContainer<SceneDefinition>;
   get sceneDefinition(): SceneDefinition;
+  // @TODO Remove, replace with New
   get mutator(): SceneViewMutator;
+  get mutatorNew(): SceneViewMutatorNew;
   get selectedObjectData(): GameObjectData | undefined;
   get selectedObjectId(): string | undefined;
   get selectionManager(): SelectionManager;
@@ -63,6 +65,7 @@ export class SceneViewController implements ISceneViewController {
   private _sceneJson: JsoncContainer<SceneDefinition>;
   private readonly projectController: IProjectController;
   private readonly _mutator: SceneViewMutator;
+  private readonly _mutatorNew: SceneViewMutatorNew;
 
   private readonly _canvas: HTMLCanvasElement;
   private readonly engine: Engine;
@@ -83,6 +86,10 @@ export class SceneViewController implements ISceneViewController {
     this.componentDependencyManager = new ComponentDependencyManager();
     this.selectionCache = new SceneViewSelectionCache();
     this._mutator = new SceneViewMutator(
+      this,
+      projectController,
+    );
+    this._mutatorNew = new SceneViewMutatorNew(
       this,
       projectController,
     );
@@ -414,6 +421,9 @@ export class SceneViewController implements ISceneViewController {
 
   public get mutator(): SceneViewMutator {
     return this._mutator;
+  }
+  public get mutatorNew(): SceneViewMutatorNew {
+    return this._mutatorNew;
   }
 
   public get selectedObjectData(): GameObjectData | undefined {

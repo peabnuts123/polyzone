@@ -54,7 +54,7 @@ export class SelectionManager {
     this.moveGizmo.planarGizmoEnabled = true;
     this.moveGizmo.onDragStartObservable.add(() => {
       this.currentMoveMutation = new SetGameObjectPositionMutation(this.selectedObjectId!);
-      void sceneViewController.mutator.beginContinuous(this.currentMoveMutation);
+      void sceneViewController.mutatorNew.beginContinuous(this.currentMoveMutation);
     });
     this.moveGizmo.onDragObservable.add((_eventData) => {
       if (this.selectedObjectId !== undefined) {
@@ -76,13 +76,13 @@ export class SelectionManager {
         if (parentScale.z <= Number.EPSILON) console.warn(`[${SelectionManager.name}] (moveGizmo.onDragObservable) Moving object whose parentScale.z is 0. z coordinate can not be extrapolated and will remain unmodified`);
         else newPosition.z = this.fakeTransformTarget!.position.z / parentScale.z;
 
-        void sceneViewController.mutator.updateContinuous(this.currentMoveMutation!, {
+        void sceneViewController.mutatorNew.updateContinuous(this.currentMoveMutation!, {
           position: newPosition,
         });
       }
     });
     this.moveGizmo.onDragEndObservable.add(() => {
-      void sceneViewController.mutator.apply(this.currentMoveMutation!);
+      void sceneViewController.mutatorNew.apply(this.currentMoveMutation!);
       this.currentMoveMutation = undefined;
     });
 

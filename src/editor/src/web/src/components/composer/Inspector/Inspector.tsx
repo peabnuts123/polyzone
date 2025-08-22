@@ -100,7 +100,7 @@ export const Inspector: FunctionComponent<Props> = observer(({ sceneViewControll
               <VectorInput
                 label="Position"
                 vector={selectedObjectData.transform.position}
-                onChange={(newValue) => void sceneViewController.mutator.debounceContinuous(
+                onChange={(newValue) => void sceneViewController.mutatorNew.debounceContinuous(
                   SetGameObjectPositionMutation,
                   selectedObjectData,
                   () => new SetGameObjectPositionMutation(selectedObjectData.id),

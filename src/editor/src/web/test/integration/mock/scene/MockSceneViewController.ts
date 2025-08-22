@@ -19,7 +19,7 @@ import { JsoncContainer } from "@lib/util/JsoncContainer";
 import { Func } from '@lib/util/types';
 
 import { MockProjectController } from "../project/MockProjectController";
-import { MockSceneViewMutator } from "./MockSceneViewMutator";
+import { MockSceneViewMutator, MockSceneViewMutatorNew } from "./MockSceneViewMutator";
 
 
 /**
@@ -32,6 +32,7 @@ export class MockSceneViewController implements ISceneViewController {
   public babylonScene: BabylonScene;
   public sceneJson: JsoncContainer<SceneDefinition>;
   public mutator: MockSceneViewMutator;
+  public mutatorNew: MockSceneViewMutatorNew;
   public selectionManager: SelectionManager;
   public gameObjectInstances: GameObjectRuntime[];
 
@@ -48,6 +49,7 @@ export class MockSceneViewController implements ISceneViewController {
     this.sceneJson = sceneJson;
     this.babylonScene = babylonScene;
     this.mutator = new MockSceneViewMutator(this, projectController);
+    this.mutatorNew = new MockSceneViewMutatorNew(this, projectController);
     this.selectionManager = new SelectionManager(this.babylonScene, this);
     this.gameObjectInstances = [];
   }
