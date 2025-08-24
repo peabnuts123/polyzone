@@ -99,7 +99,7 @@ export const RearrangeHierarchyDragSlot: FunctionComponent<RearrangeHierarchyDra
     return () => {
       window.removeEventListener('drag', onMouseMove);
     };
-  }, []);
+  }, [isDragging]);
 
   const isDraggingOverThisZone = isDragging && isDragOverThisTarget;
 
