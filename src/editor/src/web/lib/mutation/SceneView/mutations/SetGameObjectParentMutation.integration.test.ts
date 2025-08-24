@@ -23,6 +23,7 @@ describe(SetGameObjectParentMutation.name, () => {
           objects: [
             mockParentGameObjectDefinition = object('Parent Object'),
             mockChildGameObjectDefinition = object('Child Object'),
+            object('Third Object'),
           ],
         })),
       ],
@@ -40,11 +41,11 @@ describe(SetGameObjectParentMutation.name, () => {
 
     const initialDataTopLevelObjects = [...mockScene.data.objects];
     const initialParentDataChildren = [...mockParentGameObjectData.children];
-    const initialBabylonTransformNodes = mockSceneViewController.babylonScene.transformNodes.length;
+    const initialChildPosition = mockScene.data.objects.indexOf(mockChildGameObjectData);
     const initialParentBabylonChildren = [...mockParentGameObject.transform.children];
     const initialChildBabylonParent = mockChildGameObject.transform.parent;
-    const initialDefinitionObjects = [...mockSceneViewController.sceneDefinition.objects];
-    const initialParentDefinitionChildren = [...(mockSceneViewController.sceneDefinition.objects.find(obj => obj.id === mockParentGameObjectDefinition.id)?.children ?? [])];
+    const initialDefinitionTopLevelObjects = [...mockSceneViewController.sceneDefinition.objects];
+    const initialParentDefinitionChildren = mockSceneViewController.sceneDefinition.objects.find(obj => obj.id === mockParentGameObjectDefinition.id)?.children ?? [];
 
     const mutation = new SetGameObjectParentMutation({
       gameObject: mockChildGameObjectData,
@@ -52,40 +53,55 @@ describe(SetGameObjectParentMutation.name, () => {
     });
 
     // Test
-    await mockSceneViewController.mutator.apply(mutation);
+    /* Apply */
+    await mockSceneViewController.mutatorNew.apply(mutation);
 
-    const finalDataTopLevelObjects = mockScene.data.objects;
-    const finalParentDataChildren = mockParentGameObjectData.children;
-    const finalBabylonTransformNodes = mockSceneViewController.babylonScene.transformNodes.length;
-    const finalParentBabylonChildren = mockParentGameObject.transform.children;
+    const updatedDataTopLevelObjects = [...mockScene.data.objects];
+    const updatedParentDataChildren = [...mockParentGameObjectData.children];
+    const updatedParentBabylonChildren = [...mockParentGameObject.transform.children];
+    const updatedChildBabylonParent = mockChildGameObject.transform.parent;
+    const updatedDefinitionTopLevelObjects = [...mockSceneViewController.sceneDefinition.objects];
+    const updatedParentDefinitionChildren = mockSceneViewController.sceneDefinition.objects.find(obj => obj.id === mockParentGameObjectDefinition.id)?.children ?? [];
+
+    /* Undo */
+    await mockSceneViewController.mutatorNew.undo();
+
+    const finalDataTopLevelObjects = [...mockScene.data.objects];
+    const finalParentDataChildren = [...mockParentGameObjectData.children];
+    const finalChildPosition = mockScene.data.objects.indexOf(mockChildGameObjectData);
+    const finalParentBabylonChildren = [...mockParentGameObject.transform.children];
     const finalChildBabylonParent = mockChildGameObject.transform.parent;
-    const finalDefinitionObjects = mockSceneViewController.sceneDefinition.objects;
+    const finalDefinitionTopLevelObjects = [...mockSceneViewController.sceneDefinition.objects];
     const finalParentDefinitionChildren = mockSceneViewController.sceneDefinition.objects.find(obj => obj.id === mockParentGameObjectDefinition.id)?.children ?? [];
 
     // Assert
+    /* @NOTE we can't assert Babylon top-level objects length as Babylon objects aren't stored in a hierarchy */
+
     /* Initial state - both objects should be top-level */
-    expect(initialDataTopLevelObjects).toHaveLength(2);
+    expect(initialDataTopLevelObjects).toHaveLength(3);
     expect(initialParentDataChildren).toHaveLength(0);
-    expect(initialBabylonTransformNodes).toBe(2);
+    expect(initialChildPosition).toBe(1);
     expect(initialParentBabylonChildren).toHaveLength(0);
     expect(initialChildBabylonParent).toBeUndefined();
-    expect(initialDefinitionObjects).toHaveLength(2);
+    expect(initialDefinitionTopLevelObjects).toHaveLength(3);
     expect(initialParentDefinitionChildren).toHaveLength(0);
-    expect(initialDataTopLevelObjects.some(obj => obj.id === mockParentGameObjectDefinition.id)).toBe(true);
-    expect(initialDataTopLevelObjects.some(obj => obj.id === mockChildGameObjectDefinition.id)).toBe(true);
 
-    /* Final state - child should be under parent */
-    expect(finalDataTopLevelObjects).toHaveLength(1);
-    expect(finalParentDataChildren).toHaveLength(1);
-    expect(finalBabylonTransformNodes).toBe(2); // Same number of transform nodes
-    expect(finalParentBabylonChildren).toHaveLength(1);
-    expect(finalChildBabylonParent).toBe(mockParentGameObject.transform);
-    expect(finalDefinitionObjects).toHaveLength(1);
-    expect(finalParentDefinitionChildren).toHaveLength(1);
-    expect(finalDataTopLevelObjects[0].id).toBe(mockParentGameObjectDefinition.id);
-    expect(finalParentDataChildren[0].id).toBe(mockChildGameObjectDefinition.id);
-    expect(finalParentBabylonChildren[0].gameObject.id).toBe(mockChildGameObjectDefinition.id);
-    expect(finalParentDefinitionChildren[0].id).toBe(mockChildGameObjectDefinition.id);
+    /* Update state - child should be under parent */
+    expect(updatedDataTopLevelObjects).toHaveLength(2);
+    expect(updatedParentDataChildren).toHaveLength(1);
+    expect(updatedParentBabylonChildren).toHaveLength(1);
+    expect(updatedChildBabylonParent).toBe(mockParentGameObject.transform);
+    expect(updatedDefinitionTopLevelObjects).toHaveLength(2);
+    expect(updatedParentDefinitionChildren).toHaveLength(1);
+
+    /* Final state - child object should be back at top level */
+    expect(finalDataTopLevelObjects).toHaveLength(3);
+    expect(finalParentDataChildren).toHaveLength(0);
+    expect(finalChildPosition).toBe(1);
+    expect(finalParentBabylonChildren).toHaveLength(0);
+    expect(finalChildBabylonParent).toBeUndefined();
+    expect(finalDefinitionTopLevelObjects).toHaveLength(3);
+    expect(finalParentDefinitionChildren).toHaveLength(0);
   });
 
   test("Moving a child GameObject to become a top-level GameObject", async () => {
@@ -102,6 +118,7 @@ describe(SetGameObjectParentMutation.name, () => {
             mockParentGameObjectDefinition = object('Parent Object', () => ({
               children: [
                 mockChildGameObjectDefinition = object('Child Object'),
+                object('Sibling Object'),
               ],
             })),
           ],
@@ -115,17 +132,17 @@ describe(SetGameObjectParentMutation.name, () => {
       mockScene,
     );
     const mockParentGameObjectData = mockScene.data.getGameObject(mockParentGameObjectDefinition.id);
-    const mockChildGameObjectData = mockParentGameObjectData.children[0];
+    const mockChildGameObjectData = mockScene.data.getGameObject(mockChildGameObjectDefinition.id);
     const mockParentGameObject = mockSceneViewController.findGameObjectById(mockParentGameObjectData.id)!;
     const mockChildGameObject = mockSceneViewController.findGameObjectById(mockChildGameObjectData.id)!;
 
     const initialDataTopLevelObjects = [...mockScene.data.objects];
     const initialParentDataChildren = [...mockParentGameObjectData.children];
-    const initialBabylonTransformNodes = mockSceneViewController.babylonScene.transformNodes.length;
+    const initialChildPosition = mockParentGameObjectData.children.indexOf(mockChildGameObjectData);
     const initialParentBabylonChildren = [...mockParentGameObject.transform.children];
     const initialChildBabylonParent = mockChildGameObject.transform.parent;
-    const initialDefinitionObjects = [...mockSceneViewController.sceneDefinition.objects];
-    const initialParentDefinitionChildren = [...(mockSceneViewController.sceneDefinition.objects[0].children ?? [])];
+    const initialDefinitionTopLevelObjects = [...mockSceneViewController.sceneDefinition.objects];
+    const initialParentDefinitionChildren = mockSceneViewController.sceneDefinition.objects[0].children ?? [];
 
     const mutation = new SetGameObjectParentMutation({
       gameObject: mockChildGameObjectData,
@@ -133,38 +150,53 @@ describe(SetGameObjectParentMutation.name, () => {
     });
 
     // Test
-    await mockSceneViewController.mutator.apply(mutation);
+    await mockSceneViewController.mutatorNew.apply(mutation);
 
-    const finalDataTopLevelObjects = mockScene.data.objects;
-    const finalParentDataChildren = mockParentGameObjectData.children;
-    const finalBabylonTransformNodes = mockSceneViewController.babylonScene.transformNodes.length;
-    const finalParentBabylonChildren = mockParentGameObject.transform.children;
+    const updatedDataTopLevelObjects = [...mockScene.data.objects];
+    const updatedParentDataChildren = [...mockParentGameObjectData.children];
+    const updatedParentBabylonChildren = [...mockParentGameObject.transform.children];
+    const updatedChildBabylonParent = mockChildGameObject.transform.parent;
+    const updatedDefinitionObjects = [...mockSceneViewController.sceneDefinition.objects];
+    const updatedParentDefinitionChildren = mockSceneViewController.sceneDefinition.objects[0].children ?? [];
+
+    await mockSceneViewController.mutatorNew.undo();
+
+    const finalDataTopLevelObjects = [...mockScene.data.objects];
+    const finalParentDataChildren = [...mockParentGameObjectData.children];
+    const finalChildPosition = mockParentGameObjectData.children.indexOf(mockChildGameObjectData);
+    const finalParentBabylonChildren = [...mockParentGameObject.transform.children];
     const finalChildBabylonParent = mockChildGameObject.transform.parent;
-    const finalDefinitionObjects = mockSceneViewController.sceneDefinition.objects;
+    const finalDefinitionTopLevelObjects = [...mockSceneViewController.sceneDefinition.objects];
     const finalParentDefinitionChildren = mockSceneViewController.sceneDefinition.objects[0].children ?? [];
 
     // Assert
+    /* @NOTE we can't assert Babylon top-level objects length as Babylon objects aren't stored in a hierarchy */
+
     /* Initial state - child should be under parent */
     expect(initialDataTopLevelObjects).toHaveLength(1);
-    expect(initialParentDataChildren).toHaveLength(1);
-    expect(initialBabylonTransformNodes).toBe(2);
-    expect(initialParentBabylonChildren).toHaveLength(1);
+    expect(initialParentDataChildren).toHaveLength(2);
+    expect(initialChildPosition).toBe(0);
+    expect(initialParentBabylonChildren).toHaveLength(2);
     expect(initialChildBabylonParent).toBe(mockParentGameObject.transform);
-    expect(initialDefinitionObjects).toHaveLength(1);
-    expect(initialParentDefinitionChildren).toHaveLength(1);
-    expect(initialDataTopLevelObjects[0].id).toBe(mockParentGameObjectDefinition.id);
-    expect(initialParentDataChildren[0].id).toBe(mockChildGameObjectDefinition.id);
+    expect(initialDefinitionTopLevelObjects).toHaveLength(1);
+    expect(initialParentDefinitionChildren).toHaveLength(2);
 
-    /* Final state - child should be top-level */
-    expect(finalDataTopLevelObjects).toHaveLength(2);
-    expect(finalParentDataChildren).toHaveLength(0);
-    expect(finalBabylonTransformNodes).toBe(2); // Same number of transform nodes
-    expect(finalParentBabylonChildren).toHaveLength(0);
-    expect(finalChildBabylonParent).toBeUndefined();
-    expect(finalDefinitionObjects).toHaveLength(2);
-    expect(finalParentDefinitionChildren).toHaveLength(0);
-    expect(finalDataTopLevelObjects.some(obj => obj.id === mockParentGameObjectDefinition.id)).toBe(true);
-    expect(finalDataTopLevelObjects.some(obj => obj.id === mockChildGameObjectDefinition.id)).toBe(true);
+    /* Updated state - child should be top-level */
+    expect(updatedDataTopLevelObjects).toHaveLength(2);
+    expect(updatedParentDataChildren).toHaveLength(1);
+    expect(updatedParentBabylonChildren).toHaveLength(1);
+    expect(updatedChildBabylonParent).toBeUndefined();
+    expect(updatedDefinitionObjects).toHaveLength(2);
+    expect(updatedParentDefinitionChildren).toHaveLength(1);
+
+    /* Final state - child object should be back under parent in same position */
+    expect(finalDataTopLevelObjects).toHaveLength(1);
+    expect(finalParentDataChildren).toHaveLength(2);
+    expect(finalChildPosition).toBe(0);
+    expect(finalParentBabylonChildren).toHaveLength(2);
+    expect(finalChildBabylonParent).toBe(mockParentGameObject.transform);
+    expect(finalDefinitionTopLevelObjects).toHaveLength(1);
+    expect(finalParentDefinitionChildren).toHaveLength(2);
   });
 
   test("Moving a GameObject from one parent to another parent", async () => {
@@ -182,6 +214,7 @@ describe(SetGameObjectParentMutation.name, () => {
             mockParentAGameObjectDefinition = object('Parent A', () => ({
               children: [
                 mockChildGameObjectDefinition = object('Child Object'),
+                object('Sibling A'),
               ],
             })),
             mockParentBGameObjectDefinition = object('Parent B'),
@@ -197,7 +230,7 @@ describe(SetGameObjectParentMutation.name, () => {
     );
     const mockParentAGameObjectData = mockScene.data.getGameObject(mockParentAGameObjectDefinition.id);
     const mockParentBGameObjectData = mockScene.data.getGameObject(mockParentBGameObjectDefinition.id);
-    const mockChildGameObjectData = mockParentAGameObjectData.children[0];
+    const mockChildGameObjectData = mockScene.data.getGameObject(mockChildGameObjectDefinition.id);
     const mockParentAGameObject = mockSceneViewController.findGameObjectById(mockParentAGameObjectData.id)!;
     const mockParentBGameObject = mockSceneViewController.findGameObjectById(mockParentBGameObjectData.id)!;
     const mockChildGameObject = mockSceneViewController.findGameObjectById(mockChildGameObjectData.id)!;
@@ -205,11 +238,11 @@ describe(SetGameObjectParentMutation.name, () => {
     const initialDataTopLevelObjects = [...mockScene.data.objects];
     const initialParentADataChildren = [...mockParentAGameObjectData.children];
     const initialParentBDataChildren = [...mockParentBGameObjectData.children];
-    const initialBabylonTransformNodes = mockSceneViewController.babylonScene.transformNodes.length;
+    const initialChildPosition = mockParentAGameObjectData.children.indexOf(mockChildGameObjectData);
     const initialParentABabylonChildren = [...mockParentAGameObject.transform.children];
     const initialParentBBabylonChildren = [...mockParentBGameObject.transform.children];
     const initialChildBabylonParent = mockChildGameObject.transform.parent;
-    const initialDefinitionObjects = [...mockSceneViewController.sceneDefinition.objects];
+    const initialDefinitionTopLevelObjects = [...mockSceneViewController.sceneDefinition.objects];
     const initialParentADefinitionChildren = [...(mockSceneViewController.sceneDefinition.objects.find(obj => obj.id === mockParentAGameObjectDefinition.id)?.children ?? [])];
     const initialParentBDefinitionChildren = [...(mockSceneViewController.sceneDefinition.objects.find(obj => obj.id === mockParentBGameObjectDefinition.id)?.children ?? [])];
 
@@ -219,48 +252,67 @@ describe(SetGameObjectParentMutation.name, () => {
     });
 
     // Test
-    await mockSceneViewController.mutator.apply(mutation);
+    await mockSceneViewController.mutatorNew.apply(mutation);
 
-    const finalDataTopLevelObjects = mockScene.data.objects;
-    const finalParentADataChildren = mockParentAGameObjectData.children;
-    const finalParentBDataChildren = mockParentBGameObjectData.children;
-    const finalBabylonTransformNodes = mockSceneViewController.babylonScene.transformNodes.length;
-    const finalParentABabylonChildren = mockParentAGameObject.transform.children;
-    const finalParentBBabylonChildren = mockParentBGameObject.transform.children;
+    const updatedDataTopLevelObjects = [...mockScene.data.objects];
+    const updatedParentADataChildren = [...mockParentAGameObjectData.children];
+    const updatedParentBDataChildren = [...mockParentBGameObjectData.children];
+    const updatedParentABabylonChildren = [...mockParentAGameObject.transform.children];
+    const updatedParentBBabylonChildren = [...mockParentBGameObject.transform.children];
+    const updatedChildBabylonParent = mockChildGameObject.transform.parent;
+    const updatedDefinitionObjects = [...mockSceneViewController.sceneDefinition.objects];
+    const updatedParentADefinitionChildren = mockSceneViewController.sceneDefinition.objects.find(obj => obj.id === mockParentAGameObjectDefinition.id)?.children ?? [];
+    const updatedParentBDefinitionChildren = mockSceneViewController.sceneDefinition.objects.find(obj => obj.id === mockParentBGameObjectDefinition.id)?.children ?? [];
+
+    /* Undo */
+    await mockSceneViewController.mutatorNew.undo();
+
+    const finalDataTopLevelObjects = [...mockScene.data.objects];
+    const finalParentADataChildren = [...mockParentAGameObjectData.children];
+    const finalParentBDataChildren = [...mockParentBGameObjectData.children];
+    const finalChildPosition = mockParentAGameObjectData.children.indexOf(mockChildGameObjectData);
+    const finalParentABabylonChildren = [...mockParentAGameObject.transform.children];
+    const finalParentBBabylonChildren = [...mockParentBGameObject.transform.children];
     const finalChildBabylonParent = mockChildGameObject.transform.parent;
-    const finalDefinitionObjects = mockSceneViewController.sceneDefinition.objects;
-    const finalParentADefinitionChildren = mockSceneViewController.sceneDefinition.objects.find(obj => obj.id === mockParentAGameObjectDefinition.id)?.children ?? [];
-    const finalParentBDefinitionChildren = mockSceneViewController.sceneDefinition.objects.find(obj => obj.id === mockParentBGameObjectDefinition.id)?.children ?? [];
+    const finalDefinitionTopLevelObjects = [...mockSceneViewController.sceneDefinition.objects];
+    const finalParentADefinitionChildren = [...(mockSceneViewController.sceneDefinition.objects.find(obj => obj.id === mockParentAGameObjectDefinition.id)?.children ?? [])];
+    const finalParentBDefinitionChildren = [...(mockSceneViewController.sceneDefinition.objects.find(obj => obj.id === mockParentBGameObjectDefinition.id)?.children ?? [])];
 
     // Assert
     /* Initial state - child should be under Parent A */
     expect(initialDataTopLevelObjects).toHaveLength(2);
-    expect(initialParentADataChildren).toHaveLength(1);
+    expect(initialParentADataChildren).toHaveLength(2);
     expect(initialParentBDataChildren).toHaveLength(0);
-    expect(initialBabylonTransformNodes).toBe(3);
-    expect(initialParentABabylonChildren).toHaveLength(1);
+    expect(initialChildPosition).toBe(0);
+    expect(initialParentABabylonChildren).toHaveLength(2);
     expect(initialParentBBabylonChildren).toHaveLength(0);
     expect(initialChildBabylonParent).toBe(mockParentAGameObject.transform);
-    expect(initialDefinitionObjects).toHaveLength(2);
-    expect(initialParentADefinitionChildren).toHaveLength(1);
+    expect(initialDefinitionTopLevelObjects).toHaveLength(2);
+    expect(initialParentADefinitionChildren).toHaveLength(2);
     expect(initialParentBDefinitionChildren).toHaveLength(0);
-    expect(initialParentADataChildren[0].id).toBe(mockChildGameObjectDefinition.id);
-    expect(initialParentADefinitionChildren[0].id).toBe(mockChildGameObjectDefinition.id);
 
-    /* Final state - child should be under Parent B */
-    expect(finalDataTopLevelObjects).toHaveLength(2); // Same top-level objects
-    expect(finalParentADataChildren).toHaveLength(0);
-    expect(finalParentBDataChildren).toHaveLength(1);
-    expect(finalBabylonTransformNodes).toBe(3); // Same number of transform nodes
-    expect(finalParentABabylonChildren).toHaveLength(0);
-    expect(finalParentBBabylonChildren).toHaveLength(1);
-    expect(finalChildBabylonParent).toBe(mockParentBGameObject.transform);
-    expect(finalDefinitionObjects).toHaveLength(2); // Same top-level objects
-    expect(finalParentADefinitionChildren).toHaveLength(0);
-    expect(finalParentBDefinitionChildren).toHaveLength(1);
-    expect(finalParentBDataChildren[0].id).toBe(mockChildGameObjectDefinition.id);
-    expect(finalParentBBabylonChildren[0].gameObject.id).toBe(mockChildGameObjectDefinition.id);
-    expect(finalParentBDefinitionChildren[0].id).toBe(mockChildGameObjectDefinition.id);
+    /* Updated state - child should be under Parent B */
+    expect(updatedDataTopLevelObjects).toHaveLength(2); // Same top-level objects
+    expect(updatedParentADataChildren).toHaveLength(1);
+    expect(updatedParentBDataChildren).toHaveLength(1);
+    expect(updatedParentABabylonChildren).toHaveLength(1);
+    expect(updatedParentBBabylonChildren).toHaveLength(1);
+    expect(updatedChildBabylonParent).toBe(mockParentBGameObject.transform);
+    expect(updatedDefinitionObjects).toHaveLength(2); // Same top-level objects
+    expect(updatedParentADefinitionChildren).toHaveLength(1);
+    expect(updatedParentBDefinitionChildren).toHaveLength(1);
+
+    /* Final state - child should be back under Parent A */
+    expect(finalDataTopLevelObjects).toHaveLength(2);
+    expect(finalParentADataChildren).toHaveLength(2);
+    expect(finalParentBDataChildren).toHaveLength(0);
+    expect(finalChildPosition).toBe(0);
+    expect(finalParentABabylonChildren).toHaveLength(2);
+    expect(finalParentBBabylonChildren).toHaveLength(0);
+    expect(finalChildBabylonParent).toBe(mockParentAGameObject.transform);
+    expect(finalDefinitionTopLevelObjects).toHaveLength(2);
+    expect(finalParentADefinitionChildren).toHaveLength(2);
+    expect(finalParentBDefinitionChildren).toHaveLength(0);
   });
 
   test("Moving a GameObject with a specific sibling target (before)", async () => {
@@ -314,7 +366,7 @@ describe(SetGameObjectParentMutation.name, () => {
     });
 
     // Test
-    await mockSceneViewController.mutator.apply(mutation);
+    await mockSceneViewController.mutatorNew.apply(mutation);
 
     const finalDataTopLevelObjects = mockScene.data.objects;
     const finalParentDataChildren = mockParentGameObjectData.children;
@@ -409,7 +461,7 @@ describe(SetGameObjectParentMutation.name, () => {
     });
 
     // Test
-    await mockSceneViewController.mutator.apply(mutation);
+    await mockSceneViewController.mutatorNew.apply(mutation);
 
     const finalDataTopLevelObjects = mockScene.data.objects;
     const finalParentDataChildren = mockParentGameObjectData.children;
@@ -493,7 +545,7 @@ describe(SetGameObjectParentMutation.name, () => {
     });
 
     // Test
-    const testFunc = (): Promise<void> => mockSceneViewController.mutator.apply(mutation);
+    const testFunc = (): Promise<void> => mockSceneViewController.mutatorNew.apply(mutation);
 
     // Assert
     await expect(testFunc(), "Should throw error when target GameObject doesn't exist in scene").rejects.toThrow(`No GameObject exists with ID '${nonExistentGameObjectData.id}' in scene`);
@@ -539,7 +591,7 @@ describe(SetGameObjectParentMutation.name, () => {
     });
 
     // Test
-    const testFunc = (): Promise<void> => mockSceneViewController.mutator.apply(mutation);
+    const testFunc = (): Promise<void> => mockSceneViewController.mutatorNew.apply(mutation);
 
     // Assert
     await expect(testFunc(), "Should throw error when new parent GameObject doesn't exist in scene").rejects.toThrow(`No GameObject exists with ID '${nonExistentParentGameObjectData.id}' in scene`);
@@ -598,7 +650,7 @@ describe(SetGameObjectParentMutation.name, () => {
     });
 
     // Test
-    const testFunc = (): Promise<void> => mockSceneViewController.mutator.apply(mutation);
+    const testFunc = (): Promise<void> => mockSceneViewController.mutatorNew.apply(mutation);
 
     // Assert
     await expect(testFunc(), "Should throw error when sibling target GameObject doesn't exist in scene").rejects.toThrow(`Cannot apply mutation - cannot find object with ID '${nonExistentSiblingGameObjectData.id}' as child of object with ID '${mockParentGameObjectData.id}'`);
@@ -656,7 +708,7 @@ describe(SetGameObjectParentMutation.name, () => {
     });
 
     // Test
-    await mockSceneViewController.mutator.apply(mutation);
+    await mockSceneViewController.mutatorNew.apply(mutation);
 
     // Capture final world space transform values (now should be the local values since it's top-level)
     const finalChildWorldPosition = mockChildGameObject.transform.absolutePosition.clone();

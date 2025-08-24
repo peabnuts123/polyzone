@@ -170,7 +170,7 @@ export const HierarchyObject: FunctionComponent<HierarchyObjectProps> = observer
   };
 
   const onDropIntoRearrangeSlot = (data: HierarchyObjectDragData, type: 'before' | 'after'): void => {
-    void controller.mutator.apply(new SetGameObjectParentMutation({
+    void controller.mutatorNew.apply(new SetGameObjectParentMutation({
       gameObject: data.gameObject,
       newParent: parentGameObject,
       [type]: gameObject,
@@ -178,7 +178,7 @@ export const HierarchyObject: FunctionComponent<HierarchyObjectProps> = observer
   };
 
   const onDropIntoNewParent = (data: HierarchyObjectDragData): void => {
-    void controller.mutator.apply(new SetGameObjectParentMutation({
+    void controller.mutatorNew.apply(new SetGameObjectParentMutation({
       gameObject: data.gameObject,
       newParent: gameObject,
     }));
