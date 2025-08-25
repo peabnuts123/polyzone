@@ -1,5 +1,5 @@
 import type { FunctionComponent } from "react";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { observer } from "mobx-react-lite";
 import Link from "next/link";
 import { ArrowLeftEndOnRectangleIcon, PlusIcon, XMarkIcon } from '@heroicons/react/24/solid';
@@ -40,6 +40,35 @@ const MaterialEditorPage: FunctionComponent = observer(({ }) => {
   // Store tab state in ref to avoid capturing it in a closure
   const TabStateRef = useRef<typeof TabState>(undefined!);
   TabStateRef.current = TabState;
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    // @TODO this is going to have to be a global shortcut that calls into the current tool
+    const handleKeyDown = (event: KeyboardEvent): void => {
+      // Check for undo shortcut (Ctrl+Z on Windows/Linux, Cmd+Z on Mac)
+      if (event.key === 'z' && (event.ctrlKey || event.metaKey)) {
+        event.preventDefault();
+
+        // Find the currently active tab
+        const currentTab = MaterialEditorController.currentlyOpenTabs.find(
+          (tab) => tab.id === TabState.currentTabPageId,
+        );
+
+        if (currentTab?.type === 'model' && currentTab.modelEditorController) {
+          void currentTab.modelEditorController.mutatorNew.undo();
+        } else if (currentTab?.type === 'material' && currentTab.materialEditorController) {
+          // @TODO
+          console.log(`TODO: Undo for material tab`);
+          // void currentTab.materialEditorController.mutatorNew.undo();
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
 
   // Computed state
   const noTabsOpen = MaterialEditorController.currentlyOpenTabs.length === 0;

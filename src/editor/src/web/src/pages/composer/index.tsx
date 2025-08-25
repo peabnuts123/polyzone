@@ -135,7 +135,7 @@ const Editor: FunctionComponent = observer(() => {
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [ComposerController]);
+  }, []);
 
   // Computed state
   const noTabsOpen = ComposerController.currentlyOpenTabs.length === 0;

@@ -5,7 +5,7 @@ import { Func } from "@lib/util/types";
 import { RetroMaterial } from "@polyzone/runtime/src/materials/RetroMaterial";
 import { MockProjectController } from "../project/MockProjectController";
 import { Scene as BabylonScene } from "@babylonjs/core/scene";
-import { MockModelEditorViewMutator } from "./MockModelEditorViewMutator";
+import { MockModelEditorViewMutator, MockModelEditorViewMutatorNew } from "./MockModelEditorViewMutator";
 import { Engine } from "@babylonjs/core/Engines/engine";
 import { MeshAsset } from "@polyzone/runtime/src/world";
 
@@ -13,6 +13,7 @@ export class MockModelEditorViewController implements IModelEditorViewController
   public canvas: HTMLCanvasElement;
   public model: MeshAssetData;
   public mutator: MockModelEditorViewMutator;
+  public mutatorNew: MockModelEditorViewMutatorNew;
   public meshAsset: MeshAsset;
   public selectedMaterialName: string | undefined = undefined;
   public scene: BabylonScene;
@@ -29,6 +30,7 @@ export class MockModelEditorViewController implements IModelEditorViewController
     this.meshAsset = meshAsset;
     this.scene = scene;
     this.mutator = new MockModelEditorViewMutator(this, projectController);
+    this.mutatorNew = new MockModelEditorViewMutatorNew(this, projectController);
   }
 
   public static async create(projectController: MockProjectController, meshAssetData: MeshAssetData): Promise<MockModelEditorViewController> {

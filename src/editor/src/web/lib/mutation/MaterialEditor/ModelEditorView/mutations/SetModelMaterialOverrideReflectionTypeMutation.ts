@@ -1,45 +1,63 @@
-import { IModelEditorViewMutation } from "../IModelEditorViewMutation";
+import { BaseModelEditorViewMutation } from "../IModelEditorViewMutation";
 import { ModelEditorViewMutationArguments } from "../ModelEditorViewMutationArguments";
-import { AssetType, ITextureAssetData, MeshAssetMaterialOverrideReflectionType } from "@polyzone/runtime/src/cartridge";
+import { AssetType, ITextureAssetData, MeshAssetMaterialOverrideReflectionData, MeshAssetMaterialOverrideReflectionType } from "@polyzone/runtime/src/cartridge";
 import { reconcileMaterialOverrideData } from "./util/reconcile-overrides";
 import { ReflectionLoading } from "@polyzone/runtime/src/world";
 
-export class SetModelMaterialOverrideReflectionTypeMutation implements IModelEditorViewMutation {
-  // Mutation parameters
+interface MutationArgs {
+  /**
+   * New reflection override type. Will be ignored if `priorReflectionOverrideData` is set.
+   */
+  reflectionType?: MeshAssetMaterialOverrideReflectionType;
+  /**
+   * Used by Undo.
+   * Setting this field will replace the entire reflection override. `reflectionType` will be ignored.
+   */
+  priorReflectionOverrideData?: MeshAssetMaterialOverrideReflectionData;
+}
+
+export class SetModelMaterialOverrideReflectionTypeMutation extends BaseModelEditorViewMutation<MutationArgs> {
   private readonly modelAssetId: string;
   private readonly materialName: string;
-  private readonly reflectionType: MeshAssetMaterialOverrideReflectionType | undefined;
-
-  // Undo state
-  private oldReflectionType: MeshAssetMaterialOverrideReflectionType | undefined;
 
   public constructor(modelAssetId: string, materialName: string, reflectionType: MeshAssetMaterialOverrideReflectionType | undefined) {
+    super({ reflectionType });
     this.modelAssetId = modelAssetId;
     this.materialName = materialName;
-    this.reflectionType = reflectionType;
   }
 
-  public async apply({ ProjectController, ModelEditorViewController }: ModelEditorViewMutationArguments): Promise<void> {
+  public async apply({ ProjectController, ModelEditorViewController }: ModelEditorViewMutationArguments, mutationArgs: MutationArgs): Promise<void> {
     const meshAssetData = ProjectController.project.assets.getById(this.modelAssetId, AssetType.Mesh);
     let materialOverridesData = meshAssetData.getOverridesForMaterial(this.materialName);
     const material = ModelEditorViewController.getMaterialByName(this.materialName);
 
-    // 0. Store undo data
-    this.oldReflectionType = materialOverridesData?.reflection?.type;
+    if (
+      !('reflectionType' in mutationArgs) &&
+      !('priorReflectionOverrideData' in mutationArgs)) {
+      throw new Error(`One of 'reflectionType' or 'priorReflectionOverrideData' mutation args must be provided`);
+    }
+
+    const { reflectionType, priorReflectionOverrideData } = mutationArgs;
 
     // 1. Update data
     meshAssetData.setMaterialOverride(this.materialName, (overrides) => {
-      if (overrides.reflection?.type !== this.reflectionType) {
-        // @NOTE Clear any other data (even though some of it COULD possibly copy across e.g. texture)
-        if (this.reflectionType === undefined) {
+      // Re-instate prior reflection override data (if provided, takes precedence over `reflectionType`)
+      if (priorReflectionOverrideData !== undefined) {
+        overrides.reflection = priorReflectionOverrideData;
+        return;
+      }
+
+      if (overrides.reflection?.type !== reflectionType) {
+        if (reflectionType === undefined) {
+          // Clear all reflection state
           overrides.reflection = undefined;
         } else {
           // Create a new reflection data object
 
-          // No previous data - create new blank
           if (overrides.reflection?.type === undefined) {
+            // No previous data - create new blank
             overrides.reflection = {
-              type: this.reflectionType,
+              type: reflectionType,
             };
           } else {
             // Copy any existing data from previous config
@@ -60,31 +78,31 @@ export class SetModelMaterialOverrideReflectionTypeMutation implements IModelEdi
                 break;
             }
 
-            switch (this.reflectionType) {
+            switch (reflectionType) {
               case "box-net":
                 overrides.reflection = {
-                  type: this.reflectionType,
+                  type: reflectionType,
                   strength,
                   texture: firstTexture,
                 };
                 break;
               case "3x2":
                 overrides.reflection = {
-                  type: this.reflectionType,
+                  type: reflectionType,
                   strength,
                   texture: firstTexture,
                 };
                 break;
               case "6x1":
                 overrides.reflection = {
-                  type: this.reflectionType,
+                  type: reflectionType,
                   strength,
                   texture: firstTexture,
                 };
                 break;
               case "separate":
                 overrides.reflection = {
-                  type: this.reflectionType,
+                  type: reflectionType,
                   strength,
                   pxTexture: firstTexture,
                 };
@@ -119,10 +137,24 @@ export class SetModelMaterialOverrideReflectionTypeMutation implements IModelEdi
     await ProjectController.assetCache.loadAsset(meshAssetData, ModelEditorViewController.scene);
   }
 
-  public undo(_args: ModelEditorViewMutationArguments): void {
-    // @TODO
-    // - Apply undo values
-    throw new Error("Method not implemented.");
+  public getUndoArgs({ ProjectController }: ModelEditorViewMutationArguments): MutationArgs {
+    const meshAssetData = ProjectController.project.assets.getById(this.modelAssetId, AssetType.Mesh);
+    const materialOverridesData = meshAssetData.getOverridesForMaterial(this.materialName);
+
+    // @NOTE Undo data is different than the typical mutation arg.
+    // `priorReflectionOverrideData` takes precedence over `reflectionType`, and will
+    // replace the entire reflection material override
+    if (materialOverridesData?.reflection !== undefined) {
+      return {
+        priorReflectionOverrideData: {
+          ...materialOverridesData.reflection,
+        },
+      };
+    } else {
+      return {
+        priorReflectionOverrideData: undefined,
+      };
+    }
   }
 
   public get description(): string {

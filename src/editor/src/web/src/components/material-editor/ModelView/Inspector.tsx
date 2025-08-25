@@ -164,7 +164,7 @@ export const ReflectionInput: FunctionComponent<ReflectionInputProps> = observer
     } else {
       reflectionType = type;
     }
-    void controller.mutator.apply(new SetModelMaterialOverrideReflectionTypeMutation(controller.model.id, selectedMaterialName, reflectionType));
+    void controller.mutatorNew.apply(new SetModelMaterialOverrideReflectionTypeMutation(controller.model.id, selectedMaterialName, reflectionType));
   };
 
   const ReflectionStrength = observer(() => {

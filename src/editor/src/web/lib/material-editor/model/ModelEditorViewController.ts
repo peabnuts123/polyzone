@@ -19,7 +19,7 @@ import type { IProjectController } from '@lib/project/ProjectController';
 import { GameObjectData, MeshAssetData, MeshComponentData, TransformData } from '@lib/project/data';
 import { ProjectFileEventType } from '@lib/project/watcher/project';
 import { ProjectAssetEventType } from '@lib/project/watcher/assets';
-import { ModelEditorViewMutator } from '@lib/mutation/MaterialEditor/ModelEditorView';
+import { ModelEditorViewMutator, ModelEditorViewMutatorNew } from '@lib/mutation/MaterialEditor/ModelEditorView';
 import { ComponentDependencyManager } from '@lib/common/ComponentDependencyManager';
 import { MeshComponent } from '@lib/composer/scene/components';
 
@@ -33,6 +33,7 @@ export interface IModelEditorViewController {
   get canvas(): HTMLCanvasElement;
   get model(): MeshAssetData;
   get mutator(): ModelEditorViewMutator;
+  get mutatorNew(): ModelEditorViewMutatorNew;
   get allMaterials(): RetroMaterial[] | undefined;
   get selectedMaterialName(): string | undefined;
   get scene(): BabylonScene;
@@ -43,6 +44,7 @@ export class ModelEditorViewController implements IModelEditorViewController {
   private _model: MeshAssetData;
   private readonly projectController: IProjectController;
   private readonly _mutator: ModelEditorViewMutator;
+  private readonly _mutatorNew: ModelEditorViewMutatorNew;
 
   private readonly _canvas: HTMLCanvasElement;
   private readonly engine: Engine;
@@ -61,6 +63,10 @@ export class ModelEditorViewController implements IModelEditorViewController {
     this.projectController = projectController;
     this.componentDependencyManager = new ComponentDependencyManager();
     this._mutator = new ModelEditorViewMutator(
+      this,
+      projectController,
+    );
+    this._mutatorNew = new ModelEditorViewMutatorNew(
       this,
       projectController,
     );
@@ -279,6 +285,9 @@ export class ModelEditorViewController implements IModelEditorViewController {
 
   public get mutator(): ModelEditorViewMutator {
     return this._mutator;
+  }
+  public get mutatorNew(): ModelEditorViewMutatorNew {
+    return this._mutatorNew;
   }
 
   public get allMaterials(): RetroMaterial[] | undefined {
