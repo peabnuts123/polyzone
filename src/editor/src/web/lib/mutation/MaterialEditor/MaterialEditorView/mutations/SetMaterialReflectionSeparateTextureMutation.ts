@@ -2,33 +2,29 @@ import { AssetType, MeshAssetMaterialOverrideReflectionSeparateDefinition } from
 import { MaterialAsset, MaterialDefinition, ReflectionLoading } from "@polyzone/runtime/src/world";
 import { resolvePath } from "@lib/util/JsoncContainer";
 import { ReflectionSeparateTexture, getTextureData, setTextureData } from '@lib/mutation/MaterialEditor/ModelEditorView/mutations/SetModelMaterialOverrideReflectionSeparateTextureMutation';
-import { IMaterialEditorViewMutation } from "../IMaterialEditorViewMutation";
+import { BaseMaterialEditorViewMutation } from "../IMaterialEditorViewMutation";
 import { MaterialEditorViewMutationArguments } from "../MaterialEditorViewMutationArguments";
 
-export class SetMaterialReflectionSeparateTextureMutation implements IMaterialEditorViewMutation {
+interface MutationArgs {
+  reflectionTextureAssetId: string | undefined;
+}
+
+export class SetMaterialReflectionSeparateTextureMutation extends BaseMaterialEditorViewMutation<MutationArgs> {
   // Mutation parameters
-  private readonly reflectionTextureAssetId: string | undefined;
   private readonly whichTexture: ReflectionSeparateTexture;
 
-  // Undo state
-  private oldReflectionTextureAssetId: string | undefined;
-
   public constructor(reflectionTextureAssetId: string | undefined, whichTexture: ReflectionSeparateTexture) {
-    this.reflectionTextureAssetId = reflectionTextureAssetId;
+    super({ reflectionTextureAssetId });
     this.whichTexture = whichTexture;
   }
 
-  public async apply({ ProjectController, MaterialEditorViewController }: MaterialEditorViewMutationArguments): Promise<void> {
-    const reflectionTextureAssetData = this.reflectionTextureAssetId ? ProjectController.project.assets.getById(this.reflectionTextureAssetId, AssetType.Texture) : undefined;
+  public async apply({ ProjectController, MaterialEditorViewController }: MaterialEditorViewMutationArguments, { reflectionTextureAssetId }: MutationArgs): Promise<void> {
+    const reflectionTextureAssetData = reflectionTextureAssetId ? ProjectController.project.assets.getById(reflectionTextureAssetId, AssetType.Texture) : undefined;
     const { materialData, materialInstance } = MaterialEditorViewController;
-
 
     if (materialData.reflection?.type !== 'separate') {
       throw new Error(`Cannot set reflection texture for material - the material doesn't have the correct reflection type set`);
     }
-
-    // 0. Store undo data
-    this.oldReflectionTextureAssetId = getTextureData(materialData.reflection, this.whichTexture)?.id;
 
     // 1. Update data
     setTextureData(materialData.reflection, this.whichTexture, reflectionTextureAssetData);
@@ -56,8 +52,8 @@ export class SetMaterialReflectionSeparateTextureMutation implements IMaterialEd
           throw new Error(`Unimplemented separate reflection type: ${this.whichTexture}`);
       }
     });
-    if (this.reflectionTextureAssetId !== undefined) {
-      MaterialEditorViewController.materialJson.mutate(jsonPath, this.reflectionTextureAssetId);
+    if (reflectionTextureAssetId !== undefined) {
+      MaterialEditorViewController.materialJson.mutate(jsonPath, reflectionTextureAssetId);
     } else {
       MaterialEditorViewController.materialJson.delete(jsonPath);
     }
@@ -75,10 +71,16 @@ export class SetMaterialReflectionSeparateTextureMutation implements IMaterialEd
     await ProjectController.assetCache.loadAsset(materialAssetData, MaterialEditorViewController.scene);
   }
 
-  public undo(_args: MaterialEditorViewMutationArguments): void {
-    // @TODO
-    // - Apply undo values
-    throw new Error("Method not implemented.");
+  public getUndoArgs({ MaterialEditorViewController }: MaterialEditorViewMutationArguments): MutationArgs {
+    const { materialData } = MaterialEditorViewController;
+
+    if (materialData.reflection?.type !== 'separate') {
+      throw new Error(`Cannot capture undo state - the material doesn't have the correct reflection type set`);
+    }
+
+    return {
+      reflectionTextureAssetId: getTextureData(materialData.reflection, this.whichTexture)?.id,
+    };
   }
 
   public get description(): string {

@@ -14,7 +14,7 @@ import { ReflectionSeparateTexture } from '@lib/mutation/MaterialEditor/ModelEdi
 import { SetMaterialReflectionSeparateTextureMutation } from './SetMaterialReflectionSeparateTextureMutation';
 
 describe(SetMaterialReflectionSeparateTextureMutation.name, () => {
-  test("Setting positive X reflection texture on material with separate reflection type but no texture updates state correctly", async () => {
+  test("Setting positive X reflection texture on material with separate reflection type but no textures updates state correctly", async () => {
     // Setup
     let mockTextureAssetDefinition!: TextureAssetDefinition;
     let mockMaterialAssetDefinition!: MaterialAssetDefinition;
@@ -72,13 +72,20 @@ describe(SetMaterialReflectionSeparateTextureMutation.name, () => {
     const mutation = new SetMaterialReflectionSeparateTextureMutation(mockTextureAssetDefinition.id, ReflectionSeparateTexture.positiveX);
 
     // Test
-    await mockMaterialEditorViewController.mutator.apply(mutation);
+    await mockMaterialEditorViewController.mutatorNew.apply(mutation);
 
     /* Capture updated state */
     const updatedDataValue = getDataValue();
     const updatedBabylonValue = getBabylonValue();
     const updatedJsonValue = getJsonValue();
     const updatedCachedAssetReflectionTexture = await getCachedAssetReflectionTexture();
+
+    await mockMaterialEditorViewController.mutatorNew.undo();
+
+    const finalDataValue = getDataValue();
+    const finalBabylonValue = getBabylonValue();
+    const finalJsonValue = getJsonValue();
+    const finalCachedAssetReflectionTexture = await getCachedAssetReflectionTexture();
 
     // Assert
     /* Initial state */
@@ -92,6 +99,12 @@ describe(SetMaterialReflectionSeparateTextureMutation.name, () => {
     expect(updatedBabylonValue, "Babylon material should still not have reflection texture defined after mutation (since only 1 of 6 textures is set)").toBeUndefined();
     expect(updatedJsonValue, "Material asset should have positive X reflection texture defined after mutation").toBe(mockTextureAssetDefinition.id);
     expect(updatedCachedAssetReflectionTexture, "Cached material should still not have reflection texture defined after mutation").toBeUndefined();
+
+    /* After undo */
+    expect(finalDataValue, "Material data should not have positive X reflection texture defined after undo").toBeUndefined();
+    expect(finalBabylonValue, "Babylon material should not have reflection texture defined after undo (since not all 6 textures are set)").toBeUndefined();
+    expect(finalJsonValue, "Material asset should not have positive X reflection texture defined after undo").toBeUndefined();
+    expect(finalCachedAssetReflectionTexture, "Cached material should not have reflection texture defined after undo").toBeUndefined();
   });
 
   test("Setting positive X reflection texture on material with all 6 separate textures already set updates state correctly", async () => {
@@ -160,13 +173,20 @@ describe(SetMaterialReflectionSeparateTextureMutation.name, () => {
     const mutation = new SetMaterialReflectionSeparateTextureMutation(mockTextureAssetDefinition2.id, ReflectionSeparateTexture.positiveX);
 
     // Test
-    await mockMaterialEditorViewController.mutator.apply(mutation);
+    await mockMaterialEditorViewController.mutatorNew.apply(mutation);
 
     /* Capture updated state */
     const updatedDataValue = getDataValue();
     const updatedBabylonValue = getBabylonValue();
     const updatedJsonValue = getJsonValue();
     const updatedCachedAssetReflectionTexture = await getCachedAssetReflectionTexture();
+
+    await mockMaterialEditorViewController.mutatorNew.undo();
+
+    const finalDataValue = getDataValue();
+    const finalBabylonValue = getBabylonValue();
+    const finalJsonValue = getJsonValue();
+    const finalCachedAssetReflectionTexture = await getCachedAssetReflectionTexture();
 
     // Assert
     /* Initial state */
@@ -180,6 +200,12 @@ describe(SetMaterialReflectionSeparateTextureMutation.name, () => {
     expect(updatedBabylonValue, "Babylon material should have reflection texture defined after mutation (since all 6 textures are still set)").toBeDefined();
     expect(updatedJsonValue, "Material asset should have the updated positive X reflection texture after mutation").toBe(mockTextureAssetDefinition2.id);
     expect(updatedCachedAssetReflectionTexture, "Cached material should have reflection texture defined after mutation").toBeDefined();
+
+    /* After undo */
+    expect(finalDataValue?.id, "Material data should have the initial positive X reflection texture after undo").toBe(mockTextureAssetDefinition1.id);
+    expect(finalBabylonValue, "Babylon material should have reflection texture defined after undo (since all 6 textures are set)").toBeDefined();
+    expect(finalJsonValue, "Material asset should have the initial positive X reflection texture after undo").toBe(mockTextureAssetDefinition1.id);
+    expect(finalCachedAssetReflectionTexture, "Cached material should have reflection texture defined after undo").toBeDefined();
   });
 
   test("Setting the final (6th) reflection texture on material with 5 separate textures already defined updates state correctly", async () => {
@@ -245,13 +271,20 @@ describe(SetMaterialReflectionSeparateTextureMutation.name, () => {
     const mutation = new SetMaterialReflectionSeparateTextureMutation(mockTextureAssetDefinition.id, ReflectionSeparateTexture.negativeZ);
 
     // Test
-    await mockMaterialEditorViewController.mutator.apply(mutation);
+    await mockMaterialEditorViewController.mutatorNew.apply(mutation);
 
     /* Capture updated state */
     const updatedDataValue = getDataValue();
     const updatedBabylonValue = getBabylonValue();
     const updatedJsonValue = getJsonValue();
     const updatedCachedAssetReflectionTexture = await getCachedAssetReflectionTexture();
+
+    await mockMaterialEditorViewController.mutatorNew.undo();
+
+    const finalDataValue = getDataValue();
+    const finalBabylonValue = getBabylonValue();
+    const finalJsonValue = getJsonValue();
+    const finalCachedAssetReflectionTexture = await getCachedAssetReflectionTexture();
 
     // Assert
     /* Initial state */
@@ -265,6 +298,12 @@ describe(SetMaterialReflectionSeparateTextureMutation.name, () => {
     expect(updatedBabylonValue, "Babylon material should have reflection texture defined after mutation (since all 6 textures are now set)").toBeDefined();
     expect(updatedJsonValue, "Material asset should have negative Z reflection texture defined after mutation").toBe(mockTextureAssetDefinition.id);
     expect(updatedCachedAssetReflectionTexture, "Cached material should have reflection texture defined after mutation").toBeDefined();
+
+    /* After undo */
+    expect(finalDataValue, "Material data should not have negative Z reflection texture defined after undo").toBeUndefined();
+    expect(finalBabylonValue, "Babylon material should not have reflection texture defined after undo (since only 5 of 6 textures are set)").toBeUndefined();
+    expect(finalJsonValue, "Material asset should not have negative Z reflection texture defined after undo").toBeUndefined();
+    expect(finalCachedAssetReflectionTexture, "Cached material should not have reflection texture defined after undo").toBeUndefined();
   });
 
   test("Removing positive X reflection texture on material with existing separate texture updates state correctly", async () => {
@@ -330,13 +369,20 @@ describe(SetMaterialReflectionSeparateTextureMutation.name, () => {
     const mutation = new SetMaterialReflectionSeparateTextureMutation(undefined, ReflectionSeparateTexture.positiveX);
 
     // Test
-    await mockMaterialEditorViewController.mutator.apply(mutation);
+    await mockMaterialEditorViewController.mutatorNew.apply(mutation);
 
     /* Capture updated state */
     const updatedDataValue = getDataValue();
     const updatedBabylonValue = getBabylonValue();
     const updatedJsonValue = getJsonValue();
     const updatedCachedAssetReflectionTexture = await getCachedAssetReflectionTexture();
+
+    await mockMaterialEditorViewController.mutatorNew.undo();
+
+    const finalDataValue = getDataValue();
+    const finalBabylonValue = getBabylonValue();
+    const finalJsonValue = getJsonValue();
+    const finalCachedAssetReflectionTexture = await getCachedAssetReflectionTexture();
 
     // Assert
     /* Initial state */
@@ -350,6 +396,12 @@ describe(SetMaterialReflectionSeparateTextureMutation.name, () => {
     expect(updatedBabylonValue, "Babylon material should not have reflection texture defined after mutation (since not all 6 textures are set)").toBeUndefined();
     expect(updatedJsonValue, "Material asset should not have positive X reflection texture defined after mutation").toBeUndefined();
     expect(updatedCachedAssetReflectionTexture, "Cached material should not have reflection texture defined after mutation").toBeUndefined();
+
+    /* After undo */
+    expect(finalDataValue?.id, "Material data should have the initial positive X reflection texture after undo").toBe(mockTextureAssetDefinition.id);
+    expect(finalBabylonValue, "Babylon material should have reflection texture defined after undo (since all 6 textures are set)").toBeDefined();
+    expect(finalJsonValue, "Material asset should have the initial positive X reflection texture after undo").toBe(mockTextureAssetDefinition.id);
+    expect(finalCachedAssetReflectionTexture, "Cached material should have reflection texture defined after undo").toBeDefined();
   });
 
   test("Attempting to set reflection texture on material without separate reflection type throws error", async () => {
@@ -386,12 +438,12 @@ describe(SetMaterialReflectionSeparateTextureMutation.name, () => {
 
     // Test
     const testFunc = async (): Promise<void> => {
-      return mockMaterialEditorViewController.mutator.apply(mutation);
+      return mockMaterialEditorViewController.mutatorNew.apply(mutation);
     };
 
     // Assert
     await expect(testFunc, "Should throw error when trying to set separate reflection texture on material without separate reflection type")
-      .rejects.toThrow("Cannot set reflection texture for material - the material doesn't have the correct reflection type set");
+      .rejects.toThrow("the material doesn't have the correct reflection type set");
   });
 
   test("Attempting to set reflection texture on material with different reflection type throws error", async () => {
@@ -431,11 +483,11 @@ describe(SetMaterialReflectionSeparateTextureMutation.name, () => {
 
     // Test
     const testFunc = async (): Promise<void> => {
-      return mockMaterialEditorViewController.mutator.apply(mutation);
+      return mockMaterialEditorViewController.mutatorNew.apply(mutation);
     };
 
     // Assert
     await expect(testFunc, "Should throw error when trying to set separate reflection texture on material with different reflection type")
-      .rejects.toThrow("Cannot set reflection texture for material - the material doesn't have the correct reflection type set");
+      .rejects.toThrow("the material doesn't have the correct reflection type set");
   });
 });

@@ -12,7 +12,7 @@ import { MaterialData } from '@lib/material-editor/material/MaterialData';
 import type { MockProjectController } from '@test/integration/mock/project/MockProjectController';
 import { MaterialAssetDefinition } from '@lib/project';
 
-import { MockMaterialEditorViewMutator } from './MockMaterialEditorViewMutator';
+import { MockMaterialEditorViewMutator, MockMaterialEditorViewMutatorNew } from './MockMaterialEditorViewMutator';
 
 /**
  * Mock version of `MaterialEditorViewController` that just houses state, and otherwise contains no logic.
@@ -25,6 +25,7 @@ export class MockMaterialEditorViewController implements IMaterialEditorViewCont
   public materialJson: JsoncContainer<MaterialDefinition>;
   public materialInstance: RetroMaterial;
   public mutator: MockMaterialEditorViewMutator;
+  public mutatorNew: MockMaterialEditorViewMutatorNew;
   public scene: BabylonScene;
 
   private constructor(
@@ -43,6 +44,7 @@ export class MockMaterialEditorViewController implements IMaterialEditorViewCont
     this.materialInstance = materialInstance;
     this.scene = scene;
     this.mutator = new MockMaterialEditorViewMutator(this, projectController);
+    this.mutatorNew = new MockMaterialEditorViewMutatorNew(this, projectController);
   }
 
   public static async create(

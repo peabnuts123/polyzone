@@ -18,7 +18,7 @@ import type { IProjectController } from '@lib/project/ProjectController';
 import { MaterialAssetData } from '@lib/project/data';
 import { ProjectFileEventType } from '@lib/project/watcher/project';
 import { ProjectAssetEventType } from '@lib/project/watcher/assets';
-import { MaterialEditorViewMutator } from '@lib/mutation/MaterialEditor/MaterialEditorView';
+import { MaterialEditorViewMutator, MaterialEditorViewMutatorNew } from '@lib/mutation/MaterialEditor/MaterialEditorView';
 import { JsoncContainer } from '@lib/util/JsoncContainer';
 import { MaterialData } from './MaterialData';
 
@@ -34,6 +34,7 @@ export interface IMaterialEditorViewController {
   get materialJson(): JsoncContainer<MaterialDefinition>;
   get materialInstance(): RetroMaterial;
   get mutator(): MaterialEditorViewMutator;
+  get mutatorNew(): MaterialEditorViewMutatorNew;
   get scene(): BabylonScene;
 }
 
@@ -44,6 +45,7 @@ export class MaterialEditorViewController implements IMaterialEditorViewControll
 
   private readonly projectController: IProjectController;
   private readonly _mutator: MaterialEditorViewMutator;
+  private readonly _mutatorNew: MaterialEditorViewMutatorNew;
 
   private readonly _canvas: HTMLCanvasElement;
   private readonly engine: Engine;
@@ -57,6 +59,10 @@ export class MaterialEditorViewController implements IMaterialEditorViewControll
     this._materialAssetData = material;
     this.projectController = projectController;
     this._mutator = new MaterialEditorViewMutator(
+      this,
+      projectController,
+    );
+    this._mutatorNew = new MaterialEditorViewMutatorNew(
       this,
       projectController,
     );
@@ -256,6 +262,9 @@ export class MaterialEditorViewController implements IMaterialEditorViewControll
 
   public get mutator(): MaterialEditorViewMutator {
     return this._mutator;
+  }
+  public get mutatorNew(): MaterialEditorViewMutatorNew {
+    return this._mutatorNew;
   }
 
   public get scene(): BabylonScene {
