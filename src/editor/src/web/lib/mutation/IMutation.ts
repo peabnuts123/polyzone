@@ -9,6 +9,7 @@ export interface IMutation<TMutationArgs> {
 // @TODO Rename
 export interface IMutation2<TMutationDependencies, TMutationArgs> {
   get description(): string;
+  promptForUndo: boolean;
   applyMutation(dependencies: TMutationDependencies): void | Promise<void>;
   undoMutation(dependencies: TMutationDependencies): void | Promise<void>;
   captureUndoArgs(dependencies: TMutationDependencies): void;
@@ -24,6 +25,11 @@ export abstract class BaseMutation<TMutationDependencies, TMutationArgs> impleme
    * NOTE: You must override `customUndo()` if you enable this.
    */
   protected useCustomUndo: boolean = false;
+
+  /**
+   * If set to `true`, the user will be prompted for confirmation before undoing the mutation.
+   */
+  public promptForUndo: boolean = false;
 
 
   public constructor(args: TMutationArgs) {

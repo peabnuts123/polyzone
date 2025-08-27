@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/only-throw-error */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import type * as TauriDialog from '@tauri-apps/plugin-dialog';
-import { MockHandlerWith1Arg, throwUnhandled } from '../util';
+import { MockHandlerWith1Arg, MockHandlerWith2Args, throwUnhandled } from '../util';
 import { Paths } from '../config';
 
 export const DefaultTauriPluginDialogMockModuleConfig = {
@@ -22,6 +22,8 @@ export class TauriPluginDialogMockModule {
         return this.open(args);
       case 'save':
         return this.save(args);
+      case 'confirm':
+        return this.confirm(args);
       default:
         throw throwUnhandled(`[TauriPluginDialogMockModule] (handle) Unimplemented action. (action='${action}') args: `, args);
     }
@@ -43,6 +45,10 @@ export class TauriPluginDialogMockModule {
       return TauriPluginDialogMockModuleConfig.mockSaveProjectPath;
     }
     throw throwUnhandled(`[TauriPluginDialogMockModule] (save) Unhandled request. options: `, options);
+  };
+
+  private static confirm: MockHandlerWith2Args<'message', 'options', typeof TauriDialog.confirm> = ({ message, options }) => {
+    return confirm(message);
   };
 
   public static resetConfig(): void {

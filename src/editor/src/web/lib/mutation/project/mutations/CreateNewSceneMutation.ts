@@ -15,6 +15,9 @@ interface MutationArgs {
 }
 
 export class CreateNewSceneMutation extends BaseProjectMutation<MutationArgs> {
+  public override promptForUndo: boolean = true;
+  protected override useCustomUndo: boolean = true;
+
   public constructor(path: string) {
     super({ path });
   }
@@ -51,7 +54,6 @@ export class CreateNewSceneMutation extends BaseProjectMutation<MutationArgs> {
     );
   }
 
-  protected useCustomUndo: boolean = true;
   public override async customUndo({ ProjectController }: ProjectMutationArguments, { path }: MutationArgs): Promise<void> {
     const newScene = ProjectController.project.scenes.getByPath(path);
     if (newScene === undefined) {

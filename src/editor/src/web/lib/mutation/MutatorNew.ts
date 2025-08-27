@@ -1,4 +1,6 @@
+import { confirm } from '@tauri-apps/plugin-dialog';
 import { runInAction } from "mobx";
+
 import { IContinuousMutation2, isContinuousMutation2 } from "./IContinuousMutation";
 import { IMutation2 } from "./IMutation";
 import { AsyncScheduler } from "./AsyncScheduler";
@@ -241,6 +243,17 @@ export abstract class MutatorNew<TMutationDependencies> extends BaseMutatorNew {
 
       // Undo mutation
       const mutation = this.mutationStack[this.mutationStack.length - 1];
+
+      // Do not undo if mutation is marked as `promptForUndo` and the user cancels
+      if (mutation.instance.promptForUndo) {
+        const confirmation = await confirm(`Are you sure you wish to undo '${mutation.instance.description}'?`, {
+          kind: 'warning',
+          title: 'Confirm undo',
+        });
+        if (!confirmation) {
+          return;
+        }
+      }
 
       const mutationArgs = this.getMutationArgs();
 
