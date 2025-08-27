@@ -286,7 +286,7 @@ export const ReflectionInput: FunctionComponent<ReflectionInputProps> = observer
                 asset={currentReflection.pxTexture as TextureAssetData}
                 assetType={AssetType.Texture}
                 onAssetChange={(newValue) => {
-                  void controller.mutator.apply(new SetMaterialReflectionSeparateTextureMutation(newValue?.id, ReflectionSeparateTexture.positiveX));
+                  void controller.mutatorNew.apply(new SetMaterialReflectionSeparateTextureMutation(newValue?.id, ReflectionSeparateTexture.positiveX));
                 }}
               />
               {/* Negative X reflection texture */}
@@ -296,7 +296,7 @@ export const ReflectionInput: FunctionComponent<ReflectionInputProps> = observer
                 asset={currentReflection.nxTexture as TextureAssetData}
                 assetType={AssetType.Texture}
                 onAssetChange={(newValue) => {
-                  void controller.mutator.apply(new SetMaterialReflectionSeparateTextureMutation(newValue?.id, ReflectionSeparateTexture.negativeX));
+                  void controller.mutatorNew.apply(new SetMaterialReflectionSeparateTextureMutation(newValue?.id, ReflectionSeparateTexture.negativeX));
                 }}
               />
               {/* Positive Y reflection texture */}
@@ -306,7 +306,7 @@ export const ReflectionInput: FunctionComponent<ReflectionInputProps> = observer
                 asset={currentReflection.pyTexture as TextureAssetData}
                 assetType={AssetType.Texture}
                 onAssetChange={(newValue) => {
-                  void controller.mutator.apply(new SetMaterialReflectionSeparateTextureMutation(newValue?.id, ReflectionSeparateTexture.positiveY));
+                  void controller.mutatorNew.apply(new SetMaterialReflectionSeparateTextureMutation(newValue?.id, ReflectionSeparateTexture.positiveY));
                 }}
               />
               {/* Negative Y reflection texture */}
@@ -316,7 +316,7 @@ export const ReflectionInput: FunctionComponent<ReflectionInputProps> = observer
                 asset={currentReflection.nyTexture as TextureAssetData}
                 assetType={AssetType.Texture}
                 onAssetChange={(newValue) => {
-                  void controller.mutator.apply(new SetMaterialReflectionSeparateTextureMutation(newValue?.id, ReflectionSeparateTexture.negativeY));
+                  void controller.mutatorNew.apply(new SetMaterialReflectionSeparateTextureMutation(newValue?.id, ReflectionSeparateTexture.negativeY));
                 }}
               />
               {/* Positive Z reflection texture */}
@@ -326,7 +326,7 @@ export const ReflectionInput: FunctionComponent<ReflectionInputProps> = observer
                 asset={currentReflection.pzTexture as TextureAssetData}
                 assetType={AssetType.Texture}
                 onAssetChange={(newValue) => {
-                  void controller.mutator.apply(new SetMaterialReflectionSeparateTextureMutation(newValue?.id, ReflectionSeparateTexture.positiveZ));
+                  void controller.mutatorNew.apply(new SetMaterialReflectionSeparateTextureMutation(newValue?.id, ReflectionSeparateTexture.positiveZ));
                 }}
               />
               {/* Negative Z reflection texture */}
@@ -337,7 +337,7 @@ export const ReflectionInput: FunctionComponent<ReflectionInputProps> = observer
                 asset={currentReflection.nzTexture as TextureAssetData}
                 assetType={AssetType.Texture}
                 onAssetChange={(newValue) => {
-                  void controller.mutator.apply(new SetMaterialReflectionSeparateTextureMutation(newValue?.id, ReflectionSeparateTexture.negativeZ));
+                  void controller.mutatorNew.apply(new SetMaterialReflectionSeparateTextureMutation(newValue?.id, ReflectionSeparateTexture.negativeZ));
                 }}
               />
               {/* Reflection strength */}

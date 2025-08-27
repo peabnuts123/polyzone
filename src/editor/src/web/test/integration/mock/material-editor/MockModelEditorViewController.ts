@@ -1,17 +1,22 @@
 
-import { IModelEditorViewController } from "@lib/material-editor/model/ModelEditorViewController";
-import { MeshAssetData } from "@lib/project/data";
-import { Func } from "@lib/util/types";
-import { RetroMaterial } from "@polyzone/runtime/src/materials/RetroMaterial";
-import { MockProjectController } from "../project/MockProjectController";
-import { Scene as BabylonScene } from "@babylonjs/core/scene";
-import { MockModelEditorViewMutator, MockModelEditorViewMutatorNew } from "./MockModelEditorViewMutator";
 import { Engine } from "@babylonjs/core/Engines/engine";
+import { Scene as BabylonScene } from "@babylonjs/core/scene";
+
 import { MeshAsset } from "@polyzone/runtime/src/world";
+import { RetroMaterial } from "@polyzone/runtime/src/materials/RetroMaterial";
+
+import { Func } from "@lib/util/types";
+import { MeshAssetData } from "@lib/project/data";
+import { MutationController } from "@lib/mutation/MutationController";
+import { IModelEditorViewController } from "@lib/material-editor/model/ModelEditorViewController";
+
+import { MockProjectController } from "../project/MockProjectController";
+import { MockModelEditorViewMutator, MockModelEditorViewMutatorNew } from "./MockModelEditorViewMutator";
 
 export class MockModelEditorViewController implements IModelEditorViewController {
   public canvas: HTMLCanvasElement;
   public model: MeshAssetData;
+  public mutationController: MutationController;
   public mutator: MockModelEditorViewMutator;
   public mutatorNew: MockModelEditorViewMutatorNew;
   public meshAsset: MeshAsset;
@@ -29,8 +34,9 @@ export class MockModelEditorViewController implements IModelEditorViewController
     this.model = model;
     this.meshAsset = meshAsset;
     this.scene = scene;
+    this.mutationController = new MutationController();
     this.mutator = new MockModelEditorViewMutator(this, projectController);
-    this.mutatorNew = new MockModelEditorViewMutatorNew(this, projectController);
+    this.mutatorNew = new MockModelEditorViewMutatorNew(this, projectController, this.mutationController);
   }
 
   public static async create(projectController: MockProjectController, meshAssetData: MeshAssetData): Promise<MockModelEditorViewController> {

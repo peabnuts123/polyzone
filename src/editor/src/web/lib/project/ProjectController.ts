@@ -8,13 +8,14 @@ import { AssetCache } from "@polyzone/runtime/src/world";
 import { IWritableFileSystem } from "@lib/filesystem/IWritableFileSystem";
 import { TauriFileSystem } from '@lib/filesystem/TauriFileSystem';
 import { JsoncContainer } from "@lib/util/JsoncContainer";
-import { ProjectMutator } from "@lib/mutation/Project";
+import { ProjectMutator, ProjectMutatorNew } from "@lib/mutation/Project";
 import { invoke } from "@lib/util/TauriCommands";
 import { ApplicationDataController } from '../application/ApplicationDataController';
 import { ProjectDefinition } from "./definition";
 import { ProjectFilesWatcher } from "./watcher/ProjectFilesWatcher";
 import { ProblemScanner } from "./problems/ProblemScanner";
 import { ProjectData } from "./data/ProjectData";
+import { MutationController } from "@lib/mutation/MutationController";
 
 export interface IProjectController {
   loadProject(projectPath: string): Promise<void>;
@@ -27,6 +28,7 @@ export interface IProjectController {
   get projectJson(): JsoncContainer<ProjectDefinition>;
   get projectDefinition(): ProjectDefinition;
   get mutator(): ProjectMutator;
+  get mutatorNew(): ProjectMutatorNew;
   get fileSystem(): IWritableFileSystem;
   get filesWatcher(): ProjectFilesWatcher;
   get assetCache(): AssetCache;
@@ -36,16 +38,21 @@ export class ProjectController implements IProjectController {
   private _isLoadingProject: boolean = false;
   private _projectJson: JsoncContainer<ProjectDefinition> | undefined = undefined;
   private readonly _mutator: ProjectMutator;
-  private readonly ApplicationDataController: ApplicationDataController;
+  private readonly _mutatorNew: ProjectMutatorNew;
+  private readonly applicationDataController: ApplicationDataController;
+  private readonly mutationController: MutationController;
   private _project: ProjectData | undefined = undefined;
   private _fileSystem: IWritableFileSystem | undefined = undefined;
   private _filesWatcher: ProjectFilesWatcher | undefined = undefined;
   private problemScanner: ProblemScanner | undefined = undefined;
   private _assetCache: AssetCache | undefined;
 
-  public constructor(ApplicationDataController: ApplicationDataController) {
+  public constructor(applicationDataController: ApplicationDataController, mutationController: MutationController) {
     this._mutator = new ProjectMutator(this);
-    this.ApplicationDataController = ApplicationDataController;
+    this._mutatorNew = new ProjectMutatorNew(this, mutationController);
+    this.applicationDataController = applicationDataController;
+    this.mutationController = mutationController;
+    this.mutationController.setMutatorActive(this._mutatorNew, true);
 
     makeAutoObservable(this);
   }
@@ -89,7 +96,7 @@ export class ProjectController implements IProjectController {
     this._assetCache = new AssetCache(project.assets);
 
     // Update app data
-    await this.ApplicationDataController.mutateAppData((appData) => {
+    await this.applicationDataController.mutateAppData((appData) => {
       const existingRecentProject = appData.recentProjects.find((recentProject) => recentProject.path === projectPath);
       if (existingRecentProject !== undefined) {
         // Existing app data, update record
@@ -154,6 +161,7 @@ export class ProjectController implements IProjectController {
     }
     this._filesWatcher?.onDestroy();
     this.problemScanner?.onDestroy();
+    this.mutatorNew.deregister();
   }
 
   public get isLoadingProject(): boolean {
@@ -182,6 +190,9 @@ export class ProjectController implements IProjectController {
 
   public get mutator(): ProjectMutator {
     return this._mutator;
+  }
+  public get mutatorNew(): ProjectMutatorNew {
+    return this._mutatorNew;
   }
 
   public get fileSystem(): IWritableFileSystem {

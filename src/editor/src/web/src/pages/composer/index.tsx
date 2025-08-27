@@ -112,31 +112,6 @@ const Editor: FunctionComponent = observer(() => {
   const TabStateRef = useRef<typeof TabState>(undefined!);
   TabStateRef.current = TabState;
 
-  // Keyboard shortcuts
-  useEffect(() => {
-    // @TODO this is going to have to be a global shortcut that calls into the current tool
-    const handleKeyDown = (event: KeyboardEvent): void => {
-      // Check for undo shortcut (Ctrl+Z on Windows/Linux, Cmd+Z on Mac)
-      if (event.key === 'z' && (event.ctrlKey || event.metaKey)) {
-        event.preventDefault();
-
-        // Find the currently active tab
-        const currentTab = ComposerController.currentlyOpenTabs.find(
-          (tab) => tab.id === TabState.currentTabPageId,
-        );
-
-        if (currentTab?.sceneViewController) {
-          void currentTab.sceneViewController.mutatorNew.undo();
-        }
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, []);
-
   // Computed state
   const noTabsOpen = ComposerController.currentlyOpenTabs.length === 0;
   const [{ isDragOverThisZone }, DropTarget] = useSceneDrop(

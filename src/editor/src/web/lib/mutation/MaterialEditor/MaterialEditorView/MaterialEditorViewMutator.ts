@@ -4,6 +4,7 @@ import { invoke } from "@lib/util/TauriCommands";
 import { MutatorNew } from "@lib/mutation/MutatorNew";
 import { Mutator } from "../../Mutator";
 import { MaterialEditorViewMutationArguments } from "./MaterialEditorViewMutationArguments";
+import { MutationController } from "@lib/mutation/MutationController";
 
 
 export class MaterialEditorViewMutator extends Mutator<MaterialEditorViewMutationArguments> {
@@ -57,8 +58,8 @@ export class MaterialEditorViewMutatorNew extends MutatorNew<MaterialEditorViewM
   private readonly materialEditorViewController: IMaterialEditorViewController;
   private readonly projectController: IProjectController;
 
-  public constructor(materialEditorViewController: IMaterialEditorViewController, projectController: IProjectController) {
-    super();
+  public constructor(materialEditorViewController: IMaterialEditorViewController, projectController: IProjectController, mutationController: MutationController) {
+    super(mutationController);
     this.materialEditorViewController = materialEditorViewController;
     this.projectController = projectController;
 

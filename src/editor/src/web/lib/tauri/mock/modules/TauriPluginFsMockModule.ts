@@ -23,6 +23,8 @@ export class TauriPluginFsMockModule {
         return this.readFile(args);
       case 'write_file':
         return this.writeFile(args);
+      case 'remove':
+        return this.remove(args);
       case 'write_text_file':
         return this.writeTextFile(args);
       case 'watch':
@@ -60,6 +62,10 @@ export class TauriPluginFsMockModule {
 
   private static writeTextFile(data: Uint8Array): void {
     console.warn(`[TauriPluginFsMockModule] (writeTextFile) Tauri is mocked - no file actually written`);
+  }
+
+  private static remove({ path, options }: { path: string | URL, options?: TauriFs.RemoveOptions }): void {
+    console.warn(`[TauriPluginFsMockModule] (remove) Tauri is mocked - no file actually removed`);
   }
 
   private static watch({ }: { paths: (string | URL)[], options: DebouncedWatchOptions, onEvent: Channel<WatchEvent> }) {

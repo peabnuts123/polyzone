@@ -20,6 +20,7 @@ import { ProjectFileEventType } from '@lib/project/watcher/project';
 import { ProjectAssetEventType } from '@lib/project/watcher/assets';
 import { MaterialEditorViewMutator, MaterialEditorViewMutatorNew } from '@lib/mutation/MaterialEditor/MaterialEditorView';
 import { JsoncContainer } from '@lib/util/JsoncContainer';
+import { MutationController } from '@lib/mutation/MutationController';
 import { MaterialData } from './MaterialData';
 
 export interface IMaterialEditorViewController {
@@ -44,6 +45,7 @@ export class MaterialEditorViewController implements IMaterialEditorViewControll
   private _materialJson: JsoncContainer<MaterialDefinition> | undefined;
 
   private readonly projectController: IProjectController;
+  private readonly mutationController: MutationController;
   private readonly _mutator: MaterialEditorViewMutator;
   private readonly _mutatorNew: MaterialEditorViewMutatorNew;
 
@@ -55,9 +57,10 @@ export class MaterialEditorViewController implements IMaterialEditorViewControll
 
   private _materialInstance: RetroMaterial | undefined = undefined;
 
-  private constructor(material: MaterialAssetData, projectController: IProjectController) {
+  private constructor(material: MaterialAssetData, projectController: IProjectController, mutationController: MutationController) {
     this._materialAssetData = material;
     this.projectController = projectController;
+    this.mutationController = mutationController;
     this._mutator = new MaterialEditorViewMutator(
       this,
       projectController,
@@ -65,6 +68,7 @@ export class MaterialEditorViewController implements IMaterialEditorViewControll
     this._mutatorNew = new MaterialEditorViewMutatorNew(
       this,
       projectController,
+      mutationController,
     );
 
     // Load material asset
@@ -128,8 +132,8 @@ export class MaterialEditorViewController implements IMaterialEditorViewControll
     makeAutoObservable(this);
   }
 
-  public static async create(material: MaterialAssetData, projectController: IProjectController): Promise<MaterialEditorViewController> {
-    const controller = new MaterialEditorViewController(material, projectController);
+  public static async create(material: MaterialAssetData, projectController: IProjectController, mutationController: MutationController): Promise<MaterialEditorViewController> {
+    const controller = new MaterialEditorViewController(material, projectController, mutationController);
     await controller.buildScene();
     return controller;
   }
@@ -189,10 +193,13 @@ export class MaterialEditorViewController implements IMaterialEditorViewControll
     });
     resizeObserver.observe(this.canvas as unknown as Element); // @TODO FUCK YOU REACT!!!!!!
 
+    this.mutationController.setMutatorActive(this.mutatorNew, true);
+
     /* Teardown - when scene view is unloaded */
     const onDestroyView = (): void => {
       resizeObserver.unobserve(this.canvas as unknown as Element); // @TODO FUCK YOU REACT!!!!!!
       this.engine.stopRenderLoop(renderLoop);
+      this.mutationController.setMutatorActive(this.mutatorNew, false);
     };
     return onDestroyView;
   }
@@ -204,6 +211,7 @@ export class MaterialEditorViewController implements IMaterialEditorViewControll
     this.engine.dispose();
     this.unlistenToFileSystemEvents();
     this._canvas.remove();
+    this.mutatorNew.deregister();
   }
 
   private async createScene(): Promise<void> {

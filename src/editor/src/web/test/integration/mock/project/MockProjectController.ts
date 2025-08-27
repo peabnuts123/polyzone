@@ -11,8 +11,9 @@ import { Func } from '@lib/util/types';
 import { SceneDb } from '@lib/project/data/SceneDb';
 
 import { MockFileSystem } from '../filesystem/MockFileSystem';
-import { MockProjectMutator } from './MockProjectMutator';
+import { MockProjectMutator, MockProjectMutatorNew } from './MockProjectMutator';
 import { MockProject } from './MockProject';
+import { MutationController } from '@lib/mutation/MutationController';
 
 /**
  * Mock version of `ProjectController` that just houses state, and otherwise contains no logic.
@@ -22,7 +23,9 @@ export class MockProjectController implements IProjectController {
   public hasLoadedProject = true;
   public project: ProjectData;
   public projectJson: JsoncContainer<ProjectDefinition>;
+  public mutationController: MutationController;
   public mutator: MockProjectMutator;
+  public mutatorNew: MockProjectMutatorNew;
   public fileSystem: MockFileSystem;
   public filesWatcher: ProjectFilesWatcher;
   public assetCache: AssetCache;
@@ -37,7 +40,9 @@ export class MockProjectController implements IProjectController {
     this.projectJson = projectJson;
     this.fileSystem = fileSystem;
     this.assetCache = assetCache;
+    this.mutationController = new MutationController();
     this.mutator = new MockProjectMutator(this);
+    this.mutatorNew = new MockProjectMutatorNew(this, this.mutationController);
     this.filesWatcher = new ProjectFilesWatcher(this);
   }
 

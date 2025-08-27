@@ -5,6 +5,7 @@ import type { IProjectController } from '@lib/project/ProjectController';
 import { MaterialAssetData, MeshAssetData } from '@lib/project/data/assets';
 import { ModelEditorViewController, type IModelEditorViewController } from './model/ModelEditorViewController';
 import { MaterialEditorViewController, type IMaterialEditorViewController } from './material/MaterialEditorViewController';
+import { MutationController } from '@lib/mutation/MutationController';
 
 export interface ModelTabData {
   id: string;
@@ -39,9 +40,11 @@ export class MaterialEditorController implements IMaterialEditorController {
   private _currentlyOpenTabs: TabData[] = [];
 
   private readonly projectController: IProjectController;
+  private readonly mutationController: MutationController;
 
-  public constructor(projectController: IProjectController) {
+  public constructor(projectController: IProjectController, mutationController: MutationController) {
     this.projectController = projectController;
+    this.mutationController = mutationController;
 
     // Open 1 blank tab
     this.openNewTab();
@@ -65,6 +68,7 @@ export class MaterialEditorController implements IMaterialEditorController {
     const controller = await ModelEditorViewController.create(
       model,
       this.projectController,
+      this.mutationController,
     );
 
     runInAction(() => {
@@ -91,6 +95,7 @@ export class MaterialEditorController implements IMaterialEditorController {
     const controller = await MaterialEditorViewController.create(
       material,
       this.projectController,
+      this.mutationController,
     );
 
     runInAction(() => {

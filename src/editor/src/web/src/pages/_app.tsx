@@ -35,7 +35,7 @@ const App: FunctionComponent<AppProps> = ({ Component }) => {
 
   const library = createLibrary();
 
-  const { ProjectController } = library;
+  const { ProjectController, MutationController } = library;
 
   let isRedirecting = false;
   if (
@@ -57,6 +57,23 @@ const App: FunctionComponent<AppProps> = ({ Component }) => {
   useEffect(() => {
     // Add teardown code (to handle things like browser refresh)
     window.addEventListener('pagehide', library.onPageUnload);
+  }, []);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent): void => {
+      // Check for undo shortcut (Ctrl+Z on Windows/Linux, Cmd+Z on Mac)
+      if (event.key === 'z' && (event.ctrlKey || event.metaKey)) {
+        event.preventDefault();
+
+        void MutationController.undoLatestActive();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
   }, []);
 
   return (<>

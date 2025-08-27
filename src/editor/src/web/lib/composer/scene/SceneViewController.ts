@@ -30,6 +30,7 @@ import { SceneDbRecord } from '@lib/project/data/SceneDb';
 import { ProjectAssetEventType } from '@lib/project/watcher/assets';
 import { ComponentDependencyManager } from '@lib/common/ComponentDependencyManager';
 import { createEditorGameObjectComponent } from '@lib/common/GameObjects';
+import { MutationController } from '@lib/mutation/MutationController';
 import { SceneViewSelectionCache } from './SceneViewSelectionCache';
 import { isAssetDependentComponent, ISelectableObject, isSelectableObject } from './components';
 import { CurrentSelectionTool, SelectionManager } from './SelectionManager';
@@ -64,6 +65,7 @@ export class SceneViewController implements ISceneViewController {
   private _scene: SceneData;
   private _sceneJson: JsoncContainer<SceneDefinition>;
   private readonly projectController: IProjectController;
+  private readonly mutationController: MutationController;
   private readonly _mutator: SceneViewMutator;
   private readonly _mutatorNew: SceneViewMutatorNew;
 
@@ -78,10 +80,11 @@ export class SceneViewController implements ISceneViewController {
 
   private _gameObjectInstances: GameObjectRuntime[];
 
-  private constructor(scene: SceneData, sceneJson: JsoncContainer<SceneDefinition>, projectController: IProjectController) {
+  private constructor(scene: SceneData, sceneJson: JsoncContainer<SceneDefinition>, projectController: IProjectController, mutationController: MutationController) {
     this._scene = scene;
     this._sceneJson = sceneJson;
     this.projectController = projectController;
+    this.mutationController = mutationController;
     this._gameObjectInstances = [];
     this.componentDependencyManager = new ComponentDependencyManager();
     this.selectionCache = new SceneViewSelectionCache();
@@ -92,6 +95,7 @@ export class SceneViewController implements ISceneViewController {
     this._mutatorNew = new SceneViewMutatorNew(
       this,
       projectController,
+      mutationController,
     );
 
     this._canvas = document.createElement('canvas');
@@ -168,8 +172,8 @@ export class SceneViewController implements ISceneViewController {
     makeAutoObservable(this);
   }
 
-  public static async create(scene: SceneData, sceneJson: JsoncContainer<SceneDefinition>, projectController: IProjectController): Promise<SceneViewController> {
-    const sceneViewController = new SceneViewController(scene, sceneJson, projectController);
+  public static async create(scene: SceneData, sceneJson: JsoncContainer<SceneDefinition>, projectController: IProjectController, mutationController: MutationController): Promise<SceneViewController> {
+    const sceneViewController = new SceneViewController(scene, sceneJson, projectController, mutationController);
     await sceneViewController.buildScene();
     return sceneViewController;
   }
@@ -222,10 +226,13 @@ export class SceneViewController implements ISceneViewController {
     });
     resizeObserver.observe(this.canvas as unknown as Element); // @TODO FUCK YOU REACT!!!!!!
 
+    this.mutationController.setMutatorActive(this.mutatorNew, true);
+
     /* Teardown - when scene view is unloaded */
     const onDestroyView = (): void => {
       resizeObserver.unobserve(this.canvas as unknown as Element); // @TODO FUCK YOU REACT!!!!!!
       this.engine.stopRenderLoop(renderLoop);
+      this.mutationController.setMutatorActive(this.mutatorNew, false);
     };
     return onDestroyView;
   }
@@ -241,6 +248,7 @@ export class SceneViewController implements ISceneViewController {
       gameObjectInstance.destroy();
     }
     void this.projectController.assetCache.disposeSceneInstances(this.babylonScene);
+    this.mutatorNew.deregister();
   }
 
   private async createScene(): Promise<void> {

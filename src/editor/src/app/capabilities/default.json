@@ -10,6 +10,7 @@
     "shell:allow-open",
     "fs:allow-app-read-recursive",
     "fs:allow-rename",
+    "fs:allow-remove",
     {
       "identifier": "fs:allow-write-text-file",
       "allow": [

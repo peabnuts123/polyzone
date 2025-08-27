@@ -7,6 +7,7 @@ import type { IProjectController } from '@lib/project/ProjectController';
 import { toRuntimeSceneDefinition } from '@lib/project/definition';
 import { SceneData } from '@lib/project/data';
 import { invoke } from '@lib/util/TauriCommands';
+import { MutationController } from '@lib/mutation/MutationController';
 import { SceneViewController, type ISceneViewController } from './scene/SceneViewController';
 
 
@@ -31,9 +32,11 @@ export class ComposerController implements IComposerController {
   private _tabData: TabData[] = [];
 
   private readonly projectController: IProjectController;
+  private readonly mutationController: MutationController;
 
-  public constructor(projectController: IProjectController) {
+  public constructor(projectController: IProjectController, mutationController: MutationController) {
     this.projectController = projectController;
+    this.mutationController = mutationController;
 
     // Open 1 blank tab
     this.openNewTab();
@@ -75,6 +78,7 @@ export class ComposerController implements IComposerController {
           scene.data,
           scene.jsonc,
           this.projectController,
+          this.mutationController,
         );
 
         runInAction(() => {

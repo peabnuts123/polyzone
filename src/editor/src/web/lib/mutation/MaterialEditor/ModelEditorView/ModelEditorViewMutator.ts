@@ -4,6 +4,7 @@ import { invoke } from "@lib/util/TauriCommands";
 import { MutatorNew } from "@lib/mutation/MutatorNew";
 import { Mutator } from "../../Mutator";
 import { ModelEditorViewMutationArguments } from "./ModelEditorViewMutationArguments";
+import { MutationController } from "@lib/mutation/MutationController";
 
 
 export class ModelEditorViewMutator extends Mutator<ModelEditorViewMutationArguments> {
@@ -43,8 +44,8 @@ export class ModelEditorViewMutatorNew extends MutatorNew<ModelEditorViewMutatio
   private readonly modelEditorViewController: IModelEditorViewController;
   private readonly projectController: IProjectController;
 
-  public constructor(modelEditorViewController: IModelEditorViewController, projectController: IProjectController) {
-    super();
+  public constructor(modelEditorViewController: IModelEditorViewController, projectController: IProjectController, mutationController: MutationController) {
+    super(mutationController);
     this.modelEditorViewController = modelEditorViewController;
     this.projectController = projectController;
   }

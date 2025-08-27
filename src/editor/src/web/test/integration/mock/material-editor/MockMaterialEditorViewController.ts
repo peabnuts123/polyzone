@@ -11,6 +11,7 @@ import { MaterialAssetData } from '@lib/project/data';
 import { MaterialData } from '@lib/material-editor/material/MaterialData';
 import type { MockProjectController } from '@test/integration/mock/project/MockProjectController';
 import { MaterialAssetDefinition } from '@lib/project';
+import { MutationController } from '@lib/mutation/MutationController';
 
 import { MockMaterialEditorViewMutator, MockMaterialEditorViewMutatorNew } from './MockMaterialEditorViewMutator';
 
@@ -26,6 +27,7 @@ export class MockMaterialEditorViewController implements IMaterialEditorViewCont
   public materialInstance: RetroMaterial;
   public mutator: MockMaterialEditorViewMutator;
   public mutatorNew: MockMaterialEditorViewMutatorNew;
+  public mutationController: MutationController;
   public scene: BabylonScene;
 
   private constructor(
@@ -43,8 +45,9 @@ export class MockMaterialEditorViewController implements IMaterialEditorViewCont
     this.materialJson = materialJson;
     this.materialInstance = materialInstance;
     this.scene = scene;
+    this.mutationController = new MutationController();
     this.mutator = new MockMaterialEditorViewMutator(this, projectController);
-    this.mutatorNew = new MockMaterialEditorViewMutatorNew(this, projectController);
+    this.mutatorNew = new MockMaterialEditorViewMutatorNew(this, projectController, this.mutationController);
   }
 
   public static async create(

@@ -1,5 +1,5 @@
 import { convertFileSrc } from '@tauri-apps/api/core';
-import { readFile, writeFile, rename, exists } from '@tauri-apps/plugin-fs';
+import { readFile, writeFile, remove, rename, exists } from '@tauri-apps/plugin-fs';
 import { makeObservable, runInAction } from 'mobx';
 
 import { VirtualFile } from "@polyzone/runtime/src/filesystem";
@@ -19,13 +19,14 @@ const MinimumWritingStatusDurationMs = 500;
 export class TauriFileSystem extends IWritableFileSystem {
   private readonly projectRootDir: string;
   private _writingState: WritingState = WritingState.UpToDate;
+  private withWritingStateTimeout: ReturnType<typeof setTimeout> | undefined;
 
   public constructor(projectRootDir: string) {
     super(`pzedfs`);
     this.projectRootDir = projectRootDir;
 
     // @NOTE List of private property names, so that MobX can reference them
-    type PrivateProperties = '_writingState' | 'projectRootDir';
+    type PrivateProperties = '_writingState' | 'projectRootDir' | 'withWritingStateTimeout';
     makeObservable<TauriFileSystem, PrivateProperties>(this, {
       '_writingState': true,
       'writingState': true,
@@ -33,6 +34,7 @@ export class TauriFileSystem extends IWritableFileSystem {
       'getUrlForPath': true,
       'readFile': true,
       'writeFile': true,
+      'withWritingStateTimeout': true,
     });
   }
 
@@ -50,24 +52,29 @@ export class TauriFileSystem extends IWritableFileSystem {
   }
 
   public async writeFile(path: string, data: Uint8Array): Promise<void> {
-    this.writingState = WritingState.Writing;
-    const startWriteTime = performance.now();
-
     try {
-      await writeFile(this.resolvePathFromProjectRoot(path), data);
-
-      const writingDuration = performance.now() - startWriteTime;
-      const waitTime = Math.max(MinimumWritingStatusDurationMs - writingDuration, 0);
-      setTimeout(() => {
-        runInAction(() => {
-          this.writingState = WritingState.UpToDate;
-        });
-      }, waitTime);
+      await this.withWritingState(() =>
+        writeFile(this.resolvePathFromProjectRoot(path), data),
+      );
     } catch (e) {
       runInAction(() => {
         this.writingState = WritingState.Failed;
       });
       console.error(`Failed to write file: `, e);
+      throw e;
+    }
+  }
+
+  public async deleteFile(path: string): Promise<void> {
+    try {
+      await this.withWritingState(() =>
+        remove(this.resolvePathFromProjectRoot(path)),
+      );
+    } catch (e) {
+      runInAction(() => {
+        this.writingState = WritingState.Failed;
+      });
+      console.error(`Failed to delete file: `, e);
       throw e;
     }
   }
@@ -87,6 +94,30 @@ export class TauriFileSystem extends IWritableFileSystem {
       oldPath,
       newPath,
     );
+  }
+
+  private async withWritingState(fn: (...args: any[]) => Promise<void>): Promise<void> {
+    this.writingState = WritingState.Writing;
+    const startWriteTime = performance.now();
+
+    await fn();
+
+    const writingDuration = performance.now() - startWriteTime;
+    const waitTime = Math.max(MinimumWritingStatusDurationMs - writingDuration, 0);
+
+    // Cancel previous timer if starting a new one to prevent race conditions
+    if (this.withWritingStateTimeout !== undefined) {
+      runInAction(() => {
+        clearTimeout(this.withWritingStateTimeout);
+      });
+    }
+
+    // Start new timer to clear writing state
+    setTimeout(() => {
+      runInAction(() => {
+        this.writingState = WritingState.UpToDate;
+      });
+    }, waitTime);
   }
 
   private resolvePathFromProjectRoot(...pathSegments: string[]): string {

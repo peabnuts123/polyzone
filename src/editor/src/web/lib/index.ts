@@ -1,12 +1,14 @@
 import { createContext, useContext, useState } from 'react';
 
 import { ApplicationDataController } from './application/ApplicationDataController';
+import { MutationController } from './mutation/MutationController';
 import { ProjectController, type IProjectController } from "./project/ProjectController";
 import { ComposerController, type IComposerController } from "./composer/ComposerController";
 import { MaterialEditorController, type IMaterialEditorController } from './material-editor/MaterialEditorController';
 
 export interface Library {
-  ApplicationDataController: ApplicationDataController
+  ApplicationDataController: ApplicationDataController;
+  MutationController: MutationController;
   ProjectController: IProjectController;
   ComposerController: IComposerController;
   MaterialEditorController: IMaterialEditorController;
@@ -18,13 +20,15 @@ export interface Library {
 export function createLibrary(): Library {
 
   // Poor-man's dependency injection
-  const [applicationDataController, _setApplicationDataController] = useState<ApplicationDataController>(new ApplicationDataController());
-  const [projectController, setProjectController] = useState<IProjectController>(new ProjectController(applicationDataController));
-  const [composerController, setComposerController] = useState<IComposerController>(new ComposerController(projectController));
-  const [materialEditorController, setMaterialEditorController] = useState<IMaterialEditorController>(new MaterialEditorController(projectController));
+  const [applicationDataController, _setApplicationDataController] = useState<ApplicationDataController>(() => new ApplicationDataController());
+  const [mutationController, setMutationController] = useState<MutationController>(() => new MutationController());
+  const [projectController, setProjectController] = useState<IProjectController>(() => new ProjectController(applicationDataController, mutationController));
+  const [composerController, setComposerController] = useState<IComposerController>(() => new ComposerController(projectController, mutationController));
+  const [materialEditorController, setMaterialEditorController] = useState<IMaterialEditorController>(() => new MaterialEditorController(projectController, mutationController));
 
   return {
     ApplicationDataController: applicationDataController,
+    MutationController: mutationController,
     ProjectController: projectController,
     ComposerController: composerController,
     MaterialEditorController: materialEditorController,
@@ -34,10 +38,13 @@ export function createLibrary(): Library {
       materialEditorController.onDestroy();
 
       // @NOTE be careful you don't accidentally leave dangling copies of old instances
-      // laying around when construction new ones
-      const newProjectController = new ProjectController(applicationDataController);
-      const newComposerController = new ComposerController(newProjectController);
-      const newMaterialEditorController = new MaterialEditorController(newProjectController);
+      // laying around when constructing new ones (e.g. injected references to old values)
+      // i.e. pay attention to the order you construct these values
+      const newMutationController = new MutationController();
+      const newProjectController = new ProjectController(applicationDataController, newMutationController);
+      const newComposerController = new ComposerController(newProjectController, newMutationController);
+      const newMaterialEditorController = new MaterialEditorController(newProjectController, newMutationController);
+      setMutationController(newMutationController);
       setProjectController(newProjectController);
       setComposerController(newComposerController);
       setMaterialEditorController(newMaterialEditorController);

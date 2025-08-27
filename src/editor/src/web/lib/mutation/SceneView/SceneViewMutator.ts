@@ -4,6 +4,7 @@ import { invoke } from "@lib/util/TauriCommands";
 import { Mutator } from "../Mutator";
 import { SceneViewMutationArguments } from "./SceneViewMutationArguments";
 import { MutatorNew } from "../MutatorNew";
+import { MutationController } from "../MutationController";
 
 // @TODO Remove, replace with New
 export class SceneViewMutator extends Mutator<SceneViewMutationArguments> {
@@ -56,8 +57,8 @@ export class SceneViewMutatorNew extends MutatorNew<SceneViewMutationArguments> 
   private readonly sceneViewController: ISceneViewController;
   private readonly projectController: IProjectController;
 
-  public constructor(sceneViewController: ISceneViewController, projectController: IProjectController) {
-    super();
+  public constructor(sceneViewController: ISceneViewController, projectController: IProjectController, mutationController: MutationController) {
+    super(mutationController);
     this.sceneViewController = sceneViewController;
     this.projectController = projectController;
   }

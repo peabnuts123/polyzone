@@ -35,6 +35,13 @@ export class MockFileSystem extends IWritableFileSystem {
     this.files[path] = data;
   }
 
+  public deleteFile(path: string): Promise<void> {
+    return Promise.resolve(this.deleteFileSync(path));
+  }
+  public deleteFileSync(path: string): void {
+    delete this.files[path];
+  }
+
   public fileExists(path: string): boolean {
     return this.files[path] !== undefined;
   }

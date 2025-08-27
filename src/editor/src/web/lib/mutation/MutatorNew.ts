@@ -2,6 +2,7 @@ import { runInAction } from "mobx";
 import { IContinuousMutation2, isContinuousMutation2 } from "./IContinuousMutation";
 import { IMutation2 } from "./IMutation";
 import { AsyncScheduler } from "./AsyncScheduler";
+import { MutationController } from "./MutationController";
 
 type MutationTarget = any;
 type Constructor<T> = new (...args: any[]) => T;
@@ -48,7 +49,21 @@ class CurrentDebounceState<TMutationDependencies, TMutationArgs, TMutation exten
   }
 }
 
-export abstract class MutatorNew<TMutationDependencies> {
+export interface ActiveMutation<TMutationDependencies = any> {
+  id: number;
+  // @TODO IMutation technically doesn't need its second param - try removing it
+  instance: IMutation2<TMutationDependencies, unknown>;
+}
+
+// View of `Mutator` class without any access to generic properties
+export abstract class BaseMutatorNew {
+  public abstract get latestMutation(): ActiveMutation | undefined;
+  public abstract undo(): Promise<void>;
+  public abstract register(): void;
+  public abstract deregister(): void;
+}
+
+export abstract class MutatorNew<TMutationDependencies> extends BaseMutatorNew {
   /**
    * Async Scheduler. Runs async tasks in series, in the order they are scheduled.
    * It is static so that every task across every mutator instance is all forced through
@@ -58,14 +73,19 @@ export abstract class MutatorNew<TMutationDependencies> {
    */
   private static scheduler: AsyncScheduler = new AsyncScheduler();
   // @TODO I guess we should place some kind of large limit on this?
-  private readonly mutationStack: IMutation2<TMutationDependencies, unknown>[];
+  // private readonly mutationStack: IMutation2<TMutationDependencies, unknown>[];
+  private readonly mutationStack: ActiveMutation<TMutationDependencies>[];
+  private readonly mutationController: MutationController;
 
   // State
   // @NOTE Type laundering with `any` ¯\_(ツ)_/¯
   private currentDebounceState?: CurrentDebounceState<TMutationDependencies, unknown, any> = undefined;
 
-  public constructor() {
+  public constructor(mutationController: MutationController) {
+    super();
+    this.mutationController = mutationController;
     this.mutationStack = [];
+    this.register();
   }
 
   public beginContinuous<TMutationArgs>(continuousMutation: IContinuousMutation2<TMutationDependencies, TMutationArgs>): Promise<void> {
@@ -85,15 +105,18 @@ export abstract class MutatorNew<TMutationDependencies> {
 
     // Validate previous mutation has been applied successfully
     if (
-      isContinuousMutation2(this.latestMutation) &&
-      !this.latestMutation.hasBeenApplied
+      isContinuousMutation2(this.latestMutation?.instance) &&
+      !this.latestMutation.instance.hasBeenApplied
     ) {
       // Tried to call begin on a new mutation before applying the previous (continuous) mutation
       throw new Error(`Cannot begin continuous mutation - Previous continuous mutation has not been applied`);
     }
 
     // Push new mutation (not yet applied)
-    this.mutationStack.push(continuousMutation);
+    this.mutationStack.push({
+      id: this.mutationController.requestMutationId(),
+      instance: continuousMutation,
+    });
 
     // Capture undo state before making any updates
     continuousMutation.captureUndoArgs(this.getMutationArgs());
@@ -110,7 +133,7 @@ export abstract class MutatorNew<TMutationDependencies> {
    */
   private async __updateContinuousImmediate<TMutationArgs>(continuousMutation: IContinuousMutation2<TMutationDependencies, TMutationArgs>, updateArgs: TMutationArgs): Promise<void> {
     // Validate
-    if (this.latestMutation !== continuousMutation) {
+    if (this.latestMutation?.instance !== continuousMutation) {
       throw new Error(`Cannot update continuous mutation - provided instance is not the latest mutation`);
     }
 
@@ -148,20 +171,23 @@ export abstract class MutatorNew<TMutationDependencies> {
     }
 
     // @NOTE Oosh. I'm sorry, this logic got real complicated !!
-    if (mutation !== this.latestMutation) {
+    if (mutation !== this.latestMutation?.instance) {
       // Applying a new mutation
       if (isContinuousMutation2(mutation)) {
         // Expect when `mutation` is continuous to always == `latestMutation` as continuous mutations are pushed to the stack in `beginContinuous()`
         throw new Error(`Cannot apply continuous mutation - It is not the latest mutation, did you call 'beginContinuous()'?`);
       } else if (
-        isContinuousMutation2(this.latestMutation) &&
-        !this.latestMutation.hasBeenApplied
+        isContinuousMutation2(this.latestMutation?.instance) &&
+        !this.latestMutation.instance.hasBeenApplied
       ) {
         // Tried to call apply on a new mutation before applying the previous (continuous) mutation
         throw new Error(`Cannot apply mutation - Previous continuous mutation has not been applied`);
       } else {
         // New, non-continuous mutation, and previous mutation was either non-continuous, or has been applied
-        this.mutationStack.push(mutation);
+        this.mutationStack.push({
+          id: this.mutationController.requestMutationId(),
+          instance: mutation,
+        });
       }
     } else {
       // `mutation` is the same as `latestMutation`
@@ -193,7 +219,7 @@ export abstract class MutatorNew<TMutationDependencies> {
     });
 
     // @TODO @DEBUG REMOVE
-    console.log(`Mutation stack: `, this.mutationStack.map((mutation) => mutation.description));
+    console.log(`Mutation stack: `, this.mutationStack.map((mutation) => mutation.instance.description));
 
     // Save to disk
     await this.persistChanges();
@@ -219,14 +245,14 @@ export abstract class MutatorNew<TMutationDependencies> {
       const mutationArgs = this.getMutationArgs();
 
       await runInAction(() => {
-        return mutation.undoMutation(mutationArgs);
+        return mutation.instance.undoMutation(mutationArgs);
       });
 
       // @TODO Redo? lol
       this.mutationStack.pop();
 
       // @TODO @DEBUG REMOVE
-      console.log(`Mutation stack: `, this.mutationStack.map((mutation) => mutation.description));
+      console.log(`Mutation stack: `, this.mutationStack.map((mutation) => mutation.instance.description));
 
       // Save to disk
       await this.persistChanges();
@@ -234,8 +260,8 @@ export abstract class MutatorNew<TMutationDependencies> {
       // @NOTE runInAction will be useless after an `await`, so called code
       // will need additional `runInAction` calls after async work
       await runInAction(() => {
-        if (mutation.afterPersistChanges) {
-          return mutation.afterPersistChanges(mutationArgs);
+        if (mutation.instance.afterPersistChanges) {
+          return mutation.instance.afterPersistChanges(mutationArgs);
         }
       });
     });
@@ -255,11 +281,11 @@ export abstract class MutatorNew<TMutationDependencies> {
    * @param timeoutMs The debounce window length, in milliseconds. Defaults to 500ms.
    */
   public async debounceContinuous<TMutation extends IContinuousMutation2<TMutationDependencies, any>>(
-      typeCtor: Constructor<TMutation>,
-      mutationTarget: MutationTarget,
-      createMutation: () => TMutation,
-      getUpdateArgs: () => TMutation extends IContinuousMutation2<TMutationDependencies, infer TUpdateArgs> ? TUpdateArgs : never,
-      timeoutMs: number = 500,
+    typeCtor: Constructor<TMutation>,
+    mutationTarget: MutationTarget,
+    createMutation: () => TMutation,
+    getUpdateArgs: () => TMutation extends IContinuousMutation2<TMutationDependencies, infer TUpdateArgs> ? TUpdateArgs : never,
+    timeoutMs: number = 500,
   ): Promise<void> {
     return MutatorNew.scheduler.runTask(async () => {
       return this.__debounceContinuousImmediate(
@@ -338,10 +364,18 @@ export abstract class MutatorNew<TMutationDependencies> {
     }
   }
 
+  public register(): void {
+    this.mutationController.registerMutator(this);
+  }
+
+  public deregister(): void {
+    this.mutationController.deregisterMutator(this);
+  }
+
   protected abstract getMutationArgs(): TMutationDependencies;
   protected abstract persistChanges(): Promise<void>;
 
-  private get latestMutation(): IMutation2<TMutationDependencies, unknown> | undefined {
+  public get latestMutation(): ActiveMutation<TMutationDependencies> | undefined {
     if (this.mutationStack.length === 0) {
       return undefined;
     } else {

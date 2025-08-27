@@ -28,12 +28,19 @@ describe(CreateNewSceneMutation.name, () => {
     const initialSceneFile = mock.fileSystem.files[mockNewScenePath];
 
     // Test
-    await mockProjectController.mutator.apply(mutation);
+    await mockProjectController.mutatorNew.apply(mutation);
 
     const updatedProjectDataScenes = [...mockProjectController.project.scenes.getAll()];
     const updatedSceneData = mockProjectController.project.scenes.getByPath(mockNewScenePath);
     const updatedSceneDefinition = mockProjectController.projectDefinition.scenes.find((sceneManifest) => sceneManifest.path === mockNewScenePath);
     const updatedSceneFile = mock.fileSystem.files[mockNewScenePath];
+
+    await mockProjectController.mutatorNew.undo();
+
+    const finalProjectDataScenes = [...mockProjectController.project.scenes.getAll()];
+    const finalSceneData = mockProjectController.project.scenes.getByPath(mockNewScenePath);
+    const finalSceneDefinition = mockProjectController.projectDefinition.scenes.find((sceneManifest) => sceneManifest.path === mockNewScenePath);
+    const finalSceneFile = mock.fileSystem.files[mockNewScenePath];
 
     // Assert
     /* Initial values */
@@ -41,6 +48,7 @@ describe(CreateNewSceneMutation.name, () => {
     expect(initialSceneData).toBeUndefined();
     expect(initialSceneDefinition).toBeUndefined();
     expect(initialSceneFile).toBeUndefined();
+
     /* Updated values */
     expect(updatedProjectDataScenes).toHaveLength(1);
     expect(updatedSceneData).toBeDefined();
@@ -50,5 +58,11 @@ describe(CreateNewSceneMutation.name, () => {
     expect(updatedSceneDefinition?.hash).toBe(mockNewSceneHash);
     expect(updatedSceneDefinition?.path).toBe(mockNewScenePath);
     expect(updatedSceneFile).toBeDefined();
+
+    /* After undo */
+    expect(finalProjectDataScenes).toHaveLength(0);
+    expect(finalSceneData).toBeUndefined();
+    expect(finalSceneDefinition).toBeUndefined();
+    expect(finalSceneFile).toBeUndefined();
   });
 });

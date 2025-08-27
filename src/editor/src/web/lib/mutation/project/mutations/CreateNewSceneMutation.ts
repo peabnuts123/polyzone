@@ -7,17 +7,19 @@ import { JsoncContainer, resolvePath } from '@lib/util/JsoncContainer';
 import { ProjectDefinition, SceneManifest } from '@lib/project/definition';
 import { SceneDefinition } from '@lib/project/definition/scene/SceneDefinition';
 import { invoke } from '@lib/util/TauriCommands';
-import { IProjectMutation } from "../IProjectMutation";
+import { BaseProjectMutation } from "../IProjectMutation";
 import { ProjectMutationArguments } from "../ProjectMutationArguments";
 
-export class CreateNewSceneMutation implements IProjectMutation {
-  private path: string;
+interface MutationArgs {
+  path: string;
+}
 
+export class CreateNewSceneMutation extends BaseProjectMutation<MutationArgs> {
   public constructor(path: string) {
-    this.path = path;
+    super({ path });
   }
 
-  public async apply({ ProjectController }: ProjectMutationArguments): Promise<void> {
+  public async apply({ ProjectController }: ProjectMutationArguments, { path }: MutationArgs): Promise<void> {
     // New Data
     const newSceneJsonc = this.createNewSceneDefinition();
     const newSceneJsoncBytes = new TextEncoder().encode(
@@ -30,7 +32,7 @@ export class CreateNewSceneMutation implements IProjectMutation {
     const newSceneManifest: SceneManifest = {
       id: uuid(),
       hash: newSceneHash,
-      path: this.path,
+      path,
     };
 
     // 1. Update data
@@ -44,14 +46,29 @@ export class CreateNewSceneMutation implements IProjectMutation {
 
     // 3. Create new asset on disk
     await ProjectController.fileSystem.writeFile(
-      this.path,
+      path,
       newSceneJsoncBytes,
     );
   }
 
-  undo(_args: ProjectMutationArguments): void {
-    // @TODO prompt for undo?
-    throw new Error("Method not implemented.");
+  protected useCustomUndo: boolean = true;
+  public override async customUndo({ ProjectController }: ProjectMutationArguments, { path }: MutationArgs): Promise<void> {
+    const newScene = ProjectController.project.scenes.getByPath(path);
+    if (newScene === undefined) {
+      throw new Error(`Cannot undo CreateNewSceneMutation - scene not found at path: ${path}`);
+    }
+
+    // 1. Update data
+    ProjectController.project.scenes.remove(newScene.data.id);
+
+    // 2. Update JSON
+    const sceneIndex = ProjectController.projectJson.value.scenes.findIndex((scene) => scene.id === newScene.data.id);
+    const jsonPath = resolvePath((project: ProjectDefinition) => project.scenes[sceneIndex]);
+    ProjectController.projectJson.delete(jsonPath);
+
+    // 3. Delete asset from disk
+    // @TODO pop up some kind of confirmation
+    await ProjectController.fileSystem.deleteFile(path);
   }
 
   private createNewSceneDefinition(): JsoncContainer<SceneDefinition> {

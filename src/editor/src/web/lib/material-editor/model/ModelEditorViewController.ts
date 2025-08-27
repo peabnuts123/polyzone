@@ -22,6 +22,7 @@ import { ProjectAssetEventType } from '@lib/project/watcher/assets';
 import { ModelEditorViewMutator, ModelEditorViewMutatorNew } from '@lib/mutation/MaterialEditor/ModelEditorView';
 import { ComponentDependencyManager } from '@lib/common/ComponentDependencyManager';
 import { MeshComponent } from '@lib/composer/scene/components';
+import { MutationController } from '@lib/mutation/MutationController';
 
 export interface IModelEditorViewController {
   startBabylonView(): () => void;
@@ -43,6 +44,7 @@ export interface IModelEditorViewController {
 export class ModelEditorViewController implements IModelEditorViewController {
   private _model: MeshAssetData;
   private readonly projectController: IProjectController;
+  private readonly mutationController: MutationController;
   private readonly _mutator: ModelEditorViewMutator;
   private readonly _mutatorNew: ModelEditorViewMutatorNew;
 
@@ -58,9 +60,10 @@ export class ModelEditorViewController implements IModelEditorViewController {
 
   private _selectedMaterialName: string | undefined = undefined;
 
-  private constructor(model: MeshAssetData, projectController: IProjectController) {
+  private constructor(model: MeshAssetData, projectController: IProjectController, mutationController: MutationController) {
     this._model = model;
     this.projectController = projectController;
+    this.mutationController = mutationController;
     this.componentDependencyManager = new ComponentDependencyManager();
     this._mutator = new ModelEditorViewMutator(
       this,
@@ -69,6 +72,7 @@ export class ModelEditorViewController implements IModelEditorViewController {
     this._mutatorNew = new ModelEditorViewMutatorNew(
       this,
       projectController,
+      mutationController,
     );
 
     this._canvas = document.createElement('canvas');
@@ -138,8 +142,8 @@ export class ModelEditorViewController implements IModelEditorViewController {
     makeAutoObservable(this);
   }
 
-  public static async create(model: MeshAssetData, projectController: IProjectController): Promise<ModelEditorViewController> {
-    const controller = new ModelEditorViewController(model, projectController);
+  public static async create(model: MeshAssetData, projectController: IProjectController, mutationController: MutationController): Promise<ModelEditorViewController> {
+    const controller = new ModelEditorViewController(model, projectController, mutationController);
     await controller.buildScene();
     return controller;
   }
@@ -188,10 +192,13 @@ export class ModelEditorViewController implements IModelEditorViewController {
     });
     resizeObserver.observe(this.canvas as unknown as Element); // @TODO FUCK YOU REACT!!!!!!
 
+    this.mutationController.setMutatorActive(this.mutatorNew, true);
+
     /* Teardown - when scene view is unloaded */
     const onDestroyView = (): void => {
       resizeObserver.unobserve(this.canvas as unknown as Element); // @TODO FUCK YOU REACT!!!!!!
       this.engine.stopRenderLoop(renderLoop);
+      this.mutationController.setMutatorActive(this.mutatorNew, false);
     };
     return onDestroyView;
   }
@@ -203,6 +210,7 @@ export class ModelEditorViewController implements IModelEditorViewController {
     this.engine.dispose();
     this.unlistenToFileSystemEvents();
     this._canvas.remove();
+    this.mutatorNew.deregister();
   }
 
   private async createScene(): Promise<void> {

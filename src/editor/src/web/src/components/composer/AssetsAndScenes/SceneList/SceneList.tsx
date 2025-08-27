@@ -71,7 +71,7 @@ export const SceneList: FunctionComponent<Props> = observer(({ openScene }) => {
 
   const onFinishedNamingNewScene = (newScenePath: string): void => {
     setTempCreatePath(undefined);
-    void ProjectController.mutator.apply(new CreateNewSceneMutation(newScenePath));
+    void ProjectController.mutatorNew.apply(new CreateNewSceneMutation(newScenePath));
   };
 
   const onCancelCreateNewScene = (): void => {

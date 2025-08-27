@@ -17,6 +17,7 @@ import { GameObjectData, IComposerComponentData, SceneData } from "@lib/project/
 import { SceneDbRecord } from "@lib/project/data/SceneDb";
 import { JsoncContainer } from "@lib/util/JsoncContainer";
 import { Func } from '@lib/util/types';
+import { MutationController } from '@lib/mutation/MutationController';
 
 import { MockProjectController } from "../project/MockProjectController";
 import { MockSceneViewMutator, MockSceneViewMutatorNew } from "./MockSceneViewMutator";
@@ -31,6 +32,7 @@ export class MockSceneViewController implements ISceneViewController {
   public scene: SceneData;
   public babylonScene: BabylonScene;
   public sceneJson: JsoncContainer<SceneDefinition>;
+  public mutationController: MutationController;
   public mutator: MockSceneViewMutator;
   public mutatorNew: MockSceneViewMutatorNew;
   public selectionManager: SelectionManager;
@@ -48,8 +50,9 @@ export class MockSceneViewController implements ISceneViewController {
     this.scene = scene;
     this.sceneJson = sceneJson;
     this.babylonScene = babylonScene;
+    this.mutationController = new MutationController();
     this.mutator = new MockSceneViewMutator(this, projectController);
-    this.mutatorNew = new MockSceneViewMutatorNew(this, projectController);
+    this.mutatorNew = new MockSceneViewMutatorNew(this, projectController, this.mutationController);
     this.selectionManager = new SelectionManager(this.babylonScene, this);
     this.gameObjectInstances = [];
   }
