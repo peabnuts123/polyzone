@@ -12,6 +12,7 @@
     "useDefineForClassFields": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
+    "noImplicitOverride": true,
     "jsx": "preserve",
     "incremental": false,
     "plugins": [

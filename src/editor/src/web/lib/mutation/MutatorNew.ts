@@ -76,7 +76,7 @@ export abstract class MutatorNew<TMutationDependencies> extends BaseMutatorNew {
    * The assumption is the scheduler's queue will never be very long anyway,
    * so the UX implications of this will likely be insignificant.
    */
-  private static scheduler: AsyncScheduler = new AsyncScheduler();
+  protected static scheduler: AsyncScheduler = new AsyncScheduler();
   // @TODO I guess we should place some kind of large limit on this?
   private readonly activeMutationStack: ActiveMutation<TMutationDependencies>[];
   private readonly redoMutationStack: ActiveMutation<TMutationDependencies>[];
@@ -103,7 +103,7 @@ export abstract class MutatorNew<TMutationDependencies> extends BaseMutatorNew {
    * Inner implementation of `beginContinuous()` that does not execute as a schedule task.
    * This exists so that other public functions can run this logic as a part of a different task.
    */
-  private async __beginContinuousImmediate<TMutationArgs>(continuousMutation: IContinuousMutation2<TMutationDependencies, TMutationArgs>, clearRedoStack: boolean = true): Promise<void> {
+  protected async __beginContinuousImmediate<TMutationArgs>(continuousMutation: IContinuousMutation2<TMutationDependencies, TMutationArgs>, clearRedoStack: boolean = true): Promise<void> {
     if (this.currentDebounceState !== undefined) {
       // If there is a lingering debounce mutation, apply it immediately
       await this.currentDebounceState.onDebounceExpire(true);
@@ -142,7 +142,7 @@ export abstract class MutatorNew<TMutationDependencies> extends BaseMutatorNew {
    * Inner implementation of `updateContinuous()` that does not execute as a schedule task.
    * This exists so that other public functions can run this logic as a part of a different task.
    */
-  private async __updateContinuousImmediate<TMutationArgs>(continuousMutation: IContinuousMutation2<TMutationDependencies, TMutationArgs>, updateArgs: TMutationArgs): Promise<void> {
+  protected async __updateContinuousImmediate<TMutationArgs>(continuousMutation: IContinuousMutation2<TMutationDependencies, TMutationArgs>, updateArgs: TMutationArgs): Promise<void> {
     // Validate
     if (this.latestMutation?.instance !== continuousMutation) {
       throw new Error(`Cannot update continuous mutation - provided instance is not the latest mutation`);
@@ -179,7 +179,7 @@ export abstract class MutatorNew<TMutationDependencies> extends BaseMutatorNew {
    * Inner implementation of `apply()` that does not execute as a schedule task.
    * This exists so that other public functions can run this logic as a part of a different task.
    */
-  private async __applyImmediate<TMutationArgs>(mutation: IMutation2<TMutationDependencies, TMutationArgs>, clearRedoStack: boolean = true): Promise<void> {
+  protected async __applyImmediate<TMutationArgs>(mutation: IMutation2<TMutationDependencies, TMutationArgs>, clearRedoStack: boolean = true): Promise<void> {
     /* @TODO Throw up some kind of error / graceful failure on exception (clear redo stack?) */
     if (this.currentDebounceState !== undefined) {
       // If there is a lingering debounce mutation, apply it immediately
@@ -257,72 +257,80 @@ export abstract class MutatorNew<TMutationDependencies> extends BaseMutatorNew {
 
   public async undo(): Promise<void> {
     /* @TODO Throw up some kind of error / graceful failure on exception (clear redo stack?) */
-    return MutatorNew.scheduler.runTask(async () => {
-      if (this.activeMutationStack.length === 0) {
-        return; // Stack is empty
-      }
+    return MutatorNew.scheduler.runTask(() => {
+      return this.__undoImmediate();
+    });
+  }
 
-      // Undo mutation
-      const mutation = this.activeMutationStack[this.activeMutationStack.length - 1];
+  protected async __undoImmediate(): Promise<void> {
+    if (this.activeMutationStack.length === 0) {
+      return; // Stack is empty
+    }
 
-      // Do not undo if mutation is marked as `promptForUndo` and the user cancels
-      if (mutation.instance.promptForUndo) {
-        const confirmation = await confirm(`Are you sure you wish to undo '${mutation.instance.description}'?`, {
-          kind: 'warning',
-          title: 'Confirm undo',
-        });
-        if (!confirmation) {
-          return;
-        }
-      }
+    // Undo mutation
+    const mutation = this.activeMutationStack[this.activeMutationStack.length - 1];
 
-      const mutationDependencies = this.getMutationDependencies();
-
-      await runInAction(() => {
-        return mutation.instance.undoMutation(mutationDependencies);
+    // Do not undo if mutation is marked as `promptForUndo` and the user cancels
+    if (mutation.instance.promptForUndo) {
+      const confirmation = await confirm(`Are you sure you wish to undo '${mutation.instance.description}'?`, {
+        kind: 'warning',
+        title: 'Confirm undo',
       });
-
-      // Mark continuous mutation as no-longer applied
-      if (isContinuousMutation2(mutation.instance)) {
-        mutation.instance.hasBeenApplied = false;
+      if (!confirmation) {
+        return;
       }
+    }
 
-      // Move mutation to redo stack
-      this.redoMutationStack.push(this.activeMutationStack.pop()!);
+    const mutationDependencies = this.getMutationDependencies();
 
-      // @TODO @DEBUG REMOVE
-      console.log(`Mutation stack: `, this.activeMutationStack.map((mutation) => mutation.instance.description));
+    await runInAction(() => {
+      return mutation.instance.undoMutation(mutationDependencies);
+    });
 
-      // Save to disk
-      await this.persistChanges();
+    // Mark continuous mutation as no-longer applied
+    if (isContinuousMutation2(mutation.instance)) {
+      mutation.instance.hasBeenApplied = false;
+    }
 
-      // @NOTE runInAction will be useless after an `await`, so called code
-      // will need additional `runInAction` calls after async work
-      await runInAction(() => {
-        if (mutation.instance.afterPersistChanges) {
-          return mutation.instance.afterPersistChanges(mutationDependencies);
-        }
-      });
+    // Move mutation to redo stack
+    this.redoMutationStack.push(this.activeMutationStack.pop()!);
+
+    // @TODO @DEBUG REMOVE
+    console.log(`Mutation stack: `, this.activeMutationStack.map((mutation) => mutation.instance.description));
+
+    // Save to disk
+    await this.persistChanges();
+
+    // @NOTE runInAction will be useless after an `await`, so called code
+    // will need additional `runInAction` calls after async work
+    await runInAction(() => {
+      if (mutation.instance.afterPersistChanges) {
+        return mutation.instance.afterPersistChanges(mutationDependencies);
+      }
     });
   }
 
   public async redo(): Promise<void> {
     /* @TODO Throw up some kind of error / graceful failure on exception (clear redo stack?) */
-    return MutatorNew.scheduler.runTask(async () => {
-      if (this.redoMutationStack.length === 0) {
-        return; // Stack is empty
-      }
-
-      const mutation = this.redoMutationStack.pop()!;
-
-      if (isContinuousMutation2(mutation.instance)) {
-        await this.__beginContinuousImmediate(mutation.instance, false);
-        await this.__updateContinuousImmediate(mutation.instance, mutation.instance.redoArgs);
-        await this.__applyImmediate(mutation.instance, false /* @NOTE un-necessary option, but just for sanity */);
-      } else {
-        await this.__applyImmediate(mutation.instance, false);
-      }
+    return MutatorNew.scheduler.runTask(() => {
+      return this.__redoImmediate();
     });
+  }
+
+  protected async __redoImmediate(): Promise<void> {
+    if (this.redoMutationStack.length === 0) {
+      return; // Stack is empty
+    }
+
+    const mutation = this.redoMutationStack.pop()!;
+
+    if (isContinuousMutation2(mutation.instance)) {
+      await this.__beginContinuousImmediate(mutation.instance, false);
+      await this.__updateContinuousImmediate(mutation.instance, mutation.instance.redoArgs);
+      await this.__applyImmediate(mutation.instance, false /* @NOTE un-necessary option, but just for sanity */);
+    } else {
+      await this.__applyImmediate(mutation.instance, false);
+    }
   }
 
   public clearRedoStack(): void {
