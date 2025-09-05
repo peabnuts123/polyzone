@@ -7,12 +7,16 @@ export interface IMutation<TMutationArgs> {
 }
 
 // @TODO Rename
+// @TODO Can we remove `TMutationArgs`?
 export interface IMutation2<TMutationDependencies, TMutationArgs> {
   get description(): string;
-  promptForUndo: boolean;
+  /** If true, the application will prompt the user for confirmation before undoing this mutation. */
+  get promptForUndo(): boolean;
   applyMutation(dependencies: TMutationDependencies): void | Promise<void>;
   undoMutation(dependencies: TMutationDependencies): void | Promise<void>;
+  /** Instruct the mutation to take a snapshot of its state for use with undo. */
   captureUndoArgs(dependencies: TMutationDependencies): void;
+  /** Callback fired after a mutation's changed have been persisted to disk. */
   afterPersistChanges?: (dependencies: TMutationDependencies) => void | Promise<void>;
 }
 
@@ -45,7 +49,7 @@ export abstract class BaseMutation<TMutationDependencies, TMutationArgs> impleme
   public async undoMutation(dependencies: TMutationDependencies): Promise<void> {
     if (this.useCustomUndo) {
       // Custom undo handling implemented
-      await this.customUndo(dependencies, this.args);
+      await this.customUndo(dependencies);
     } else {
       if (this.undoArgs === undefined) throw new Error(`Cannot undo mutation - no undo state has been captured. Has the mutation been applied?`);
 
@@ -71,10 +75,9 @@ export abstract class BaseMutation<TMutationDependencies, TMutationArgs> impleme
   /**
    * Override this method if you want to provide custom undo logic for a mutation.
    * If `useCustomUndo` is set to `true`, this will be called instead of `getUndoArgs()`/`undoMutation()`.
-   * NOTE: This function is passed the regular args (returned from the constructor), NOT "undo" args (returned from `getUndoArgs()`)
    */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected customUndo(dependencies: TMutationDependencies, args: TMutationArgs): Promise<void> {
+  protected customUndo(dependencies: TMutationDependencies): Promise<void> {
     throw new Error(`Not implemented`);
   }
 

@@ -3,5 +3,5 @@ import { ProjectMutationArguments } from "./ProjectMutationArguments";
 
 export interface IProjectMutation extends IMutation<ProjectMutationArguments> {
 }
-export abstract class BaseProjectMutation<TMutationArgs> extends BaseMutation<ProjectMutationArguments, TMutationArgs> {
+export abstract class BaseProjectMutation<TMutationArgs = void> extends BaseMutation<ProjectMutationArguments, TMutationArgs> {
 }

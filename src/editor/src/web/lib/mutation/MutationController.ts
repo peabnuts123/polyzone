@@ -34,6 +34,31 @@ export class MutationController {
     }
   }
 
+  public async redoLatestUndone(): Promise<void> {
+    let latestUndone: ActiveMutation | undefined = undefined;
+    let latestUndoneMutator: BaseMutatorNew | undefined = undefined;
+    for (const mutator of this.activeMutators) {
+      if (latestUndone === undefined) {
+        // `latestUndone` is empty - just assign initial value
+        latestUndone = mutator.latestUndoneMutation;
+        latestUndoneMutator = mutator;
+      } else if (
+        mutator.latestUndoneMutation !== undefined &&
+        mutator.latestUndoneMutation.id < latestUndone.id
+      ) {
+        // `mutator`'s latest undone mutation exists with an ID less than our latest known value
+        latestUndone = mutator.latestUndoneMutation;
+        latestUndoneMutator = mutator;
+      }
+      // Else mutation is not latest undone
+    }
+
+    // Call redo on the active mutator with the most recently undone mutation
+    if (latestUndone !== undefined && latestUndoneMutator !== undefined) {
+      await latestUndoneMutator.redo();
+    }
+  }
+
   public requestMutationId(): number {
     return this.latestMutationId++;
   }
@@ -54,6 +79,12 @@ export class MutationController {
       instance: mutator,
       isActive: false,
     });
+  }
+
+  public clearEveryRedoStack(): void {
+    for (const mutator of this.mutators) {
+      mutator.instance.clearRedoStack();
+    }
   }
 
   public deregisterMutator(mutator: BaseMutatorNew): void {

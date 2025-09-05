@@ -4,5 +4,5 @@ import { MaterialEditorViewMutationArguments } from './MaterialEditorViewMutatio
 export interface IMaterialEditorViewMutation extends IMutation<MaterialEditorViewMutationArguments> {
 }
 
-export abstract class BaseMaterialEditorViewMutation<TMutationArgs> extends BaseMutation<MaterialEditorViewMutationArguments, TMutationArgs> {
+export abstract class BaseMaterialEditorViewMutation<TMutationArgs = void> extends BaseMutation<MaterialEditorViewMutationArguments, TMutationArgs> {
 }

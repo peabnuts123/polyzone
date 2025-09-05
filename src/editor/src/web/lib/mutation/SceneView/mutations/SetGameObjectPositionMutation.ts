@@ -44,6 +44,14 @@ export class SetGameObjectPositionMutation extends BaseContinuousSceneMutation<S
     SceneViewController.sceneJson.mutate(mutationPath, updatedValue);
   }
 
+  protected override getRedoArgs(_dependencies: SceneViewMutationArguments, args: SetGameObjectPositionMutationUpdateArgs): SetGameObjectPositionMutationUpdateArgs {
+    // @NOTE Always reset gizmo for redo
+    return {
+      ...args,
+      resetGizmo: true,
+    };
+  }
+
   protected getUndoArgs({ SceneViewController }: SceneViewMutationArguments): SetGameObjectPositionMutationUpdateArgs {
     const gameObjectData = SceneViewController.scene.getGameObject(this.gameObjectId);
 

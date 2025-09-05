@@ -62,11 +62,20 @@ const App: FunctionComponent<AppProps> = ({ Component }) => {
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent): void => {
-      // Check for undo shortcut (Ctrl+Z on Windows/Linux, Cmd+Z on Mac)
+      // @TODO any way we can make these platform dependent?
       if (event.key === 'z' && (event.ctrlKey || event.metaKey)) {
         event.preventDefault();
 
-        void MutationController.undoLatestActive();
+        if (event.shiftKey) {
+          // Cmd+Shift+Z = Redo
+          void MutationController.redoLatestUndone();
+        } else {
+          // Cmd+Z = Undo
+          void MutationController.undoLatestActive();
+        }
+      } else if (event.key === 'y' && (event.ctrlKey || event.metaKey)) {
+        // Ctrl+Y = Redo
+        void MutationController.redoLatestUndone();
       }
     };
 

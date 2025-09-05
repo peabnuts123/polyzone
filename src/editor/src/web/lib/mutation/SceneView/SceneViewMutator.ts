@@ -63,7 +63,7 @@ export class SceneViewMutatorNew extends MutatorNew<SceneViewMutationArguments> 
     this.projectController = projectController;
   }
 
-  protected override getMutationArgs(): SceneViewMutationArguments {
+  protected override getMutationDependencies(): SceneViewMutationArguments {
     return {
       SceneViewController: this.sceneViewController,
       ProjectController: this.projectController,

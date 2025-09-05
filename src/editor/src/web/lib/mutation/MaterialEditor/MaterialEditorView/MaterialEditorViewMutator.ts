@@ -65,7 +65,7 @@ export class MaterialEditorViewMutatorNew extends MutatorNew<MaterialEditorViewM
 
   }
 
-  protected override getMutationArgs(): MaterialEditorViewMutationArguments {
+  protected override getMutationDependencies(): MaterialEditorViewMutationArguments {
     return {
       MaterialEditorViewController: this.materialEditorViewController,
       ProjectController: this.projectController,

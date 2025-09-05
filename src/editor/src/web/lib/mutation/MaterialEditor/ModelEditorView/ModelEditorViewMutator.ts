@@ -50,7 +50,7 @@ export class ModelEditorViewMutatorNew extends MutatorNew<ModelEditorViewMutatio
     this.projectController = projectController;
   }
 
-  protected override getMutationArgs(): ModelEditorViewMutationArguments {
+  protected override getMutationDependencies(): ModelEditorViewMutationArguments {
     return {
       ModelEditorViewController: this.modelEditorViewController,
       ProjectController: this.projectController,

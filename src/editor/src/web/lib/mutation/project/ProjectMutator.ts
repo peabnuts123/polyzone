@@ -43,7 +43,7 @@ export class ProjectMutatorNew extends MutatorNew<ProjectMutationArguments> {
     this.projectController = projectController;
   }
 
-  protected override getMutationArgs(): ProjectMutationArguments {
+  protected override getMutationDependencies(): ProjectMutationArguments {
     return {
       ProjectController: this.projectController,
     };

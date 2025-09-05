@@ -4,6 +4,6 @@ import { SceneViewMutationArguments } from './SceneViewMutationArguments';
 export interface ISceneMutation extends IMutation<SceneViewMutationArguments> {
 }
 
-export abstract class BaseSceneMutation<TMutationArgs> extends BaseMutation<SceneViewMutationArguments, TMutationArgs> {
+export abstract class BaseSceneMutation<TMutationArgs = void> extends BaseMutation<SceneViewMutationArguments, TMutationArgs> {
 
 }

@@ -21,6 +21,7 @@ describe(CreateNewSceneMutation.name, () => {
     const mockNewSceneHash = randomHash();
     TauriMockConfig.polyzone.hashDataResult = mockNewSceneHash; // Mock tauri response
     const mutation = new CreateNewSceneMutation(mockNewScenePath);
+    mutation.promptForUndo = false; // @NOTE Disable confirmation prompt
 
     const initialProjectDataScenes = [...mockProjectController.project.scenes.getAll()];
     const initialSceneData = mockProjectController.project.scenes.getByPath(mockNewScenePath);

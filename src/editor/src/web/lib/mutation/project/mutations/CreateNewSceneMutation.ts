@@ -10,19 +10,18 @@ import { invoke } from '@lib/util/TauriCommands';
 import { BaseProjectMutation } from "../IProjectMutation";
 import { ProjectMutationArguments } from "../ProjectMutationArguments";
 
-interface MutationArgs {
-  path: string;
-}
-
-export class CreateNewSceneMutation extends BaseProjectMutation<MutationArgs> {
+export class CreateNewSceneMutation extends BaseProjectMutation {
   public override promptForUndo: boolean = true;
   protected override useCustomUndo: boolean = true;
 
+  private readonly path: string;
+
   public constructor(path: string) {
-    super({ path });
+    super();
+    this.path = path;
   }
 
-  public async apply({ ProjectController }: ProjectMutationArguments, { path }: MutationArgs): Promise<void> {
+  public async apply({ ProjectController }: ProjectMutationArguments): Promise<void> {
     // New Data
     const newSceneJsonc = this.createNewSceneDefinition();
     const newSceneJsoncBytes = new TextEncoder().encode(
@@ -35,7 +34,7 @@ export class CreateNewSceneMutation extends BaseProjectMutation<MutationArgs> {
     const newSceneManifest: SceneManifest = {
       id: uuid(),
       hash: newSceneHash,
-      path,
+      path: this.path,
     };
 
     // 1. Update data
@@ -49,15 +48,15 @@ export class CreateNewSceneMutation extends BaseProjectMutation<MutationArgs> {
 
     // 3. Create new asset on disk
     await ProjectController.fileSystem.writeFile(
-      path,
+      this.path,
       newSceneJsoncBytes,
     );
   }
 
-  public override async customUndo({ ProjectController }: ProjectMutationArguments, { path }: MutationArgs): Promise<void> {
-    const newScene = ProjectController.project.scenes.getByPath(path);
+  public override async customUndo({ ProjectController }: ProjectMutationArguments): Promise<void> {
+    const newScene = ProjectController.project.scenes.getByPath(this.path);
     if (newScene === undefined) {
-      throw new Error(`Cannot undo CreateNewSceneMutation - scene not found at path: ${path}`);
+      throw new Error(`Cannot undo CreateNewSceneMutation - scene not found at path: ${this.path}`);
     }
 
     // 1. Update data
@@ -70,7 +69,7 @@ export class CreateNewSceneMutation extends BaseProjectMutation<MutationArgs> {
 
     // 3. Delete asset from disk
     // @TODO pop up some kind of confirmation
-    await ProjectController.fileSystem.deleteFile(path);
+    await ProjectController.fileSystem.deleteFile(this.path);
   }
 
   private createNewSceneDefinition(): JsoncContainer<SceneDefinition> {

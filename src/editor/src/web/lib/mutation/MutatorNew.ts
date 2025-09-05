@@ -60,9 +60,12 @@ export interface ActiveMutation<TMutationDependencies = any> {
 // View of `Mutator` class without any access to generic properties
 export abstract class BaseMutatorNew {
   public abstract get latestMutation(): ActiveMutation | undefined;
+  public abstract get latestUndoneMutation(): ActiveMutation | undefined;
+  public abstract redo(): Promise<void>;
   public abstract undo(): Promise<void>;
   public abstract register(): void;
   public abstract deregister(): void;
+  public abstract clearRedoStack(): void;
 }
 
 export abstract class MutatorNew<TMutationDependencies> extends BaseMutatorNew {
@@ -75,8 +78,8 @@ export abstract class MutatorNew<TMutationDependencies> extends BaseMutatorNew {
    */
   private static scheduler: AsyncScheduler = new AsyncScheduler();
   // @TODO I guess we should place some kind of large limit on this?
-  // private readonly mutationStack: IMutation2<TMutationDependencies, unknown>[];
-  private readonly mutationStack: ActiveMutation<TMutationDependencies>[];
+  private readonly activeMutationStack: ActiveMutation<TMutationDependencies>[];
+  private readonly redoMutationStack: ActiveMutation<TMutationDependencies>[];
   private readonly mutationController: MutationController;
 
   // State
@@ -86,7 +89,8 @@ export abstract class MutatorNew<TMutationDependencies> extends BaseMutatorNew {
   public constructor(mutationController: MutationController) {
     super();
     this.mutationController = mutationController;
-    this.mutationStack = [];
+    this.activeMutationStack = [];
+    this.redoMutationStack = [];
     this.register();
   }
 
@@ -99,7 +103,7 @@ export abstract class MutatorNew<TMutationDependencies> extends BaseMutatorNew {
    * Inner implementation of `beginContinuous()` that does not execute as a schedule task.
    * This exists so that other public functions can run this logic as a part of a different task.
    */
-  private async __beginContinuousImmediate<TMutationArgs>(continuousMutation: IContinuousMutation2<TMutationDependencies, TMutationArgs>): Promise<void> {
+  private async __beginContinuousImmediate<TMutationArgs>(continuousMutation: IContinuousMutation2<TMutationDependencies, TMutationArgs>, clearRedoStack: boolean = true): Promise<void> {
     if (this.currentDebounceState !== undefined) {
       // If there is a lingering debounce mutation, apply it immediately
       await this.currentDebounceState.onDebounceExpire(true);
@@ -114,14 +118,19 @@ export abstract class MutatorNew<TMutationDependencies> extends BaseMutatorNew {
       throw new Error(`Cannot begin continuous mutation - Previous continuous mutation has not been applied`);
     }
 
+    if (clearRedoStack) {
+      // Making a new mutation - clear all undone mutations
+      this.mutationController.clearEveryRedoStack();
+    }
+
     // Push new mutation (not yet applied)
-    this.mutationStack.push({
+    this.activeMutationStack.push({
       id: this.mutationController.requestMutationId(),
       instance: continuousMutation,
     });
 
     // Capture undo state before making any updates
-    continuousMutation.captureUndoArgs(this.getMutationArgs());
+    continuousMutation.captureUndoArgs(this.getMutationDependencies());
   }
 
   public updateContinuous<TMutationArgs>(continuousMutation: IContinuousMutation2<TMutationDependencies, TMutationArgs>, updateArgs: TMutationArgs): Promise<void> {
@@ -141,9 +150,13 @@ export abstract class MutatorNew<TMutationDependencies> extends BaseMutatorNew {
 
     // @NOTE runInAction will be useless after an `await`, so called code
     // will need additional `runInAction` calls after async work
+    const mutationDependencies = this.getMutationDependencies();
     await runInAction(() => {
-      return continuousMutation.updateMutation(this.getMutationArgs(), updateArgs);
+      return continuousMutation.updateMutation(mutationDependencies, updateArgs);
     });
+
+    // Capture redo args
+    continuousMutation.captureRedoArgs(mutationDependencies, updateArgs);
   }
 
   /**
@@ -166,7 +179,8 @@ export abstract class MutatorNew<TMutationDependencies> extends BaseMutatorNew {
    * Inner implementation of `apply()` that does not execute as a schedule task.
    * This exists so that other public functions can run this logic as a part of a different task.
    */
-  private async __applyImmediate<TMutationArgs>(mutation: IMutation2<TMutationDependencies, TMutationArgs>): Promise<void> {
+  private async __applyImmediate<TMutationArgs>(mutation: IMutation2<TMutationDependencies, TMutationArgs>, clearRedoStack: boolean = true): Promise<void> {
+    /* @TODO Throw up some kind of error / graceful failure on exception (clear redo stack?) */
     if (this.currentDebounceState !== undefined) {
       // If there is a lingering debounce mutation, apply it immediately
       await this.currentDebounceState.onDebounceExpire(true);
@@ -186,7 +200,13 @@ export abstract class MutatorNew<TMutationDependencies> extends BaseMutatorNew {
         throw new Error(`Cannot apply mutation - Previous continuous mutation has not been applied`);
       } else {
         // New, non-continuous mutation, and previous mutation was either non-continuous, or has been applied
-        this.mutationStack.push({
+
+        if (clearRedoStack) {
+          // Making a new mutation - clear all undone mutations
+          this.mutationController.clearEveryRedoStack();
+        }
+
+        this.activeMutationStack.push({
           id: this.mutationController.requestMutationId(),
           instance: mutation,
         });
@@ -204,24 +224,24 @@ export abstract class MutatorNew<TMutationDependencies> extends BaseMutatorNew {
       }
     }
 
-    const mutationArgs = this.getMutationArgs();
+    const mutationDependencies = this.getMutationDependencies();
 
     // Store undo state before applying
     // @NOTE only relevant for standard mutations - continuous mutations have had their
     //  state captured in `beginContinuous()`
     if (!isContinuousMutation2(mutation)) {
-      mutation.captureUndoArgs(mutationArgs);
+      mutation.captureUndoArgs(mutationDependencies);
     }
 
     // Apply mutation
     // @NOTE runInAction will be useless after an `await`, so called code
     // will need additional `runInAction` calls after async work
     await runInAction(() => {
-      return mutation.applyMutation(mutationArgs);
+      return mutation.applyMutation(mutationDependencies);
     });
 
     // @TODO @DEBUG REMOVE
-    console.log(`Mutation stack: `, this.mutationStack.map((mutation) => mutation.instance.description));
+    console.log(`Mutation stack: `, this.activeMutationStack.map((mutation) => mutation.instance.description));
 
     // Save to disk
     await this.persistChanges();
@@ -230,19 +250,20 @@ export abstract class MutatorNew<TMutationDependencies> extends BaseMutatorNew {
     // will need additional `runInAction` calls after async work
     await runInAction(() => {
       if (mutation.afterPersistChanges) {
-        return mutation.afterPersistChanges(mutationArgs);
+        return mutation.afterPersistChanges(mutationDependencies);
       }
     });
   }
 
   public async undo(): Promise<void> {
+    /* @TODO Throw up some kind of error / graceful failure on exception (clear redo stack?) */
     return MutatorNew.scheduler.runTask(async () => {
-      if (this.mutationStack.length === 0) {
+      if (this.activeMutationStack.length === 0) {
         return; // Stack is empty
       }
 
       // Undo mutation
-      const mutation = this.mutationStack[this.mutationStack.length - 1];
+      const mutation = this.activeMutationStack[this.activeMutationStack.length - 1];
 
       // Do not undo if mutation is marked as `promptForUndo` and the user cancels
       if (mutation.instance.promptForUndo) {
@@ -255,17 +276,22 @@ export abstract class MutatorNew<TMutationDependencies> extends BaseMutatorNew {
         }
       }
 
-      const mutationArgs = this.getMutationArgs();
+      const mutationDependencies = this.getMutationDependencies();
 
       await runInAction(() => {
-        return mutation.instance.undoMutation(mutationArgs);
+        return mutation.instance.undoMutation(mutationDependencies);
       });
 
-      // @TODO Redo? lol
-      this.mutationStack.pop();
+      // Mark continuous mutation as no-longer applied
+      if (isContinuousMutation2(mutation.instance)) {
+        mutation.instance.hasBeenApplied = false;
+      }
+
+      // Move mutation to redo stack
+      this.redoMutationStack.push(this.activeMutationStack.pop()!);
 
       // @TODO @DEBUG REMOVE
-      console.log(`Mutation stack: `, this.mutationStack.map((mutation) => mutation.instance.description));
+      console.log(`Mutation stack: `, this.activeMutationStack.map((mutation) => mutation.instance.description));
 
       // Save to disk
       await this.persistChanges();
@@ -274,10 +300,33 @@ export abstract class MutatorNew<TMutationDependencies> extends BaseMutatorNew {
       // will need additional `runInAction` calls after async work
       await runInAction(() => {
         if (mutation.instance.afterPersistChanges) {
-          return mutation.instance.afterPersistChanges(mutationArgs);
+          return mutation.instance.afterPersistChanges(mutationDependencies);
         }
       });
     });
+  }
+
+  public async redo(): Promise<void> {
+    /* @TODO Throw up some kind of error / graceful failure on exception (clear redo stack?) */
+    return MutatorNew.scheduler.runTask(async () => {
+      if (this.redoMutationStack.length === 0) {
+        return; // Stack is empty
+      }
+
+      const mutation = this.redoMutationStack.pop()!;
+
+      if (isContinuousMutation2(mutation.instance)) {
+        await this.__beginContinuousImmediate(mutation.instance, false);
+        await this.__updateContinuousImmediate(mutation.instance, mutation.instance.redoArgs);
+        await this.__applyImmediate(mutation.instance, false /* @NOTE un-necessary option, but just for sanity */);
+      } else {
+        await this.__applyImmediate(mutation.instance, false);
+      }
+    });
+  }
+
+  public clearRedoStack(): void {
+    this.redoMutationStack.splice(0);
   }
 
   /**
@@ -385,14 +434,22 @@ export abstract class MutatorNew<TMutationDependencies> extends BaseMutatorNew {
     this.mutationController.deregisterMutator(this);
   }
 
-  protected abstract getMutationArgs(): TMutationDependencies;
+  protected abstract getMutationDependencies(): TMutationDependencies;
   protected abstract persistChanges(): Promise<void>;
 
   public get latestMutation(): ActiveMutation<TMutationDependencies> | undefined {
-    if (this.mutationStack.length === 0) {
+    if (this.activeMutationStack.length === 0) {
       return undefined;
     } else {
-      return this.mutationStack[this.mutationStack.length - 1];
+      return this.activeMutationStack[this.activeMutationStack.length - 1];
+    }
+  }
+
+  public get latestUndoneMutation(): ActiveMutation<TMutationDependencies> | undefined {
+    if (this.redoMutationStack.length === 0) {
+      return undefined;
+    } else {
+      return this.redoMutationStack[this.redoMutationStack.length - 1];
     }
   }
 }
