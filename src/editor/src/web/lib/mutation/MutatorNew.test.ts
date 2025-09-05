@@ -1,39 +1,18 @@
-import { describe, expect, test } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 import { sleep } from "@test/util";
 import { MutatorNew } from './MutatorNew';
 import { BaseMutation, IMutation2 } from "./IMutation";
 import { BaseContinuousMutation, IContinuousMutation2 } from "./IContinuousMutation";
 import { MutationController } from "./MutationController";
 
-/*
-  @TODO
-  - We should write tests for MutatorNew
-  - Add tests for undo
-  - Add tests for redo
-  - Write tests for MutationController
-  - Add tests for redo in all the mutations I guessssssss
- */
+// Mock the `confirm()` from @tauri-apps/plugin-dialog
+const mocks = vi.hoisted(() => ({
+  confirm: vi.fn(),
+}));
+vi.mock('@tauri-apps/plugin-dialog', () => ({
+  confirm: mocks.confirm,
+}));
 
-/*
-  @TODO Test backlog
-    - Undoing a standard mutation reverts state to initial value
-    - Undoing a continuous mutation reverts state to initial value before first update
-      - Marks `hasBeenApplied` = false
-    - Calling undo twice undoes two mutations
-    - Calling undo while a continuous mutation is debouncing does (???)
-    - Calling undo on an empty stack safely does nothing
-    - Calling undo when `promptForUndo` is set calls confirm()
-    - Cancelling `confirm()` when `promptForUndo` is set does not apply the mutation
-    - `afterPersistChanges` is called after undo is called
-
-    - Redoing a standard mutation applies it just as it was
-    - Redoing a continuous mutation applies it as it was after its last update
-      - Marks `hasBeenApplied` = true
-    - Calling redo twice redoes two mutations
-    - Calling redo while a continuous mutation is debouncing does (???)
-    - Redoing an empty undo stack safely does nothing
-    - `afterPersistChanges` is called after redo is called
- */
 
 describe(MutatorNew.name, () => {
   test('Applying a mutation applies it', async () => {
@@ -238,7 +217,7 @@ describe(MutatorNew.name, () => {
     // Test
     // Start first debounced mutation
     actions.push(`queue(${firstMutationNewValue}):${mutator.mockState.value}`);
-    void mutator.debounceContinuous(
+    await mutator.debounceContinuous(
       SetMockValueContinuousMutation,
       mockDebounceMutationTarget,
       () => new SetMockValueContinuousMutation(),
@@ -246,8 +225,7 @@ describe(MutatorNew.name, () => {
       mockDebounceWindowMs,
     );
 
-    // Wait a bit, but NOT long enough for debounced action to fire
-    await sleep(mockDebounceWindowMs / 2);
+    // @NOTE do not wait for debounce to elapse
 
     // @NOTE Expect first mutation to have called begin and update but NOT apply
     expect(actions).toEqual(expectedActionsBeforeSecondMutation);
@@ -302,7 +280,7 @@ describe(MutatorNew.name, () => {
     // Test
     // Start first debounced mutation
     actions.push(`queue(${firstMutationNewValue}):${mutator.mockState.value}`);
-    void mutator.debounceContinuous(
+    await mutator.debounceContinuous(
       SetMockValueContinuousMutation,
       mockDebounceMutationTargetA,
       () => new SetMockValueContinuousMutation(),
@@ -310,8 +288,7 @@ describe(MutatorNew.name, () => {
       mockDebounceWindowMs,
     );
 
-    // Wait a bit, but NOT long enough for debounced action to fire
-    await sleep(mockDebounceWindowMs / 2);
+    // @NOTE do not wait for debounce to elapse
 
     // @NOTE Expect first mutation to have called begin and update but NOT apply
     expect(actions).toEqual(expectedActionsBeforeSecondMutation);
@@ -370,7 +347,7 @@ describe(MutatorNew.name, () => {
     // Test
     // Start debounced mutation
     actions.push(`queue(${firstMutationNewValue}):${mutator.mockState.value}`);
-    void mutator.debounceContinuous(
+    await mutator.debounceContinuous(
       SetMockValueContinuousMutation,
       mockDebounceMutationTarget,
       () => new SetMockValueContinuousMutation(),
@@ -378,8 +355,7 @@ describe(MutatorNew.name, () => {
       mockDebounceWindowMs,
     );
 
-    // Wait a bit, but NOT long enough for debounced action to fire
-    await sleep(mockDebounceWindowMs / 2);
+    // @NOTE do not wait for debounce to elapse
 
     // @NOTE Expect first mutation to have called begin and update but NOT apply
     expect(actions).toEqual(expectedActionsBeforeSecondMutation);
@@ -600,6 +576,450 @@ describe(MutatorNew.name, () => {
     expect(actions).toEqual(expectedActions);
     expect(mutator.mockState.value).toBe(newValue);
   });
+
+  describe("Undo", () => {
+    test("Undoing a standard mutation reverts state to initial value", async () => {
+      // Setup
+      const initialMockStateValue = 5;
+      const { mutator, actions } = createMockMutator(initialMockStateValue);
+
+      const newMockStateValue = 10;
+      const mutation = new SetMockValueMutation(newMockStateValue);
+
+      await mutator.apply(mutation);
+
+      const expectedActions = [
+        `apply(10):5`,
+        `undo:5`,
+      ];
+
+      // Test
+      await mutator.undo();
+
+      // Assert
+      expect(mutator.mockState.value).toBe(initialMockStateValue);
+      expect(actions).toEqual(expectedActions);
+    });
+
+    test("Undoing a continuous mutation reverts state to initial value before first update", async () => {
+      // Setup
+      const initialMockStateValue = 5;
+      const { mutator, actions } = createMockMutator(initialMockStateValue);
+
+      // const newMockStateValue = 10;
+      const mutation = new SetMockValueContinuousMutation();
+
+      // Fully apply continuous mutation, updating several times
+      await mutator.beginContinuous(mutation);
+      const finalUpdateValue = 30;
+      for (let i = 10; i <= finalUpdateValue; i += 10) {
+        await mutator.updateContinuous(mutation, { value: i });
+      }
+      await mutator.apply(mutation);
+
+      const expectedActions = [
+        `begin:5`,
+        `update(10):5`,
+        `update(20):10`,
+        `update(30):20`,
+        `apply:30`,
+        `undo:5`,
+      ];
+
+      expect(mutation.hasBeenApplied).toBe(true);
+
+      // Test
+      await mutator.undo();
+
+      // Assert
+      expect(mutator.mockState.value).toBe(initialMockStateValue);
+      expect(actions).toEqual(expectedActions);
+      expect(mutation.hasBeenApplied).toBe(false);
+    });
+
+    test("Calling undo twice undoes two mutations", async () => {
+      // Setup
+      const initialMockStateValue = 5;
+      const { mutator, actions } = createMockMutator(initialMockStateValue);
+
+      // Apply two mutations
+      const newMockStateValues = [10, 20];
+      for (const newMockStateValue of newMockStateValues) {
+        const mutation = new SetMockValueMutation(newMockStateValue);
+        await mutator.apply(mutation);
+      }
+
+      const expectedActions = [
+        `apply(10):5`,
+        `apply(20):10`,
+        `undo:10`,
+        `undo:5`,
+      ];
+
+      // Test
+      // Undo two mutations
+      await mutator.undo();
+      await mutator.undo();
+
+      // Assert
+      expect(mutator.mockState.value).toBe(initialMockStateValue);
+      expect(actions).toEqual(expectedActions);
+    });
+
+    test("Calling undo while a continuous mutation is debouncing applies it and then undoes it", async () => {
+      // Setup
+      const initialMockStateValue = 5;
+      const { mutator, actions } = createMockMutator(initialMockStateValue);
+
+      const newMockStateValue = 10;
+      const mockDebounceMutationTarget = {};
+      const mockDebounceWindowMs = 100;
+      // Begin debounced update
+      await mutator.debounceContinuous(
+        SetMockValueContinuousMutation,
+        mockDebounceMutationTarget,
+        () => new SetMockValueContinuousMutation(),
+        () => ({ value: newMockStateValue }),
+        mockDebounceWindowMs,
+      );
+
+      // @NOTE do not wait for debounce to elapse
+
+      const expectedActions = [
+        `begin:5`,
+        `update(10):5`,
+        `apply:10`,
+        `undo:5`,
+      ];
+
+      // Test
+      await mutator.undo();
+
+      // Assert
+      expect(mutator.mockState.value).toBe(initialMockStateValue);
+      expect(actions).toEqual(expectedActions);
+    });
+
+    test("Calling undo on an empty stack safely does nothing", async () => {
+      // Setup
+      const initialMockStateValue = 5;
+      const { mutator, actions } = createMockMutator(initialMockStateValue);
+
+      const expectedActions: string[] = [
+      ];
+
+      // Test
+      await mutator.undo();
+
+      // Assert
+      expect(mutator.mockState.value).toBe(initialMockStateValue);
+      expect(actions).toEqual(expectedActions);
+    });
+
+    test("Calling undo when `promptForUndo` is set confirms with the user", async () => {
+      // Setup
+      const initialMockStateValue = 5;
+      const { mutator, actions } = createMockMutator(initialMockStateValue);
+
+      const newMockStateValue = 10;
+      const mutation = new SetMockValueMutation(newMockStateValue);
+
+      mutation.promptForUndo = true;
+      mocks.confirm.mockResolvedValue(true);
+
+      await mutator.apply(mutation);
+
+      const expectedActions = [
+        `apply(10):5`,
+        `undo:5`,
+      ];
+
+      // Test
+      await mutator.undo();
+
+      // Assert
+      expect(mocks.confirm).toHaveBeenCalled();
+      expect(mutator.mockState.value).toBe(initialMockStateValue);
+      expect(actions).toEqual(expectedActions);
+    });
+
+    test("Cancelling `confirm()` when `promptForUndo` is set does not undo the mutation", async () => {
+      // Setup
+      const initialMockStateValue = 5;
+      const { mutator, actions } = createMockMutator(initialMockStateValue);
+
+      const newMockStateValue = 10;
+      const mutation = new SetMockValueMutation(newMockStateValue);
+
+      mutation.promptForUndo = true;
+      mocks.confirm.mockResolvedValue(false);
+
+      await mutator.apply(mutation);
+
+      const expectedActions = [
+        `apply(10):5`,
+        `undo:10`, // @NOTE Undo was called, but the value was not modified
+      ];
+
+      // Test
+      await mutator.undo();
+
+      // Assert
+      expect(mocks.confirm).toHaveBeenCalled();
+      expect(mutator.mockState.value).toBe(newMockStateValue);
+      expect(actions).toEqual(expectedActions);
+    });
+
+    test('`persistChanges` and `afterPersistChanges` are called after undo is called', async () => {
+      // Setup
+      const initialMockStateValue = 5;
+      const { mutator, actions } = createMockMutator(initialMockStateValue);
+
+      mutator.persistChangesImplementation = (): Promise<void> => {
+        actions.push('persistChanges');
+        return Promise.resolve();
+      };
+
+      // Create a mutation
+      const newValue = 10;
+      const mutation = new SetMockValueMutation(newValue);
+      mutation.afterPersistChanges = () => {
+        actions.push('afterPersistChanges');
+        return Promise.resolve();
+      };
+
+      const expectedActions: string[] = [
+        'apply(10):5',          // apply:$current_value
+        'persistChanges',
+        'afterPersistChanges',
+        'persistChanges',       // @NOTE from undo()
+        'afterPersistChanges',
+        `undo:5`,
+      ];
+
+      await mutator.apply(mutation);
+
+      // Test
+      await mutator.undo();
+
+      // Assert
+      expect(mutator.mockState.value).toBe(initialMockStateValue);
+      expect(actions).toEqual(expectedActions);
+    });
+  });
+
+  describe("Redo", () => {
+    test("Redoing a standard mutation re-applies it as it was", async () => {
+      // Setup
+      const initialMockStateValue = 5;
+      const { mutator, actions } = createMockMutator(initialMockStateValue);
+
+      const newMockStateValue = 10;
+      const mutation = new SetMockValueMutation(newMockStateValue);
+
+      await mutator.apply(mutation);
+      await mutator.undo();
+
+      const expectedActions = [
+        `apply(10):5`,
+        `undo:5`,
+        `redo:5`,
+        `apply(10):5`,
+      ];
+
+      // Test
+      await mutator.redo();
+
+      // Assert
+      expect(mutator.mockState.value).toBe(newMockStateValue);
+      expect(actions).toEqual(expectedActions);
+    });
+
+    test("Redoing a continuous mutation re-applies it as it was after its last update", async () => {
+      // Setup
+      const initialMockStateValue = 5;
+      const { mutator, actions } = createMockMutator(initialMockStateValue);
+
+      // const newMockStateValue = 10;
+      const mutation = new SetMockValueContinuousMutation();
+
+      // Fully apply continuous mutation, updating several times
+      await mutator.beginContinuous(mutation);
+      const finalUpdateValue = 30;
+      for (let i = 10; i <= finalUpdateValue; i += 10) {
+        await mutator.updateContinuous(mutation, { value: i });
+      }
+      await mutator.apply(mutation);
+      expect(mutation.hasBeenApplied).toBe(true);
+      await mutator.undo();
+      expect(mutation.hasBeenApplied).toBe(false);
+
+      const expectedActions = [
+        `begin:5`,
+        `update(10):5`,
+        `update(20):10`,
+        `update(30):20`,
+        `apply:30`,
+        `undo:5`,
+        `redo:5`,
+        `begin:5`,
+        `update(30):5`,
+        `apply:30`,
+      ];
+
+      // Test
+      await mutator.redo();
+
+      // Assert
+      expect(mutator.mockState.value).toBe(finalUpdateValue);
+      expect(actions).toEqual(expectedActions);
+      expect(mutation.hasBeenApplied).toBe(true);
+    });
+
+    test("Calling redo twice redoes two mutations", async () => {
+      // Setup
+      const initialMockStateValue = 5;
+      const { mutator, actions } = createMockMutator(initialMockStateValue);
+
+      // Apply two mutations
+      const finalUpdateValue = 20;
+      const newMockStateValues = [10, finalUpdateValue];
+      for (const newMockStateValue of newMockStateValues) {
+        const mutation = new SetMockValueMutation(newMockStateValue);
+        await mutator.apply(mutation);
+      }
+      // Undo two mutations
+      await mutator.undo();
+      await mutator.undo();
+
+      const expectedActions = [
+        `apply(10):5`,
+        `apply(20):10`,
+        `undo:10`,
+        `undo:5`,
+        `redo:5`,
+        `apply(10):5`,
+        `redo:10`,
+        `apply(20):10`,
+      ];
+
+      // Test
+      // Redo two mutations
+      await mutator.redo();
+      await mutator.redo();
+
+      // Assert
+      expect(mutator.mockState.value).toBe(finalUpdateValue);
+      expect(actions).toEqual(expectedActions);
+    });
+
+    test("Calling redo while a continuous mutation is debouncing applies it and then redoes (not supposed to be possible)", async () => {
+      // Setup
+      const initialMockStateValue = 5;
+      const { mutator, actions } = createMockMutator(initialMockStateValue);
+      // @NOTE prevent redo stack from being cleared
+      // This is a hack that puts the mutator into an impossible state
+      mutator.doNotClearRedoStack = true;
+
+      // Apply and undo a mutation
+      const firstMutationNewValue = 10;
+      const firstMutation = new SetMockValueMutation(firstMutationNewValue);
+      await mutator.apply(firstMutation);
+      await mutator.undo();
+
+      // Begin a new (debounced) mutation
+      // @NOTE in the real world, this would CLEAR the redo stack
+      // but for this test, we have disabled this behaviour
+      const newMockStateValue = 20;
+      const mockDebounceMutationTarget = {};
+      const mockDebounceWindowMs = 100;
+      await mutator.debounceContinuous(
+        SetMockValueContinuousMutation,
+        mockDebounceMutationTarget,
+        () => new SetMockValueContinuousMutation(),
+        () => ({ value: newMockStateValue }),
+        mockDebounceWindowMs,
+      );
+
+      // @NOTE do not wait for debounce to elapse
+
+      const expectedActions = [
+        `apply(10):5`,    // Apply first mutation
+        `undo:5`,         // Undo first mutation
+        `begin:5`,        // Begin new (debounced) mutation
+        `update(20):5`,
+        `redo:20`,        // Call redo while debouncing
+        `apply:20`,       // Debounced mutation is applied
+        `apply(10):20`,   // "undone" first mutation is re-applied
+      ];
+
+      // Test
+      await mutator.redo();
+
+      // Assert
+      expect(mutator.mockState.value).toBe(firstMutationNewValue);
+      expect(actions).toEqual(expectedActions);
+    });
+
+    test("Redoing an empty undo stack safely does nothing", async () => {
+      // Setup
+      const initialMockStateValue = 5;
+      const { mutator, actions } = createMockMutator(initialMockStateValue);
+
+      const expectedActions: string[] = [
+      ];
+
+      // Test
+      await mutator.redo();
+
+      // Assert
+      expect(mutator.mockState.value).toBe(initialMockStateValue);
+      expect(actions).toEqual(expectedActions);
+    });
+
+    test('`persistChanges` and `afterPersistChanges` are called after redo is called', async () => {
+      // Setup
+      const initialMockStateValue = 5;
+      const { mutator, actions } = createMockMutator(initialMockStateValue);
+
+      mutator.persistChangesImplementation = (): Promise<void> => {
+        actions.push('persistChanges');
+        return Promise.resolve();
+      };
+
+      // Create a mutation
+      const newValue = 10;
+      const mutation = new SetMockValueMutation(newValue);
+      mutation.afterPersistChanges = () => {
+        actions.push('afterPersistChanges');
+        return Promise.resolve();
+      };
+
+      // Apply and undo mutation
+      await mutator.apply(mutation);
+      await mutator.undo();
+
+      const expectedActions: string[] = [
+        'apply(10):5',          // apply:$current_value
+        'persistChanges',
+        'afterPersistChanges',
+        'persistChanges',       // @NOTE from undo()
+        'afterPersistChanges',
+        `undo:5`,
+        `redo:5`,
+        `apply(10):5`,
+        'persistChanges',       // @NOTE from redo()
+        'afterPersistChanges',
+      ];
+
+      // Test
+      await mutator.redo();
+
+      // Assert
+      expect(mutator.mockState.value).toBe(newValue);
+      expect(actions).toEqual(expectedActions);
+    });
+  });
 });
 
 interface MockState {
@@ -616,8 +1036,11 @@ class MockMutator extends MutatorNew<MockMutationDependencies> {
   public onUpdate: ((args: MockMutationDependencies, continuousMutation: IContinuousMutation2<MockMutationDependencies, unknown>, updateArgs: unknown) => void) | undefined;
   public onApply: ((args: MockMutationDependencies, mutation: IMutation2<MockMutationDependencies, unknown>) => void) | undefined;
   public onUndo: ((args: MockMutationDependencies, mutation: IMutation2<MockMutationDependencies, unknown>) => void) | undefined;
+  public onRedo: ((args: MockMutationDependencies, mutation: IMutation2<MockMutationDependencies, unknown>) => void) | undefined;
 
   public persistChangesImplementation: (() => Promise<void>) | undefined;
+
+  public doNotClearRedoStack: boolean = false;
 
   public constructor(mockStateInitialValue: number = 0) {
     super(new MutationController());
@@ -628,24 +1051,39 @@ class MockMutator extends MutatorNew<MockMutationDependencies> {
 
   protected override __beginContinuousImmediate<TMutationArgs>(continuousMutation: IContinuousMutation2<MockMutationDependencies, TMutationArgs>, clearRedoStack?: boolean): Promise<void> {
     this.onBegin?.(this.getMutationDependencies(), continuousMutation);
-    return super.__beginContinuousImmediate(continuousMutation);
+    return super.__beginContinuousImmediate(continuousMutation, clearRedoStack);
   }
 
-  public override __updateContinuousImmediate<TMutationArgs>(continuousMutation: IContinuousMutation2<MockMutationDependencies, TMutationArgs>, updateArgs: TMutationArgs): Promise<void> {
+  protected override __updateContinuousImmediate<TMutationArgs>(continuousMutation: IContinuousMutation2<MockMutationDependencies, TMutationArgs>, updateArgs: TMutationArgs): Promise<void> {
     this.onUpdate?.(this.getMutationDependencies(), continuousMutation, updateArgs);
     return super.__updateContinuousImmediate(continuousMutation, updateArgs);
   }
 
-  public override __applyImmediate<TMutationArgs>(mutation: IMutation2<MockMutationDependencies, TMutationArgs>): Promise<void> {
+  protected override __applyImmediate<TMutationArgs>(mutation: IMutation2<MockMutationDependencies, TMutationArgs>, clearRedoStack?: boolean): Promise<void> {
     this.onApply?.(this.getMutationDependencies(), mutation);
-    return super.__applyImmediate(mutation);
+    return super.__applyImmediate(mutation, clearRedoStack);
   }
 
-  public override async __undoImmediate(): Promise<void> {
+  protected override async __undoImmediate(): Promise<void> {
     const mutation = this.latestMutation;
-    if (mutation === undefined) throw new Error(`Cannot undo - no mutation has been applied`);
+    if (mutation === undefined) return;
     await super.__undoImmediate();
+
+    // @NOTE Special case: Undo is fired AFTER the mutation, so the updated value can be read
     this.onUndo?.(this.getMutationDependencies(), mutation.instance);
+  }
+
+  protected override async __redoImmediate(): Promise<void> {
+    const mutation = this.latestUndoneMutation;
+    if (mutation === undefined) return;
+    this.onRedo?.(this.getMutationDependencies(), mutation.instance);
+    return super.__redoImmediate();
+  }
+
+  public override clearRedoStack(): void {
+    if (!this.doNotClearRedoStack) {
+      super.clearRedoStack();
+    }
   }
 
   protected getMutationDependencies(): MockMutationDependencies {
@@ -681,6 +1119,7 @@ class MockMutatorTestState {
     mutator.onUpdate = (args, continuousMutation, updateArgs) => this.onMutatorUpdate(args, continuousMutation, updateArgs);
     mutator.onApply = (args, mutation) => this.onMutatorApply(args, mutation);
     mutator.onUndo = (args, mutation) => this.onMutatorUndo(args, mutation);
+    mutator.onRedo = (args, mutation) => this.onMutatorRedo(args, mutation);
   }
 
   private onMutatorBegin({ MockState }: MockMutationDependencies, continuousMutation: IContinuousMutation2<MockMutationDependencies, unknown>): void {
@@ -712,6 +1151,14 @@ class MockMutatorTestState {
   private onMutatorUndo({ MockState }: MockMutationDependencies, mutation: IMutation2<MockMutationDependencies, unknown>): void {
     if (mutation instanceof SetMockValueMutation || mutation instanceof SetMockValueContinuousMutation) {
       this.actions.push(`undo:${MockState.value}`);
+    } else {
+      throw new Error(`Unimplemented mock mutation type: ${mutation.constructor.name}`);
+    }
+  }
+
+  private onMutatorRedo({ MockState }: MockMutationDependencies, mutation: IMutation2<MockMutationDependencies, unknown>): void {
+    if (mutation instanceof SetMockValueMutation || mutation instanceof SetMockValueContinuousMutation) {
+      this.actions.push(`redo:${MockState.value}`);
     } else {
       throw new Error(`Unimplemented mock mutation type: ${mutation.constructor.name}`);
     }

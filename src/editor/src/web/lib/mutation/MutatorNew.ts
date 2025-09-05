@@ -267,6 +267,11 @@ export abstract class MutatorNew<TMutationDependencies> extends BaseMutatorNew {
       return; // Stack is empty
     }
 
+    if (this.currentDebounceState !== undefined) {
+      // If there is a lingering debounce mutation, apply it immediately
+      await this.currentDebounceState.onDebounceExpire(true);
+    }
+
     // Undo mutation
     const mutation = this.activeMutationStack[this.activeMutationStack.length - 1];
 
@@ -320,6 +325,14 @@ export abstract class MutatorNew<TMutationDependencies> extends BaseMutatorNew {
   protected async __redoImmediate(): Promise<void> {
     if (this.redoMutationStack.length === 0) {
       return; // Stack is empty
+    }
+
+    if (this.currentDebounceState !== undefined) {
+      // @NOTE This is a peculiar scenario and I really don't think it is possible
+      // However ... if/when it happens, I want it to fail gracefully
+      console.error(`Somehow: Redoing a mutation while there is an active debouncing mutation. PLEASE report this to the developers.`);
+      // If there is a lingering debounce mutation, apply it immediately
+      await this.currentDebounceState.onDebounceExpire(true);
     }
 
     const mutation = this.redoMutationStack.pop()!;
