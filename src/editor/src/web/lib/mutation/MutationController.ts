@@ -1,6 +1,6 @@
 import { ActiveMutation, BaseMutatorNew } from "./MutatorNew";
 
-interface RegisteredMutator {
+export interface RegisteredMutator {
   instance: BaseMutatorNew;
   isActive: boolean;
 }
@@ -34,7 +34,7 @@ export class MutationController {
     }
   }
 
-  public async redoLatestUndone(): Promise<void> {
+  public async redoLatestActive(): Promise<void> {
     let latestUndone: ActiveMutation | undefined = undefined;
     let latestUndoneMutator: BaseMutatorNew | undefined = undefined;
     for (const mutator of this.activeMutators) {

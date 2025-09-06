@@ -68,14 +68,14 @@ const App: FunctionComponent<AppProps> = ({ Component }) => {
 
         if (event.shiftKey) {
           // Cmd+Shift+Z = Redo
-          void MutationController.redoLatestUndone();
+          void MutationController.redoLatestActive();
         } else {
           // Cmd+Z = Undo
           void MutationController.undoLatestActive();
         }
       } else if (event.key === 'y' && (event.ctrlKey || event.metaKey)) {
         // Ctrl+Y = Redo
-        void MutationController.redoLatestUndone();
+        void MutationController.redoLatestActive();
       }
     };
 
