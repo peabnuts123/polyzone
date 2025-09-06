@@ -18,6 +18,10 @@
     "*.pzscene": "jsonc",
     "*.pzmat": "jsonc",
   },
+  "explorer.fileNesting.enabled": true,
+  "explorer.fileNesting.patterns": {
+    "*Mutation.ts": "${capture}Mutation.integration.test.ts"
+  },
   "css.customData": [
     ".vscode/tailwind.json"
   ],
