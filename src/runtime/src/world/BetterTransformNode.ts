@@ -2,22 +2,22 @@ import { Quaternion, TmpVectors, Vector3 } from "@babylonjs/core/Maths/math.vect
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 
 export class BetterTransformNode extends TransformNode {
-  public get rotationQuaternion(): Quaternion {
+  public override get rotationQuaternion(): Quaternion {
     return super.rotationQuaternion!;
   }
 
-  public set rotationQuaternion(value: Quaternion) {
+  public override set rotationQuaternion(value: Quaternion) {
     super.rotationQuaternion = value;
     this.computeWorldMatrix();
   }
 
   // @NOTE Seems omitting the getter while defining the setter means the class
   // has an implicit getter that returns `undefined`
-  public get absoluteRotationQuaternion(): Quaternion {
+  public override get absoluteRotationQuaternion(): Quaternion {
     return super.absoluteRotationQuaternion;
   }
 
-  public set absoluteRotationQuaternion(absoluteRotation: Quaternion) {
+  public override set absoluteRotationQuaternion(absoluteRotation: Quaternion) {
     if (this.parent) {
       // Get parent's world matrix and decompose
       const parentWorldMatrix = this.parent.getWorldMatrix();
@@ -48,11 +48,11 @@ export class BetterTransformNode extends TransformNode {
 
   // @NOTE Seems omitting the getter while defining the setter means the class
   // has an implicit getter that returns `undefined`
-  public get absoluteScaling(): Vector3 {
+  public override get absoluteScaling(): Vector3 {
     return super.absoluteScaling;
   }
 
-  public set absoluteScaling(absoluteScaling: Vector3) {
+  public override set absoluteScaling(absoluteScaling: Vector3) {
     if (this.parent) {
       // Get parent's world matrix and decompose
       const parentScaling = (this.parent as TransformNode).absoluteScaling;

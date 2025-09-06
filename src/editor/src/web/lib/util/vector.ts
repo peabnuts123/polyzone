@@ -31,8 +31,8 @@ export class ObservableVector3 extends Vector3 {
     return new ObservableVector3(super.subtract(value));
   }
 
-  public multiply(factor: number): ObservableVector3;
-  public multiply(other: Vector3): ObservableVector3;
+  public override multiply(factor: number): ObservableVector3;
+  public override multiply(other: Vector3): ObservableVector3;
   public override multiply(operand: number | Vector3): ObservableVector3 {
     if (operand instanceof Vector3) {
       return new ObservableVector3(super.multiply(operand));
@@ -41,9 +41,9 @@ export class ObservableVector3 extends Vector3 {
     }
   }
 
-  public divide(factor: number): ObservableVector3;
-  public divide(other: Vector3): ObservableVector3;
-  public divide(operand: number | Vector3): ObservableVector3 {
+  public override divide(factor: number): ObservableVector3;
+  public override divide(other: Vector3): ObservableVector3;
+  public override divide(operand: number | Vector3): ObservableVector3 {
     if (operand instanceof Vector3) {
       return new ObservableVector3(super.divide(operand));
     } else {
@@ -51,30 +51,30 @@ export class ObservableVector3 extends Vector3 {
     }
   }
 
-  public normalize(): ObservableVector3 {
+  public override normalize(): ObservableVector3 {
     return new ObservableVector3(super.normalize());
   }
 
-  public clone(): ObservableVector3 {
+  public override clone(): ObservableVector3 {
     return new ObservableVector3(super.clone());
   }
 
-  public withX(x: number): ObservableVector3 {
+  public override withX(x: number): ObservableVector3 {
     return new ObservableVector3(super.withX(x));
   }
 
-  public withY(y: number): ObservableVector3 {
+  public override withY(y: number): ObservableVector3 {
     return new ObservableVector3(super.withY(y));
   }
 
-  public withZ(z: number): ObservableVector3 {
+  public override withZ(z: number): ObservableVector3 {
     return new ObservableVector3(super.withZ(z));
   }
 
-  public static zero(): ObservableVector3 {
+  public static override zero(): ObservableVector3 {
     return new ObservableVector3(Vector3.zero());
   }
-  public static one(): ObservableVector3 {
+  public static override one(): ObservableVector3 {
     return new ObservableVector3(Vector3.one());
   }
 }

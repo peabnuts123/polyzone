@@ -200,7 +200,7 @@ export class SetGameObjectParentMutation extends BaseSceneMutation<MutationArgs>
     SceneViewController.sceneJson.mutate(newJsonPath, currentDefinitionValue, { isArrayInsertion: true });
   }
 
-  protected getUndoArgs({ SceneViewController }: SceneViewMutationArguments): MutationArgs {
+  protected override getUndoArgs({ SceneViewController }: SceneViewMutationArguments): MutationArgs {
     const gameObjectData = SceneViewController.scene.getGameObject(this.gameObjectId);
     const parentGameObjectData = SceneViewController.scene.getGameObjectParent(this.gameObjectId);
 

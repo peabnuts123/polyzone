@@ -59,7 +59,7 @@ export class SetMaterialReflectionSeparateTextureMutation extends BaseMaterialEd
     }
   }
 
-  public async afterPersistChanges({ ProjectController, MaterialEditorViewController }: MaterialEditorViewMutationArguments): Promise<void> {
+  public override async afterPersistChanges({ ProjectController, MaterialEditorViewController }: MaterialEditorViewMutationArguments): Promise<void> {
     const { materialAssetData, materialData } = MaterialEditorViewController;
 
     // Update asset in cache
@@ -71,7 +71,7 @@ export class SetMaterialReflectionSeparateTextureMutation extends BaseMaterialEd
     await ProjectController.assetCache.loadAsset(materialAssetData, MaterialEditorViewController.scene);
   }
 
-  public getUndoArgs({ MaterialEditorViewController }: MaterialEditorViewMutationArguments): MutationArgs {
+  public override getUndoArgs({ MaterialEditorViewController }: MaterialEditorViewMutationArguments): MutationArgs {
     const { materialData } = MaterialEditorViewController;
 
     if (materialData.reflection?.type !== 'separate') {

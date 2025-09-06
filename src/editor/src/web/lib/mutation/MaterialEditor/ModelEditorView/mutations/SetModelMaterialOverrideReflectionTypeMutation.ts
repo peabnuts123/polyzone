@@ -129,7 +129,7 @@ export class SetModelMaterialOverrideReflectionTypeMutation extends BaseModelEdi
     reconcileMaterialOverrideData(meshAssetData, ProjectController);
   }
 
-  public async afterPersistChanges({ ProjectController, ModelEditorViewController }: ModelEditorViewMutationArguments): Promise<void> {
+  public override async afterPersistChanges({ ProjectController, ModelEditorViewController }: ModelEditorViewMutationArguments): Promise<void> {
     const meshAssetData = ProjectController.project.assets.getById(this.modelAssetId, AssetType.Mesh);
 
     // - Refresh asset cache (e.g. asset dependencies, etc)
@@ -137,7 +137,7 @@ export class SetModelMaterialOverrideReflectionTypeMutation extends BaseModelEdi
     await ProjectController.assetCache.loadAsset(meshAssetData, ModelEditorViewController.scene);
   }
 
-  public getUndoArgs({ ProjectController }: ModelEditorViewMutationArguments): MutationArgs {
+  public override getUndoArgs({ ProjectController }: ModelEditorViewMutationArguments): MutationArgs {
     const meshAssetData = ProjectController.project.assets.getById(this.modelAssetId, AssetType.Mesh);
     const materialOverridesData = meshAssetData.getOverridesForMaterial(this.materialName);
 

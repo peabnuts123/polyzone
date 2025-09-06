@@ -70,7 +70,7 @@ export class TextureAsset extends LoadedAssetBase<AssetType.Texture> {
     return new TextureAsset(assetData.id, texture);
   }
 
-  public dispose(): void {
+  public override dispose(): void {
     this.texture.dispose();
   }
 
