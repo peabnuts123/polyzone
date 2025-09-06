@@ -76,10 +76,10 @@ export class ModelEditorViewController implements IModelEditorViewController {
     );
 
     this._canvas = document.createElement('canvas');
-    this.canvas.classList.add('w-full', 'h-full');
+    this.canvas.classList.add('w-full', 'h-full', '[image-rendering:_pixelated]');
 
     // @NOTE `preserveDrawingBuffer` needed to be able to capture canvas contents
-    this.engine = new Engine(this.canvas, true, { preserveDrawingBuffer: true }, true);
+    this.engine = new Engine(this.canvas, false, { preserveDrawingBuffer: true }, true);
     this.babylonScene = new BabylonScene(this.engine);
 
     const stopListeningToProjectFileEvents = projectController.filesWatcher.onProjectFileChanged((event) => {

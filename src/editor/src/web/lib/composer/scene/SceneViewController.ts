@@ -99,10 +99,10 @@ export class SceneViewController implements ISceneViewController {
     );
 
     this._canvas = document.createElement('canvas');
-    this.canvas.classList.add('w-full', 'h-full');
+    this.canvas.classList.add('w-full', 'h-full', '[image-rendering:_pixelated]');
 
     // @NOTE `preserveDrawingBuffer` needed to be able to capture canvas contents
-    this.engine = new Engine(this.canvas, true, { preserveDrawingBuffer: true }, true);
+    this.engine = new Engine(this.canvas, false, { preserveDrawingBuffer: true }, true);
     this.babylonScene = new BabylonScene(this.engine);
     this._selectionManager = new SelectionManager(this.babylonScene, this);
 
@@ -232,8 +232,8 @@ export class SceneViewController implements ISceneViewController {
     const onDestroyView = (): void => {
       resizeObserver.unobserve(this.canvas as unknown as Element); // @TODO FUCK YOU REACT!!!!!!
       if (!this.engine.isDisposed) {
-      this.engine.stopRenderLoop(renderLoop);
-      this.mutationController.setMutatorActive(this.mutatorNew, false);
+        this.engine.stopRenderLoop(renderLoop);
+        this.mutationController.setMutatorActive(this.mutatorNew, false);
       }
     };
     return onDestroyView;
