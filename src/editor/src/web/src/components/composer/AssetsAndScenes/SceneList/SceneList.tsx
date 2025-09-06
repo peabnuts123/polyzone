@@ -21,7 +21,7 @@ interface Props {
 
 export const SceneList: FunctionComponent<Props> = observer(({ openScene }) => {
   // Hooks
-  const { ProjectController } = useLibrary();
+  const { ProjectController, ComposerController } = useLibrary();
 
   // State
   const [currentDirectory, setCurrentDirectory] = useState<string[]>([]);
@@ -71,7 +71,7 @@ export const SceneList: FunctionComponent<Props> = observer(({ openScene }) => {
 
   const onFinishedNamingNewScene = (newScenePath: string): void => {
     setTempCreatePath(undefined);
-    void ProjectController.mutatorNew.apply(new CreateNewSceneMutation(newScenePath));
+    void ComposerController.projectMutator.apply(new CreateNewSceneMutation(newScenePath));
   };
 
   const onCancelCreateNewScene = (): void => {

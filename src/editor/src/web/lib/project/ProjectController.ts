@@ -8,7 +8,7 @@ import { AssetCache } from "@polyzone/runtime/src/world";
 import { IWritableFileSystem } from "@lib/filesystem/IWritableFileSystem";
 import { TauriFileSystem } from '@lib/filesystem/TauriFileSystem';
 import { JsoncContainer } from "@lib/util/JsoncContainer";
-import { ProjectMutator, ProjectMutatorNew } from "@lib/mutation/Project";
+import { ProjectMutator } from "@lib/mutation/Project";
 import { invoke } from "@lib/util/TauriCommands";
 import { ApplicationDataController } from '../application/ApplicationDataController';
 import { ProjectDefinition } from "./definition";
@@ -28,7 +28,6 @@ export interface IProjectController {
   get projectJson(): JsoncContainer<ProjectDefinition>;
   get projectDefinition(): ProjectDefinition;
   get mutator(): ProjectMutator;
-  get mutatorNew(): ProjectMutatorNew;
   get fileSystem(): IWritableFileSystem;
   get filesWatcher(): ProjectFilesWatcher;
   get assetCache(): AssetCache;
@@ -38,7 +37,6 @@ export class ProjectController implements IProjectController {
   private _isLoadingProject: boolean = false;
   private _projectJson: JsoncContainer<ProjectDefinition> | undefined = undefined;
   private readonly _mutator: ProjectMutator;
-  private readonly _mutatorNew: ProjectMutatorNew;
   private readonly applicationDataController: ApplicationDataController;
   private readonly mutationController: MutationController;
   private _project: ProjectData | undefined = undefined;
@@ -49,10 +47,8 @@ export class ProjectController implements IProjectController {
 
   public constructor(applicationDataController: ApplicationDataController, mutationController: MutationController) {
     this._mutator = new ProjectMutator(this);
-    this._mutatorNew = new ProjectMutatorNew(this, mutationController);
     this.applicationDataController = applicationDataController;
     this.mutationController = mutationController;
-    this.mutationController.setMutatorActive(this._mutatorNew, true);
 
     makeAutoObservable(this);
   }
@@ -161,7 +157,6 @@ export class ProjectController implements IProjectController {
     }
     this._filesWatcher?.onDestroy();
     this.problemScanner?.onDestroy();
-    this.mutatorNew.deregister();
   }
 
   public get isLoadingProject(): boolean {
@@ -190,9 +185,6 @@ export class ProjectController implements IProjectController {
 
   public get mutator(): ProjectMutator {
     return this._mutator;
-  }
-  public get mutatorNew(): ProjectMutatorNew {
-    return this._mutatorNew;
   }
 
   public get fileSystem(): IWritableFileSystem {

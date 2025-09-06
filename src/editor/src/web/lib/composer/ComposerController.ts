@@ -8,8 +8,8 @@ import { toRuntimeSceneDefinition } from '@lib/project/definition';
 import { SceneData } from '@lib/project/data';
 import { invoke } from '@lib/util/TauriCommands';
 import { MutationController } from '@lib/mutation/MutationController';
+import { ProjectMutatorNew } from '@lib/mutation/Project';
 import { SceneViewController, type ISceneViewController } from './scene/SceneViewController';
-
 
 export interface TabData {
   id: string;
@@ -26,10 +26,12 @@ export interface IComposerController {
   onDestroy(): void;
   debug_buildCartridge(entryPointSceneIdOverride?: string): Promise<Uint8Array>;
   get currentlyOpenTabs(): TabData[];
+  get projectMutator(): ProjectMutatorNew;
 }
 
 export class ComposerController implements IComposerController {
   private _tabData: TabData[] = [];
+  private _projectMutator: ProjectMutatorNew;
 
   private readonly projectController: IProjectController;
   private readonly mutationController: MutationController;
@@ -37,6 +39,7 @@ export class ComposerController implements IComposerController {
   public constructor(projectController: IProjectController, mutationController: MutationController) {
     this.projectController = projectController;
     this.mutationController = mutationController;
+    this._projectMutator = new ProjectMutatorNew(projectController, mutationController);
 
     // Open 1 blank tab
     this.openNewTab();
@@ -45,6 +48,8 @@ export class ComposerController implements IComposerController {
   }
 
   public onEnter(): void {
+    this.mutationController.setMutatorActive(this.projectMutator, true);
+
     for (const tab of this.currentlyOpenTabs) {
       if (tab.sceneViewController) {
         const sceneDbRecord = this.projectController.project.scenes.getById(tab.sceneViewController.scene.id);
@@ -59,7 +64,7 @@ export class ComposerController implements IComposerController {
   }
 
   public onExit(): void {
-    /* No-op */
+    this.mutationController.setMutatorActive(this.projectMutator, false);
   }
 
   public async loadSceneForTab(tabId: string, sceneManifest: SceneData): Promise<void> {
@@ -123,6 +128,7 @@ export class ComposerController implements IComposerController {
     for (const tab of this.currentlyOpenTabs) {
       tab.sceneViewController?.destroy();
     }
+    this.projectMutator.deregister();
   }
 
   // Kind of a debug method with a bit of a mashup of concerns
@@ -183,5 +189,9 @@ export class ComposerController implements IComposerController {
 
   public get currentlyOpenTabs(): TabData[] {
     return this._tabData;
+  }
+
+  public get projectMutator(): ProjectMutatorNew {
+    return this._projectMutator;
   }
 }
