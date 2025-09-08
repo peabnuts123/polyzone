@@ -198,8 +198,10 @@ export class MaterialEditorViewController implements IMaterialEditorViewControll
     /* Teardown - when scene view is unloaded */
     const onDestroyView = (): void => {
       resizeObserver.unobserve(this.canvas as unknown as Element); // @TODO FUCK YOU REACT!!!!!!
-      this.engine.stopRenderLoop(renderLoop);
-      this.mutationController.setMutatorActive(this.mutatorNew, false);
+      if (!this.engine.isDisposed) {
+        this.engine.stopRenderLoop(renderLoop);
+        this.mutationController.setMutatorActive(this.mutatorNew, false);
+      }
     };
     return onDestroyView;
   }

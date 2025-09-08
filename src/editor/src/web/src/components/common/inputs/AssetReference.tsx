@@ -76,21 +76,25 @@ export function createAssetReferenceComponentOfType<TAssetType extends AssetType
         } satisfies AssetReferenceModalAssetReference<TAssetType>));
 
       // Show modal
-      const result = await showModal<AssetReferenceModalData<TAssetType>, AssetReferenceResultPayload>(
-        '/modal/asset-reference',
-        { assets },
-      );
+      try {
+        const result = await showModal<AssetReferenceModalData<TAssetType>, AssetReferenceResultPayload>(
+          '/modal/asset-reference',
+          { assets },
+        );
 
-      // Handle result from modal
-      if (result.selected) {
-        // User selected an asset in the modal
-        // Resolve asset ID back into full AssetData instance
-        console.log(`[AssetReference] (onClickAssetButton) Selected asset: ${result.assetId}`);
-        const selectedAsset = ProjectController.project.assets.findById(result.assetId) as AssetDataOfType<TAssetType>;
-        onAssetChange(selectedAsset);
-      } else {
-        // User cancelled
-        console.log(`[AssetReference] (onClickAssetButton) Modal cancelled.`);
+        // Handle result from modal
+        if (result.selected) {
+          // User selected an asset in the modal
+          // Resolve asset ID back into full AssetData instance
+          console.log(`[AssetReference] (onClickAssetButton) Selected asset: ${result.assetId}`);
+          const selectedAsset = ProjectController.project.assets.findById(result.assetId) as AssetDataOfType<TAssetType>;
+          onAssetChange(selectedAsset);
+        } else {
+          // User cancelled
+          console.log(`[AssetReference] (onClickAssetButton) Modal cancelled.`);
+        }
+      } catch (e) {
+        console.error(`Failed to open asset reference modal`, e);
       }
     };
 
