@@ -68,6 +68,6 @@ export class SetMaterialDiffuseColorEnabledMutation extends BaseMaterialEditorVi
   }
 
   public get description(): string {
-    return `Toggle material diffuse color`;
+    return `${this.args.diffuseColorEnabled ? "Enable" : "Disable"} material diffuse color`;
   }
 }

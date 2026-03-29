@@ -22,7 +22,7 @@ export interface IMutation2<TMutationDependencies, TMutationArgs> {
 
 export abstract class BaseMutation<TMutationDependencies, TMutationArgs> implements IMutation2<TMutationDependencies, TMutationArgs> {
   public abstract get description(): string;
-  private args: TMutationArgs;
+  protected readonly args: TMutationArgs;
   private undoArgs: TMutationArgs | undefined;
   /**
    * If set to `true`, `customUndo()` will be called instead of the default undo logic.
@@ -49,7 +49,7 @@ export abstract class BaseMutation<TMutationDependencies, TMutationArgs> impleme
   public async undoMutation(dependencies: TMutationDependencies): Promise<void> {
     if (this.useCustomUndo) {
       // Custom undo handling implemented
-      await this.customUndo(dependencies);
+      await this.customUndo(dependencies, this.args);
     } else {
       if (this.undoArgs === undefined) throw new Error(`Cannot undo mutation - no undo state has been captured. Has the mutation been applied?`);
 
@@ -77,7 +77,7 @@ export abstract class BaseMutation<TMutationDependencies, TMutationArgs> impleme
    * If `useCustomUndo` is set to `true`, this will be called instead of `getUndoArgs()`/`undoMutation()`.
    */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected customUndo(dependencies: TMutationDependencies): Promise<void> {
+  protected customUndo(dependencies: TMutationDependencies, args: TMutationArgs): Promise<void> {
     throw new Error(`Not implemented`);
   }
 
