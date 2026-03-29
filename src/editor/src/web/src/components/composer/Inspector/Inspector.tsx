@@ -86,7 +86,7 @@ export const Inspector: FunctionComponent<Props> = observer(({ sceneViewControll
                 value={selectedObjectData.name}
                 onChange={(newName) => {
                   if (newName && newName.trim()) {
-                    void sceneViewController.mutator.debounceContinuous(
+                    void sceneViewController.mutatorNew.debounceContinuous(
                       SetGameObjectNameMutation,
                       selectedObjectData,
                       () => new SetGameObjectNameMutation(selectedObjectData.id),

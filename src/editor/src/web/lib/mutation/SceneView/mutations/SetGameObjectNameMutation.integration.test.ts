@@ -41,12 +41,12 @@ describe(SetGameObjectNameMutation.name, () => {
     const mutation = new SetGameObjectNameMutation(mockGameObjectData.id);
 
     // Test
-    await mockSceneViewController.mutator.beginContinuous(mutation);
+    await mockSceneViewController.mutatorNew.beginContinuous(mutation);
     // Apply several updates in series
     let intermediateName: string = '';
     for (let i = 0; i < 3; i++) {
       intermediateName = `${initialName} (step ${i})`;
-      await mockSceneViewController.mutator.updateContinuous(mutation, { name: intermediateName });
+      await mockSceneViewController.mutatorNew.updateContinuous(mutation, { name: intermediateName });
 
       // Each update should modify the data and Babylon state
       expect(mockGameObjectData.name, `GameObject data should have intermediate name after update ${i}`).toEqual(intermediateName);
@@ -58,7 +58,7 @@ describe(SetGameObjectNameMutation.name, () => {
     }
 
     // Apply should only persist the final value
-    await mockSceneViewController.mutator.apply(mutation);
+    await mockSceneViewController.mutatorNew.apply(mutation);
 
     const finalDataValue = mockGameObjectData.name;
     const finalBabylonValue = mockGameObject.name;
