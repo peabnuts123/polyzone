@@ -32,8 +32,8 @@ const Player: FunctionComponent<Props> = ({ cartridge }) => {
         <canvas
           ref={canvas}
           className="w-full h-full object-contain [image-rendering:_pixelated]"
-          width="640"
-          height="480"
+          width="480"
+          height="360"
         />
       </div>
     </div>
