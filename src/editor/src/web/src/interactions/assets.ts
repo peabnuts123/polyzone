@@ -2,14 +2,6 @@ import type { AssetType } from "@polyzone/runtime/src/cartridge";
 import type { AssetData, AssetDataOfType } from "@lib/project/data/AssetData";
 import { useDrag, useDrop } from "@lib/util/drag-and-drop";
 
-export interface AssetDragState {
-  isDragging: boolean;
-}
-
-export interface AssetDropState {
-  isDragOverTarget: boolean;
-}
-
 export interface AssetDragData<TAssetData extends AssetData> {
   assetData: TAssetData;
 }

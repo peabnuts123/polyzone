@@ -69,6 +69,7 @@ export class SelectionManager {
           parentScale = selectedObjectInstance.transform.parent.localScale; // @TODO Absolute scale?
         }
 
+        // @TODO Math.abs
         if (parentScale.x <= Number.EPSILON) console.warn(`[${SelectionManager.name}] (moveGizmo.onDragObservable) Moving object whose parentScale.x is 0. x coordinate can not be extrapolated and will remain unmodified`);
         else newPosition.x = this.fakeTransformTarget!.position.x / parentScale.x;
         if (parentScale.y <= Number.EPSILON) console.warn(`[${SelectionManager.name}] (moveGizmo.onDragObservable) Moving object whose parentScale.y is 0. y coordinate can not be extrapolated and will remain unmodified`);
@@ -90,7 +91,7 @@ export class SelectionManager {
     this.rotateGizmo = new RotationGizmo(utilityLayer, 32, true, 6, this.gizmoManager);
     this.rotateGizmo.onDragStartObservable.add(() => {
       this.currentRotateMutation = new SetGameObjectRotationMutation(this.selectedObjectId!);
-      void sceneViewController.mutator.beginContinuous(this.currentRotateMutation);
+      void sceneViewController.mutatorNew.beginContinuous(this.currentRotateMutation);
     });
     this.rotateGizmo.onDragObservable.add((_eventData) => {
       if (this.selectedObjectId !== undefined) {
@@ -101,13 +102,13 @@ export class SelectionManager {
           throw new Error(`Rotation quaternion is undefined somehow`);
         }
 
-        void sceneViewController.mutator.updateContinuous(this.currentRotateMutation!, {
+        void sceneViewController.mutatorNew.updateContinuous(this.currentRotateMutation!, {
           rotation: toQuaternionCore(rotation),
         });
       }
     });
     this.rotateGizmo.onDragEndObservable.add((_eventData) => {
-      void sceneViewController.mutator.apply(this.currentRotateMutation!);
+      void sceneViewController.mutatorNew.apply(this.currentRotateMutation!);
       this.currentRotateMutation = undefined;
     });
 

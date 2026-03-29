@@ -58,6 +58,9 @@ export interface ActiveMutation<TMutationDependencies = any> {
 }
 
 // View of `Mutator` class without any access to generic properties
+// @TODO Between `currentDebounceState` needing `any` in its type and this class
+// I'm not sure the "strongly typed" refactor has paid off? Maybe the old style
+// of just `AnyContinuousMutation` is simpler?
 export abstract class BaseMutatorNew {
   public abstract get latestMutation(): ActiveMutation | undefined;
   public abstract get latestUndoneMutation(): ActiveMutation | undefined;

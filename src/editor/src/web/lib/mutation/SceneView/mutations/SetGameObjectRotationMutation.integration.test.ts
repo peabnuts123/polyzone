@@ -63,7 +63,7 @@ describe(SetGameObjectRotationMutation.name, () => {
     });
 
     // Test
-    await mockSceneViewController.mutator.beginContinuous(mutation);
+    await mockSceneViewController.mutatorNew.beginContinuous(mutation);
 
     // Apply several rotation updates in series
     let finalRotationQuaternion: Quaternion = Quaternion.fromEuler(new Vector3(0, 0, 0));
@@ -71,7 +71,7 @@ describe(SetGameObjectRotationMutation.name, () => {
     for (let i = 0; i < 3; i++) {
       finalRotationEuler = new Vector3(0.5 + 0.1 * i, 1.0 + 0.1 * i, 1.5 + 0.1 * i);
       finalRotationQuaternion = Quaternion.fromEuler(finalRotationEuler);
-      await mockSceneViewController.mutator.updateContinuous(mutation, {
+      await mockSceneViewController.mutatorNew.updateContinuous(mutation, {
         rotation: finalRotationQuaternion,
         resetGizmo: false,
       });
@@ -86,7 +86,7 @@ describe(SetGameObjectRotationMutation.name, () => {
     }
 
     // Apply should only persist the final value
-    await mockSceneViewController.mutator.apply(mutation);
+    await mockSceneViewController.mutatorNew.apply(mutation);
 
     const finalDataRotation = mockGameObjectData.transform.rotation;
     const finalBabylonRotation = mockGameObject.transform.localRotation;
@@ -140,7 +140,7 @@ describe(SetGameObjectRotationMutation.name, () => {
 
     // Test
     const testFunc = async (): Promise<void> => {
-      await mockSceneViewController.mutator.beginContinuous(mutation);
+      await mockSceneViewController.mutatorNew.beginContinuous(mutation);
     };
 
     // Assert

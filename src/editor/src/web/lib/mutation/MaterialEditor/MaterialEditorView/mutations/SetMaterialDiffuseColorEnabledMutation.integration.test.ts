@@ -43,7 +43,7 @@ describe(SetMaterialDiffuseColorEnabledMutation.name, () => {
     const mutation = new SetMaterialDiffuseColorEnabledMutation(true);
 
     // Test
-    await mockMaterialEditorViewController.mutator.apply(mutation);
+    await mockMaterialEditorViewController.mutatorNew.apply(mutation);
 
     const updatedDataEnabledValue = mockMaterialEditorViewController.materialData.diffuseColorEnabled;
     const updatedDataValue = mockMaterialEditorViewController.materialData.diffuseColor;
@@ -97,7 +97,7 @@ describe(SetMaterialDiffuseColorEnabledMutation.name, () => {
     const mutation = new SetMaterialDiffuseColorEnabledMutation(false);
 
     // Test
-    await mockMaterialEditorViewController.mutator.apply(mutation);
+    await mockMaterialEditorViewController.mutatorNew.apply(mutation);
 
     const updatedDataEnabledValue = mockMaterialEditorViewController.materialData.diffuseColorEnabled;
     const updatedDataValue = mockMaterialEditorViewController.materialData.diffuseColor;

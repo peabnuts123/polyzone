@@ -59,6 +59,7 @@ export class BetterTransformNode extends TransformNode {
 
       // Avoid division by zero
       /* X */
+      // @TODO Math.abs
       if (parentScaling.x <= Number.EPSILON) {
         console.warn(`Cannot set absolute scaling to '${absoluteScaling}' for node '${this.name}' as its parent(s) scaling.x is currently 0. Its local scaling.x will be set to 1. This will produce unexpected results if this node's parent(s) are scaled back to a non-zero value.`);
         this.scaling.x = 1;
