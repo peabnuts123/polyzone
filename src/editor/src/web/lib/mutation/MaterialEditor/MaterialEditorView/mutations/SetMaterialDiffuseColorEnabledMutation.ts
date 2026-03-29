@@ -3,29 +3,26 @@ import { toColor3Babylon, toColor3Core, toColor3Definition } from "@polyzone/run
 import { RetroMaterial } from "@polyzone/runtime/src/materials/RetroMaterial";
 import { MaterialAsset, MaterialDefinition } from "@polyzone/runtime/src/world/assets";
 import { resolvePath } from "@lib/util/JsoncContainer";
-import { IMaterialEditorViewMutation } from "../IMaterialEditorViewMutation";
+import { BaseMaterialEditorViewMutation } from "../IMaterialEditorViewMutation";
 import { MaterialEditorViewMutationArguments } from "../MaterialEditorViewMutationArguments";
 
-export class SetMaterialDiffuseColorEnabledMutation implements IMaterialEditorViewMutation {
-  // Mutation parameters
-  private readonly diffuseColorEnabled: boolean;
+interface MutationArgs {
+  diffuseColorEnabled: boolean;
+}
 
-  // Undo state
-  private oldDiffuseColorEnabled: boolean | undefined;
-
+export class SetMaterialDiffuseColorEnabledMutation extends BaseMaterialEditorViewMutation<MutationArgs> {
   public constructor(diffuseColorEnabled: boolean) {
-    this.diffuseColorEnabled = diffuseColorEnabled;
+    super({
+      diffuseColorEnabled,
+    });
   }
 
-  public apply({ MaterialEditorViewController }: MaterialEditorViewMutationArguments): void {
+  public override apply({ MaterialEditorViewController }: MaterialEditorViewMutationArguments, { diffuseColorEnabled }: MutationArgs): void {
     const { materialData, materialInstance } = MaterialEditorViewController;
 
-    // 0. Store undo data
-    this.oldDiffuseColorEnabled = materialData.diffuseColorEnabled;
-
     // 1. Update data
-    materialData.diffuseColorEnabled = this.diffuseColorEnabled;
-    if (this.diffuseColorEnabled) {
+    materialData.diffuseColorEnabled = diffuseColorEnabled;
+    if (diffuseColorEnabled) {
       // Also ensure color override is set if we're enabling it
       materialData.diffuseColor ??= toColor3Core(RetroMaterial.Defaults.diffuseColor);
     }
@@ -50,7 +47,7 @@ export class SetMaterialDiffuseColorEnabledMutation implements IMaterialEditorVi
     }
   }
 
-  public async afterPersistChanges({ ProjectController, MaterialEditorViewController }: MaterialEditorViewMutationArguments): Promise<void> {
+  public override async afterPersistChanges({ ProjectController, MaterialEditorViewController }: MaterialEditorViewMutationArguments): Promise<void> {
     const { materialAssetData, materialData } = MaterialEditorViewController;
 
     // Update asset in cache
@@ -62,13 +59,15 @@ export class SetMaterialDiffuseColorEnabledMutation implements IMaterialEditorVi
     await ProjectController.assetCache.loadAsset(materialAssetData, MaterialEditorViewController.scene);
   }
 
-  public undo(_args: MaterialEditorViewMutationArguments): void {
-    // @TODO
-    // - Apply undo values
-    throw new Error("Method not implemented.");
+  public override getUndoArgs({ MaterialEditorViewController }: MaterialEditorViewMutationArguments): MutationArgs {
+    const { materialData } = MaterialEditorViewController;
+
+    return {
+      diffuseColorEnabled: materialData.diffuseColorEnabled,
+    };
   }
 
   public get description(): string {
-    return `${this.diffuseColorEnabled ? "Enable" : "Disable"} material diffuse color`;
+    return `Toggle material diffuse color`;
   }
 }

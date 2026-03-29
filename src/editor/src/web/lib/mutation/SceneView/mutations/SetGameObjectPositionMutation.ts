@@ -20,7 +20,7 @@ export class SetGameObjectPositionMutation extends BaseContinuousSceneMutation<S
     this.gameObjectId = gameObjectId;
   }
 
-  public update({ SceneViewController }: SceneViewMutationArguments, { position, resetGizmo }: SetGameObjectPositionMutationUpdateArgs): void {
+  public override update({ SceneViewController }: SceneViewMutationArguments, { position, resetGizmo }: SetGameObjectPositionMutationUpdateArgs): void {
     const gameObjectData = SceneViewController.scene.getGameObject(this.gameObjectId);
     const gameObject = SceneViewController.findGameObjectById(this.gameObjectId);
     if (gameObject === undefined) throw new Error(`Cannot apply mutation - no game object exists in the scene with id '${this.gameObjectId}'`);
@@ -35,7 +35,7 @@ export class SetGameObjectPositionMutation extends BaseContinuousSceneMutation<S
     }
   }
 
-  public apply({ SceneViewController }: SceneViewMutationArguments): void {
+  public override apply({ SceneViewController }: SceneViewMutationArguments): void {
     const gameObjectData = SceneViewController.scene.getGameObject(this.gameObjectId);
 
     // - 3. Update JSONC

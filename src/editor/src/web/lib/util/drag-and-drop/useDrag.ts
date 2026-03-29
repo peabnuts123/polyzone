@@ -3,7 +3,7 @@ import { RefObject, useEffect, useRef, useState } from "react";
 import { DragTypeIdentifier } from "./DragTypeIdentifier";
 import { DragAndDropData, useDragAndDropData } from "./data";
 
-interface UseDragOptions<TDragData> {
+export interface UseDragOptions<TDragData> {
   /** Type of this drag item */
   type: DragTypeIdentifier;
   /** Data associated with this drag item */
@@ -12,7 +12,7 @@ interface UseDragOptions<TDragData> {
   dropEffect?: typeof DataTransfer.prototype.dropEffect;
 }
 
-interface UseDragState {
+export interface UseDragState {
   /** Whether this item is being dragged */
   isDragging: boolean;
 }

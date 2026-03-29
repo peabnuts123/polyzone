@@ -67,7 +67,7 @@ export const Inspector: FunctionComponent<Props> = observer(({ materialEditorVie
             enabled={currentDiffuseColorEnabled}
             containerRef={outerContainerRef}
             onEnabledChange={(newValue) => {
-              void controller.mutator.apply(new SetMaterialDiffuseColorEnabledMutation(newValue));
+              void controller.mutatorNew.apply(new SetMaterialDiffuseColorEnabledMutation(newValue));
             }}
             onColorChange={(newValue) => void controller.mutator.debounceContinuous(
               SetMaterialDiffuseColorMutation,
