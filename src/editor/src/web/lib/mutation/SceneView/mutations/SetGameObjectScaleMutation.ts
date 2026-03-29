@@ -2,9 +2,8 @@ import { Vector3Definition as ArchiveVector3 } from "@polyzone/runtime/src/cartr
 import { Vector3 } from "@polyzone/core/src/util";
 
 import { resolvePathForSceneObjectMutation } from "@lib/mutation/util";
-import { ISceneMutation } from "../ISceneMutation";
 import { SceneViewMutationArguments } from "../SceneViewMutationArguments";
-import { IContinuousSceneMutation } from "../IContinuousSceneMutation";
+import { BaseContinuousSceneMutation } from "../IContinuousSceneMutation";
 
 interface SetGameObjectScaleMutationDeltaUpdateArgs {
   scaleDelta: Vector3;
@@ -17,30 +16,16 @@ interface SetGameObjectScaleMutationAbsoluteUpdateArgs {
 
 export type SetGameObjectScaleMutationUpdateArgs = SetGameObjectScaleMutationDeltaUpdateArgs | SetGameObjectScaleMutationAbsoluteUpdateArgs;
 
-export class SetGameObjectScaleMutation implements ISceneMutation, IContinuousSceneMutation<SetGameObjectScaleMutationUpdateArgs> {
+export class SetGameObjectScaleMutation extends BaseContinuousSceneMutation<SetGameObjectScaleMutationUpdateArgs> {
   // State
   private readonly gameObjectId: string;
-  private _hasBeenApplied: boolean = false;
-  // Undo state
-  private oldDataScale: Vector3 | undefined = undefined;
-  private oldSceneScale: Vector3 | undefined = undefined;
-
 
   public constructor(gameObjectId: string) {
+    super();
     this.gameObjectId = gameObjectId;
   }
 
-  begin({ SceneViewController }: SceneViewMutationArguments): void {
-    const gameObjectData = SceneViewController.scene.getGameObject(this.gameObjectId);
-    const gameObject = SceneViewController.findGameObjectById(this.gameObjectId);
-    if (gameObject === undefined) throw new Error(`Cannot begin mutation - no game object exists in the scene with id '${this.gameObjectId}'`);
-
-    // - Store undo values
-    this.oldDataScale = gameObjectData.transform.scale;
-    this.oldSceneScale = gameObject.transform.localScale;
-  }
-
-  update({ SceneViewController }: SceneViewMutationArguments, updateArgs: SetGameObjectScaleMutationUpdateArgs): void {
+  public override update({ SceneViewController }: SceneViewMutationArguments, updateArgs: SetGameObjectScaleMutationUpdateArgs): void {
     const gameObjectData = SceneViewController.scene.getGameObject(this.gameObjectId);
     const gameObject = SceneViewController.findGameObjectById(this.gameObjectId);
     if (gameObject === undefined) throw new Error(`Cannot update mutation - no game object exists in the scene with id '${this.gameObjectId}'`);
@@ -64,7 +49,7 @@ export class SetGameObjectScaleMutation implements ISceneMutation, IContinuousSc
     }
   }
 
-  apply({ SceneViewController }: SceneViewMutationArguments): void {
+  public override apply({ SceneViewController }: SceneViewMutationArguments): void {
     const gameObjectData = SceneViewController.scene.getGameObject(this.gameObjectId);
 
     // - 3. Update JSONC
@@ -77,16 +62,24 @@ export class SetGameObjectScaleMutation implements ISceneMutation, IContinuousSc
     SceneViewController.sceneJson.mutate(mutationPath, updatedValue);
   }
 
-  undo(_args: SceneViewMutationArguments): void {
-    // @TODO
-    // - Apply undo values
-    throw new Error("Method not implemented.");
+  protected override getRedoArgs(_dependencies: SceneViewMutationArguments, args: SetGameObjectScaleMutationUpdateArgs): SetGameObjectScaleMutationUpdateArgs {
+    // @NOTE Always reset gizmo for redo
+    return {
+      ...args,
+      resetGizmo: true,
+    };
   }
 
-  get description(): string {
+  protected override getUndoArgs({ SceneViewController }: SceneViewMutationArguments): SetGameObjectScaleMutationUpdateArgs {
+    const gameObjectData = SceneViewController.scene.getGameObject(this.gameObjectId);
+
+    return {
+      scale: gameObjectData.transform.scale.clone(),
+      resetGizmo: true,
+    };
+  }
+
+  public override get description(): string {
     return `Scale object`;
   }
-
-  public get hasBeenApplied(): boolean { return this._hasBeenApplied; }
-  public set hasBeenApplied(value: boolean) { this._hasBeenApplied = value; }
 }

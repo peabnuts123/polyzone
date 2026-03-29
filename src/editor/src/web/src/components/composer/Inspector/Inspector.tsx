@@ -127,7 +127,7 @@ export const Inspector: FunctionComponent<Props> = observer(({ sceneViewControll
                 label="Scale"
                 vector={selectedObjectData.transform.scale}
                 incrementInterval={0.25}
-                onChange={(newValue) => void sceneViewController.mutator.debounceContinuous(
+                onChange={(newValue) => void sceneViewController.mutatorNew.debounceContinuous(
                   SetGameObjectScaleMutation,
                   selectedObjectData,
                   () => new SetGameObjectScaleMutation(selectedObjectData.id),

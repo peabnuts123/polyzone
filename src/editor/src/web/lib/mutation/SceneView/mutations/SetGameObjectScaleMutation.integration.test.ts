@@ -50,13 +50,13 @@ describe(SetGameObjectScaleMutation.name, () => {
     const mutation = new SetGameObjectScaleMutation(mockGameObjectData.id);
 
     // Test
-    await mockSceneViewController.mutator.beginContinuous(mutation);
+    await mockSceneViewController.mutatorNew.beginContinuous(mutation);
 
     // Apply several scale updates in series
     let finalScale: Vector3 = new Vector3(0, 0, 0);
     for (let i = 0; i < 3; i++) {
       finalScale = new Vector3(2 + i * 0.5, 3 + i * 0.5, 4 + i * 0.5);
-      await mockSceneViewController.mutator.updateContinuous(mutation, {
+      await mockSceneViewController.mutatorNew.updateContinuous(mutation, {
         scale: finalScale,
       });
 
@@ -70,7 +70,7 @@ describe(SetGameObjectScaleMutation.name, () => {
     }
 
     // Apply should only persist the final value
-    await mockSceneViewController.mutator.apply(mutation);
+    await mockSceneViewController.mutatorNew.apply(mutation);
 
     const finalDataScale = mockGameObjectData.transform.scale;
     const finalBabylonScale = mockGameObject.transform.localScale;
@@ -126,7 +126,7 @@ describe(SetGameObjectScaleMutation.name, () => {
     const mutation = new SetGameObjectScaleMutation(mockGameObjectData.id);
 
     // Test
-    await mockSceneViewController.mutator.beginContinuous(mutation);
+    await mockSceneViewController.mutatorNew.beginContinuous(mutation);
 
     // Apply several delta scale updates in series
     const deltaScales = [
@@ -140,7 +140,7 @@ describe(SetGameObjectScaleMutation.name, () => {
       const deltaScale = deltaScales[i];
       expectedScale.multiplySelf(deltaScale);
 
-      await mockSceneViewController.mutator.updateContinuous(mutation, {
+      await mockSceneViewController.mutatorNew.updateContinuous(mutation, {
         scaleDelta: deltaScale,
       });
 
@@ -154,7 +154,7 @@ describe(SetGameObjectScaleMutation.name, () => {
     }
 
     // Apply should only persist the final value
-    await mockSceneViewController.mutator.apply(mutation);
+    await mockSceneViewController.mutatorNew.apply(mutation);
 
     const finalDataScale = mockGameObjectData.transform.scale;
     const finalBabylonScale = mockGameObject.transform.localScale;
@@ -208,7 +208,7 @@ describe(SetGameObjectScaleMutation.name, () => {
 
     // Test
     const testFunc = async (): Promise<void> => {
-      await mockSceneViewController.mutator.beginContinuous(mutation);
+      await mockSceneViewController.mutatorNew.beginContinuous(mutation);
     };
 
     // Assert

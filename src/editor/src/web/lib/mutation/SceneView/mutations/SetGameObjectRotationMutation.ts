@@ -54,7 +54,7 @@ export class SetGameObjectRotationMutation extends BaseContinuousSceneMutation<S
     };
   }
 
-  protected getUndoArgs({ SceneViewController }: SceneViewMutationArguments): SetGameObjectRotationMutationUpdateArgs {
+  protected override getUndoArgs({ SceneViewController }: SceneViewMutationArguments): SetGameObjectRotationMutationUpdateArgs {
     const gameObjectData = SceneViewController.scene.getGameObject(this.gameObjectId);
 
     return {
@@ -63,7 +63,7 @@ export class SetGameObjectRotationMutation extends BaseContinuousSceneMutation<S
     };
   }
 
-  get description(): string {
+  public override get description(): string {
     return `Rotate object`;
   }
 }

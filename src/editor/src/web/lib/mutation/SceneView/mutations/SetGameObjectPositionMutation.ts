@@ -52,7 +52,7 @@ export class SetGameObjectPositionMutation extends BaseContinuousSceneMutation<S
     };
   }
 
-  protected getUndoArgs({ SceneViewController }: SceneViewMutationArguments): SetGameObjectPositionMutationUpdateArgs {
+  protected override getUndoArgs({ SceneViewController }: SceneViewMutationArguments): SetGameObjectPositionMutationUpdateArgs {
     const gameObjectData = SceneViewController.scene.getGameObject(this.gameObjectId);
 
     return {
@@ -61,7 +61,7 @@ export class SetGameObjectPositionMutation extends BaseContinuousSceneMutation<S
     };
   }
 
-  public get description(): string {
+  public override get description(): string {
     return `Move object`;
   }
 }

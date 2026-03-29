@@ -116,12 +116,12 @@ export class SelectionManager {
     this.scaleGizmo = new ScaleGizmo(utilityLayer, 2, this.gizmoManager);
     this.scaleGizmo.onDragStartObservable.add(() => {
       this.currentScaleMutation = new SetGameObjectScaleMutation(this.selectedObjectId!);
-      void sceneViewController.mutator.beginContinuous(this.currentScaleMutation);
+      void sceneViewController.mutatorNew.beginContinuous(this.currentScaleMutation);
     });
     this.scaleGizmo.onDragObservable.add((_eventData) => {
       if (this.selectedObjectId !== undefined) {
         // Scaling is handled as a percentage to accommodate rotation
-        void sceneViewController.mutator.updateContinuous(this.currentScaleMutation!, {
+        void sceneViewController.mutatorNew.updateContinuous(this.currentScaleMutation!, {
           scaleDelta: toVector3Core(this.fakeTransformTarget!.scaling),
         });
         // @NOTE Reset scaling to uniform scale, because rotation doesn't work with non-uniform scaling
@@ -129,7 +129,7 @@ export class SelectionManager {
       }
     });
     this.scaleGizmo.onDragEndObservable.add(() => {
-      void sceneViewController.mutator.apply(this.currentScaleMutation!);
+      void sceneViewController.mutatorNew.apply(this.currentScaleMutation!);
       this.currentScaleMutation = undefined;
     });
 
