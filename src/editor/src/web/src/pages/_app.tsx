@@ -83,7 +83,7 @@ const App: FunctionComponent<AppProps> = ({ Component }) => {
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, []);
+  }, [MutationController]);
 
   return (<>
     <Head>
