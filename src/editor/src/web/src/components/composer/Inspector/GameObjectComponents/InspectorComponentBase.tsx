@@ -9,7 +9,7 @@ import { RemoveGameObjectComponentMutation } from "@lib/mutation/SceneView/mutat
 
 export const InspectorComponentBase: FunctionComponent<PropsWithChildren<InspectorComponentProps<IComposerComponentData>>> = observer(({ children, gameObject, component, controller }) => {
   const onClickDeleteComponent = (): void => {
-    void controller.mutator.apply(new RemoveGameObjectComponentMutation(gameObject, component));
+    void controller.mutatorNew.apply(new RemoveGameObjectComponentMutation(gameObject, component));
   };
 
   return (

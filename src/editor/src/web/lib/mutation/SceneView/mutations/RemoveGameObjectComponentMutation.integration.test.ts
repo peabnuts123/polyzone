@@ -55,7 +55,7 @@ describe(RemoveGameObjectComponentMutation.name, () => {
     const mutation = new RemoveGameObjectComponentMutation(mockGameObjectData, meshComponentToRemove);
 
     // Test
-    await mockSceneViewController.mutator.apply(mutation);
+    await mockSceneViewController.mutatorNew.apply(mutation);
 
     const finalDataComponents = mockGameObjectData.components;
     const finalBabylonComponents = mockGameObject.components;
@@ -122,7 +122,7 @@ describe(RemoveGameObjectComponentMutation.name, () => {
     const mutation = new RemoveGameObjectComponentMutation(mockGameObjectData, meshComponentToRemove);
 
     // Test
-    await mockSceneViewController.mutator.apply(mutation);
+    await mockSceneViewController.mutatorNew.apply(mutation);
 
     const finalDataComponents = mockGameObjectData.components;
     const finalBabylonComponents = mockGameObject.components;
@@ -187,7 +187,7 @@ describe(RemoveGameObjectComponentMutation.name, () => {
     const mutation = new RemoveGameObjectComponentMutation(mockGameObjectData, meshComponentToRemove);
 
     // Test
-    const testFunc = (): Promise<void> => mockSceneViewController.mutator.apply(mutation);
+    const testFunc = (): Promise<void> => mockSceneViewController.mutatorNew.apply(mutation);
 
     // Assert
     await expect(testFunc).rejects.toThrow(`No GameObject exists with ID '${mockGameObjectData.id}' in scene`);
