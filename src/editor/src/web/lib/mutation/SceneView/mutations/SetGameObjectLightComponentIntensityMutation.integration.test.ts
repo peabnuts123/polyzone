@@ -55,13 +55,13 @@ describe(SetGameObjectLightComponentIntensityMutation.name, () => {
     const mutation = new SetGameObjectLightComponentIntensityMutation(mockGameObjectData, mockDirectionalLightComponentData);
 
     // Test
-    await mockSceneViewController.mutator.beginContinuous(mutation);
+    await mockSceneViewController.mutatorNew.beginContinuous(mutation);
 
     // Apply several updates in series
     let finalIntensity: number = initialIntensity;
     for (let i = 0; i < 3; i++) {
       finalIntensity = 0.2 + i * 0.3; // 0.2, 0.5, 0.8
-      await mockSceneViewController.mutator.updateContinuous(mutation, { intensity: finalIntensity });
+      await mockSceneViewController.mutatorNew.updateContinuous(mutation, { intensity: finalIntensity });
 
       // Each update should modify the data and Babylon state
       expect(mockDirectionalLightComponentData.intensity, `DirectionalLight data should have intermediate intensity after update ${i}`).toEqual(finalIntensity);
@@ -73,7 +73,7 @@ describe(SetGameObjectLightComponentIntensityMutation.name, () => {
     }
 
     // Apply should only persist the final value
-    await mockSceneViewController.mutator.apply(mutation);
+    await mockSceneViewController.mutatorNew.apply(mutation);
 
     const finalDataValue = mockDirectionalLightComponentData.intensity;
     const finalBabylonValue = mockDirectionalLightComponent.intensity;
@@ -132,13 +132,13 @@ describe(SetGameObjectLightComponentIntensityMutation.name, () => {
     const mutation = new SetGameObjectLightComponentIntensityMutation(mockGameObjectData, mockPointLightComponentData);
 
     // Test
-    await mockSceneViewController.mutator.beginContinuous(mutation);
+    await mockSceneViewController.mutatorNew.beginContinuous(mutation);
 
     // Apply several updates in series
     let finalIntensity: number = initialIntensity;
     for (let i = 0; i < 3; i++) {
       finalIntensity = 0.1 + i * 0.25; // 0.1, 0.35, 0.6
-      await mockSceneViewController.mutator.updateContinuous(mutation, { intensity: finalIntensity });
+      await mockSceneViewController.mutatorNew.updateContinuous(mutation, { intensity: finalIntensity });
 
       // Each update should modify the data and Babylon state
       expect(mockPointLightComponentData.intensity, `PointLight data should have intermediate intensity after update ${i}`).toEqual(finalIntensity);
@@ -150,7 +150,7 @@ describe(SetGameObjectLightComponentIntensityMutation.name, () => {
     }
 
     // Apply should only persist the final value
-    await mockSceneViewController.mutator.apply(mutation);
+    await mockSceneViewController.mutatorNew.apply(mutation);
 
     const finalDataValue = mockPointLightComponentData.intensity;
     const finalBabylonValue = mockPointLightComponent.intensity;
@@ -213,7 +213,7 @@ describe(SetGameObjectLightComponentIntensityMutation.name, () => {
 
     // Test
     const testFunc = async (): Promise<void> => {
-      await mockSceneViewController.mutator.beginContinuous(mutationWithInvalidGameObjectId);
+      await mockSceneViewController.mutatorNew.beginContinuous(mutationWithInvalidGameObjectId);
     };
 
     // Assert
@@ -253,7 +253,7 @@ describe(SetGameObjectLightComponentIntensityMutation.name, () => {
 
     // Test
     const testFunc = async (): Promise<void> => {
-      await mockSceneViewController.mutator.beginContinuous(mutationWithInvalidComponentId);
+      await mockSceneViewController.mutatorNew.beginContinuous(mutationWithInvalidComponentId);
     };
 
     // Assert

@@ -5,9 +5,8 @@ import { DirectionalLightComponentDefinition, PointLightComponentDefinition } fr
 
 import { DirectionalLightComponentData, GameObjectData, IComposerComponentData, PointLightComponentData } from "@lib/project/data";
 import { resolvePathForSceneObjectMutation } from "@lib/mutation/util";
-import { ISceneMutation } from "../ISceneMutation";
 import { SceneViewMutationArguments } from "../SceneViewMutationArguments";
-import { IContinuousSceneMutation } from "../IContinuousSceneMutation";
+import { BaseContinuousSceneMutation } from "../IContinuousSceneMutation";
 
 export interface SetGameObjectLightComponentIntensityMutationUpdateArgs {
   intensity: number;
@@ -23,75 +22,58 @@ interface AnyLightComponent extends GameObjectComponent {
 }
 const LightComponentTypes: ClassReference<AnyLightComponent>[] = [DirectionalLightComponent, PointLightComponent];
 
-export class SetGameObjectLightComponentIntensityMutation implements ISceneMutation, IContinuousSceneMutation<SetGameObjectLightComponentIntensityMutationUpdateArgs> {
+export class SetGameObjectLightComponentIntensityMutation extends BaseContinuousSceneMutation<SetGameObjectLightComponentIntensityMutationUpdateArgs> {
   // Mutation parameters
   private readonly gameObjectId: string;
   private readonly componentId: string;
-  private intensity: number | undefined;
-
-  // State
-  private _hasBeenApplied: boolean = false;
-
-  // Undo state
-  private dataIntensity: number | undefined = undefined;
-  private sceneIntensity: number | undefined = undefined;
-
 
   public constructor(gameObject: GameObjectData, component: AnyLightComponentData) {
+    super();
     this.gameObjectId = gameObject.id;
     this.componentId = component.id;
   }
 
-  public begin({ SceneViewController }: SceneViewMutationArguments): void {
-    const gameObjectData = SceneViewController.scene.getGameObject(this.gameObjectId);
-    const componentData = gameObjectData.getComponent(this.componentId, LightComponentDataTypes);
-    const gameObject = SceneViewController.findGameObjectById(this.gameObjectId);
-    if (gameObject === undefined) throw new Error(`Cannot begin mutation - no game object exists in the scene with id '${this.gameObjectId}'`);
-    const component = gameObject.getComponent(this.componentId, LightComponentTypes);
-
-    // - Store undo values
-    this.dataIntensity = componentData.intensity;
-    this.sceneIntensity = component.intensity;
-  }
-
-  public update({ SceneViewController }: SceneViewMutationArguments, { intensity }: SetGameObjectLightComponentIntensityMutationUpdateArgs): void {
+  public override update({ SceneViewController }: SceneViewMutationArguments, { intensity }: SetGameObjectLightComponentIntensityMutationUpdateArgs): Promise<void> {
     const gameObjectData = SceneViewController.scene.getGameObject(this.gameObjectId);
     const componentData = gameObjectData.getComponent(this.componentId, LightComponentDataTypes);
     const gameObject = SceneViewController.findGameObjectById(this.gameObjectId);
     if (gameObject === undefined) throw new Error(`Cannot apply mutation - no game object exists in the scene with id '${this.gameObjectId}'`);
     const component = gameObject.getComponent(this.componentId, LightComponentTypes);
 
-    this.intensity = intensity;
     // - 1. Data
     componentData.intensity = intensity;
     // - 2. Babylon state
     component.intensity = intensity;
+
+    return Promise.resolve();
   }
 
-  public apply({ SceneViewController }: SceneViewMutationArguments): void {
+  public override apply({ SceneViewController }: SceneViewMutationArguments): Promise<void> {
     const gameObjectData = SceneViewController.scene.getGameObject(this.gameObjectId);
+    const componentData = gameObjectData.getComponent(this.componentId, LightComponentDataTypes);
     const componentIndex = gameObjectData.components.findIndex((component) => component.id === this.componentId);
 
     // - 3. JSONC
-    const updatedValue = this.intensity!;
     const mutationPath = resolvePathForSceneObjectMutation(
       this.gameObjectId,
       SceneViewController.sceneDefinition,
       (gameObject) => (gameObject.components[componentIndex] as AnyLightComponentDefinition).intensity,
     );
-    SceneViewController.sceneJson.mutate(mutationPath, updatedValue);
+    SceneViewController.sceneJson.mutate(mutationPath, componentData.intensity);
+
+    return Promise.resolve();
   }
 
-  public undo(_args: SceneViewMutationArguments): void {
-    // @TODO
-    // - Apply undo values
-    throw new Error("Method not implemented.");
+  protected override getUndoArgs({ SceneViewController }: SceneViewMutationArguments): SetGameObjectLightComponentIntensityMutationUpdateArgs {
+    const gameObjectData = SceneViewController.scene.getGameObject(this.gameObjectId);
+    const componentData = gameObjectData.getComponent(this.componentId, LightComponentDataTypes);
+
+    return {
+      intensity: componentData.intensity,
+    };
   }
 
-  public get description(): string {
+  public override get description(): string {
     return `Change light intensity`;
   }
-
-  public get hasBeenApplied(): boolean { return this._hasBeenApplied; }
-  public set hasBeenApplied(value: boolean) { this._hasBeenApplied = value; }
 }

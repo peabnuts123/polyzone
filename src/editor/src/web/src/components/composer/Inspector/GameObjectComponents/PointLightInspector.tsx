@@ -24,7 +24,7 @@ export const PointLightInspector: InspectorComponent<PointLightComponentData> = 
         label="Intensity"
         value={component.intensity}
         incrementInterval={0.1}
-        onChange={(newValue) => void controller.mutator.debounceContinuous(
+        onChange={(newValue) => void controller.mutatorNew.debounceContinuous(
           SetGameObjectLightComponentIntensityMutation,
           gameObject,
           () => new SetGameObjectLightComponentIntensityMutation(gameObject, component),
