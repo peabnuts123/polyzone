@@ -18,7 +18,7 @@ interface Props {
 export const Hierarchy: FunctionComponent<Props> = observer(({ controller }) => {
   // Functions
   const createNewObject = (parent: GameObjectData | undefined = undefined): void => {
-    void controller.mutator.apply(new CreateBlankGameObjectMutation(parent));
+    void controller.mutatorNew.apply(new CreateBlankGameObjectMutation(parent));
   };
   const deleteObject = (gameObjectData: GameObjectData): void => {
     void controller.mutator.apply(new DeleteGameObjectMutation(gameObjectData));

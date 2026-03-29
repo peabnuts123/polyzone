@@ -8,20 +8,25 @@ import { Quaternion } from '@polyzone/core/src/util/Quaternion';
 import { GameObjectData, loadObjectDefinition } from "@lib/project/data";
 import { resolvePathForSceneObjectMutation } from '@lib/mutation/util';
 import { SceneViewMutationArguments } from "../SceneViewMutationArguments";
-import { ISceneMutation } from '../ISceneMutation';
+import { BaseSceneMutation } from '../ISceneMutation';
 
-export class CreateBlankGameObjectMutation implements ISceneMutation {
-  // Mutation state
+interface MutationArgs {
+  newObjectId: string;
+}
+
+export class CreateBlankGameObjectMutation extends BaseSceneMutation<MutationArgs> {
+  public override readonly useCustomUndo: boolean = true;
   private readonly parentGameObjectId: string | undefined;
 
   public constructor(parent: GameObjectData | undefined = undefined) {
+    super({ newObjectId: uuid() });
     this.parentGameObjectId = parent?.id;
   }
 
-  public async apply({ SceneViewController, ProjectController }: SceneViewMutationArguments): Promise<void> {
+  public override async apply({ SceneViewController, ProjectController }: SceneViewMutationArguments, { newObjectId }: MutationArgs): Promise<void> {
     // Create new object
     const newObjectDefinition: GameObjectDefinition = {
-      id: uuid(),
+      id: newObjectId,
       name: "New Object",
       transform: {
         position: { x: 0, y: 0, z: 0 },
@@ -71,11 +76,42 @@ export class CreateBlankGameObjectMutation implements ISceneMutation {
     }
   }
 
-  undo({ }: SceneViewMutationArguments): void {
-    throw new Error("Method not implemented.");
+  protected override customUndo({ SceneViewController }: SceneViewMutationArguments, { newObjectId }: MutationArgs): Promise<void> {
+    // @NOTE same as `DeleteGameObjectMutation.apply()`
+    // Find object's parent - we're going to remove the object from the parent's children
+    const gameObjectData = SceneViewController.scene.getGameObject(newObjectId);
+    const gameObjectParentData = SceneViewController.scene.getGameObjectParent(newObjectId);
+
+    // 1. Update Data
+    if (gameObjectParentData === undefined) {
+      // Top-level object
+      SceneViewController.scene.objects = SceneViewController.scene.objects.filter((object) => object.id !== newObjectId);
+    } else {
+      // Child object
+      gameObjectParentData.children = gameObjectParentData.children.filter((object) => object.id !== newObjectId);
+    }
+
+    // 2. Update Scene
+    const gameObject = SceneViewController.findGameObjectById(newObjectId);
+    if (gameObject === undefined) throw new Error(`Cannot undo mutation - no game object exists in the scene with id '${newObjectId}'`);
+    SceneViewController.removeGameObject(gameObject);
+    gameObject.transform.parent = undefined;
+    gameObject.destroy();
+    if (SceneViewController.selectionManager.selectedObjectId === gameObjectData.id) {
+      SceneViewController.selectionManager.deselectAll();
+    }
+
+    // 3. Update JSONC
+    const mutationPath = resolvePathForSceneObjectMutation(
+      newObjectId,
+      SceneViewController.sceneDefinition,
+    );
+    SceneViewController.sceneJson.delete(mutationPath);
+
+    return Promise.resolve();
   }
 
-  get description(): string {
+  public override get description(): string {
     return `Create new object`;
   }
 }

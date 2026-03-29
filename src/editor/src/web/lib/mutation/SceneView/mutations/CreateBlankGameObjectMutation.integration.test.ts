@@ -36,7 +36,7 @@ describe(CreateBlankGameObjectMutation.name, () => {
     const mutation = new CreateBlankGameObjectMutation();
 
     // Test
-    await mockSceneViewController.mutator.apply(mutation);
+    await mockSceneViewController.mutatorNew.apply(mutation);
 
     const finalDataObjects = mockScene.data.objects;
     const finalBabylonGameObjects = mockSceneViewController.babylonScene.transformNodes.length;
@@ -88,7 +88,7 @@ describe(CreateBlankGameObjectMutation.name, () => {
     const mutation = new CreateBlankGameObjectMutation(mockParentGameObjectData);
 
     // Test
-    await mockSceneViewController.mutator.apply(mutation);
+    await mockSceneViewController.mutatorNew.apply(mutation);
 
     const finalDataObjects = mockScene.data.objects;
     const finalParentChildren = mockParentGameObjectData.children;
@@ -158,7 +158,7 @@ describe(CreateBlankGameObjectMutation.name, () => {
     const mutation = new CreateBlankGameObjectMutation(fakeParentGameObjectData);
 
     // Test
-    const testFunc = (): Promise<void> => mockSceneViewController.mutator.apply(mutation);
+    const testFunc = (): Promise<void> => mockSceneViewController.mutatorNew.apply(mutation);
 
     // Assert
     await expect(testFunc).rejects.toThrow("No GameObject exists with ID 'fake-parent-id'");
