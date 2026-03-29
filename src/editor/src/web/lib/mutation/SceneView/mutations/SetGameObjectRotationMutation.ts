@@ -1,41 +1,25 @@
 import { Vector3Definition as ArchiveVector3 } from "@polyzone/runtime/src/cartridge/archive/util";
-import { Vector3 } from "@polyzone/core/src/util";
 import { Quaternion } from "@polyzone/core/src/util/Quaternion";
 
 import { resolvePathForSceneObjectMutation } from "@lib/mutation/util";
-import { ISceneMutation } from "../ISceneMutation";
 import { SceneViewMutationArguments } from "../SceneViewMutationArguments";
-import { IContinuousSceneMutation } from "../IContinuousSceneMutation";
+import { BaseContinuousSceneMutation } from "../IContinuousSceneMutation";
 
 export interface SetGameObjectRotationMutationUpdateArgs {
   rotation: Quaternion;
   resetGizmo?: boolean;
 }
 
-export class SetGameObjectRotationMutation implements ISceneMutation, IContinuousSceneMutation<SetGameObjectRotationMutationUpdateArgs> {
+export class SetGameObjectRotationMutation extends BaseContinuousSceneMutation<SetGameObjectRotationMutationUpdateArgs> {
   // State
   private readonly gameObjectId: string;
-  private _hasBeenApplied: boolean = false;
-
-  // Undo state
-  private oldDataRotation: Vector3 | undefined = undefined;
-  private oldSceneRotation: Quaternion | undefined = undefined;
 
   public constructor(gameObjectId: string) {
+    super();
     this.gameObjectId = gameObjectId;
   }
 
-  begin({ SceneViewController }: SceneViewMutationArguments): void {
-    const gameObjectData = SceneViewController.scene.getGameObject(this.gameObjectId);
-    const gameObject = SceneViewController.findGameObjectById(this.gameObjectId);
-    if (gameObject === undefined) throw new Error(`Cannot begin mutation - no game object exists in the scene with id '${this.gameObjectId}'`);
-
-    // - Store undo values
-    this.oldDataRotation = gameObjectData.transform.rotation;
-    this.oldSceneRotation = gameObject.transform.localRotation;
-  }
-
-  update({ SceneViewController }: SceneViewMutationArguments, { rotation, resetGizmo }: SetGameObjectRotationMutationUpdateArgs): void {
+  public override update({ SceneViewController }: SceneViewMutationArguments, { rotation, resetGizmo }: SetGameObjectRotationMutationUpdateArgs): void {
     const gameObjectData = SceneViewController.scene.getGameObject(this.gameObjectId);
     const gameObject = SceneViewController.findGameObjectById(this.gameObjectId);
     if (gameObject === undefined) throw new Error(`Cannot update mutation - no game object exists in the scene with id '${this.gameObjectId}'`);
@@ -49,7 +33,7 @@ export class SetGameObjectRotationMutation implements ISceneMutation, IContinuou
     }
   }
 
-  apply({ SceneViewController }: SceneViewMutationArguments): void {
+  public override apply({ SceneViewController }: SceneViewMutationArguments): void {
     const gameObjectData = SceneViewController.scene.getGameObject(this.gameObjectId);
 
     // - 3. Update JSONC
@@ -62,16 +46,24 @@ export class SetGameObjectRotationMutation implements ISceneMutation, IContinuou
     SceneViewController.sceneJson.mutate(mutationPath, updatedValue);
   }
 
-  undo(_args: SceneViewMutationArguments): void {
-    // @TODO
-    // - Apply undo values
-    throw new Error("Method not implemented.");
+  protected override getRedoArgs(_dependencies: SceneViewMutationArguments, args: SetGameObjectRotationMutationUpdateArgs): SetGameObjectRotationMutationUpdateArgs {
+    // @NOTE Always reset gizmo for redo
+    return {
+      ...args,
+      resetGizmo: true,
+    };
+  }
+
+  protected getUndoArgs({ SceneViewController }: SceneViewMutationArguments): SetGameObjectRotationMutationUpdateArgs {
+    const gameObjectData = SceneViewController.scene.getGameObject(this.gameObjectId);
+
+    return {
+      rotation: Quaternion.fromEuler(gameObjectData.transform.rotation),
+      resetGizmo: true,
+    };
   }
 
   get description(): string {
     return `Rotate object`;
   }
-
-  public get hasBeenApplied(): boolean { return this._hasBeenApplied; }
-  public set hasBeenApplied(value: boolean) { this._hasBeenApplied = value; }
 }
