@@ -57,7 +57,7 @@ describe(SetGameObjectScriptComponentAssetMutation.name, () => {
     );
 
     // Test
-    await mockSceneViewController.mutator.apply(mutation);
+    await mockSceneViewController.mutatorNew.apply(mutation);
 
     const finalDataValue = mockScriptComponentData.scriptAsset;
     const finalDefinitionValue = (mockSceneViewController.sceneDefinition.objects[0].components[0] as ScriptComponentDefinition).scriptFileId;
@@ -119,7 +119,7 @@ describe(SetGameObjectScriptComponentAssetMutation.name, () => {
     );
 
     // Test
-    await mockSceneViewController.mutator.apply(mutation);
+    await mockSceneViewController.mutatorNew.apply(mutation);
 
     const finalDataValue = mockScriptComponentData.scriptAsset;
     const finalDefinitionValue = (mockSceneViewController.sceneDefinition.objects[0].components[0] as ScriptComponentDefinition).scriptFileId;
@@ -178,7 +178,7 @@ describe(SetGameObjectScriptComponentAssetMutation.name, () => {
     );
 
     // Test
-    await mockSceneViewController.mutator.apply(mutation);
+    await mockSceneViewController.mutatorNew.apply(mutation);
 
     const finalDataValue = mockScriptComponentData.scriptAsset;
     const finalDefinitionValue = (mockSceneViewController.sceneDefinition.objects[0].components[0] as ScriptComponentDefinition).scriptFileId;
@@ -238,7 +238,7 @@ describe(SetGameObjectScriptComponentAssetMutation.name, () => {
     );
 
     // Test
-    const testFunc = (): Promise<void> => mockSceneViewController.mutator.apply(mutation);
+    const testFunc = (): Promise<void> => mockSceneViewController.mutatorNew.apply(mutation);
 
     // Assert
     await expect(testFunc(), "Should throw error when GameObject doesn't exist in scene").rejects.toThrow(`No GameObject exists with ID '${nonExistentGameObjectData.id}' in scene`);
@@ -283,7 +283,7 @@ describe(SetGameObjectScriptComponentAssetMutation.name, () => {
     );
 
     // Test
-    const testFunc = (): Promise<void> => mockSceneViewController.mutator.apply(mutation);
+    const testFunc = (): Promise<void> => mockSceneViewController.mutatorNew.apply(mutation);
 
     // Assert
     await expect(testFunc(), "Should throw error when component doesn't exist on GameObject").rejects.toThrow(`No component with ID '${nonExistentScriptComponentData.id}' exists on GameObjectData`);
