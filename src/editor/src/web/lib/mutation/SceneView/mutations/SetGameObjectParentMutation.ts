@@ -30,7 +30,6 @@ interface MutationArgs {
 }
 
 export class SetGameObjectParentMutation extends BaseSceneMutation<MutationArgs> {
-  // Mutation parameters
   private readonly gameObjectId: string;
   private readonly gameObjectName: string;
 

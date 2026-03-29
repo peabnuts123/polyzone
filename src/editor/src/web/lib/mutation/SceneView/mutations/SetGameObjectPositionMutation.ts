@@ -14,7 +14,6 @@ export class SetGameObjectPositionMutation extends BaseContinuousSceneMutation<S
   // State
   private readonly gameObjectId: string;
 
-
   public constructor(gameObjectId: string) {
     super();
     this.gameObjectId = gameObjectId;

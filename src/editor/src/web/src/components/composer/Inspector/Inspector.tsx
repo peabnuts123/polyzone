@@ -57,7 +57,7 @@ export const Inspector: FunctionComponent<Props> = observer(({ sceneViewControll
         throw new Error(`Cannot add new component. Unimplemented component type: '${type}'`);
     }
 
-    void sceneViewController.mutator.apply(new AddGameObjectComponentMutation(
+    void sceneViewController.mutatorNew.apply(new AddGameObjectComponentMutation(
       selectedObjectData!.id,
       newComponent,
     ));

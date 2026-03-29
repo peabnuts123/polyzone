@@ -1,33 +1,36 @@
 import { IComposerComponentData } from "@lib/project/data";
-import { ISceneMutation } from "../ISceneMutation";
+import { BaseSceneMutation } from "../ISceneMutation";
 import { SceneViewMutationArguments } from "../SceneViewMutationArguments";
 import { resolvePathForSceneObjectMutation } from "@lib/mutation/util";
 
-export class AddGameObjectComponentMutation implements ISceneMutation {
-  // Mutation parameters
+interface MutationArgs {
+  newComponent: IComposerComponentData;
+}
+
+export class AddGameObjectComponentMutation extends BaseSceneMutation<MutationArgs> {
+  public override readonly useCustomUndo: boolean = true;
   private readonly gameObjectId: string;
-  private readonly newComponent: IComposerComponentData;
 
   public constructor(gameObjectId: string, newComponent: IComposerComponentData) {
+    super({ newComponent });
     this.gameObjectId = gameObjectId;
-    this.newComponent = newComponent;
   }
 
-  public async apply({ SceneViewController }: SceneViewMutationArguments): Promise<void> {
+  public override async apply({ SceneViewController }: SceneViewMutationArguments, { newComponent }: MutationArgs): Promise<void> {
     // 1. Update data
     const gameObjectData = SceneViewController.scene.getGameObject(this.gameObjectId);
-    gameObjectData.components.push(this.newComponent);
+    gameObjectData.components.push(newComponent);
 
     // 2. Update scene
     const gameObject = SceneViewController.findGameObjectById(this.gameObjectId);
     if (gameObject === undefined) throw new Error(`Cannot apply mutation - no game object exists in the scene with id '${this.gameObjectId}'`);
-    const component = await SceneViewController.createGameObjectComponent(gameObjectData, gameObject, this.newComponent);
+    const component = await SceneViewController.createGameObjectComponent(gameObjectData, gameObject, newComponent);
     if (component !== undefined) {
       gameObject.addComponent(component);
     }
 
     // 3. Update JSONC
-    const newComponentDefinition = this.newComponent.toComponentDefinition();
+    const newComponentDefinition = newComponent.toComponentDefinition();
     const mutationPath = resolvePathForSceneObjectMutation(
       this.gameObjectId,
       SceneViewController.sceneDefinition,
@@ -36,11 +39,29 @@ export class AddGameObjectComponentMutation implements ISceneMutation {
     SceneViewController.sceneJson.mutate(mutationPath, newComponentDefinition, { isArrayInsertion: true });
   }
 
-  undo(_args: SceneViewMutationArguments): void {
-    throw new Error("Method not implemented.");
+  protected override customUndo({ SceneViewController }: SceneViewMutationArguments, { newComponent }: MutationArgs): Promise<void> {
+    // 1. Update data
+    const gameObjectData = SceneViewController.scene.getGameObject(this.gameObjectId);
+    const componentToRemoveDataIndex = gameObjectData.components.findIndex((component) => component.id === newComponent.id);
+    gameObjectData.components.splice(componentToRemoveDataIndex, 1);
+
+    // 2. Update scene
+    const gameObject = SceneViewController.findGameObjectById(this.gameObjectId);
+    if (gameObject === undefined) throw new Error(`Cannot undo mutation - no game object exists in the scene with id '${this.gameObjectId}'`);
+    gameObject.removeComponent(newComponent.id);
+
+    // 3. Update JSONC
+    const mutationPath = resolvePathForSceneObjectMutation(
+      this.gameObjectId,
+      SceneViewController.sceneDefinition,
+      (gameObject) => gameObject.components[componentToRemoveDataIndex],
+    );
+    SceneViewController.sceneJson.delete(mutationPath);
+
+    return Promise.resolve();
   }
 
-  get description(): string {
-    return `Add ${this.newComponent.componentName} component`;
+  public override get description(): string {
+    return `Add ${this.args.newComponent.componentName} component`;
   }
 }

@@ -42,7 +42,7 @@ describe(AddGameObjectComponentMutation.name, () => {
     const mutation = new AddGameObjectComponentMutation(mockGameObjectData.id, newMeshComponent);
 
     // Test
-    await mockSceneViewController.mutator.apply(mutation);
+    await mockSceneViewController.mutatorNew.apply(mutation);
 
     const finalDataComponents = mockGameObjectData.components;
     const finalBabylonComponents = mockGameObject.components;
@@ -90,7 +90,7 @@ describe(AddGameObjectComponentMutation.name, () => {
     const mutation = new AddGameObjectComponentMutation(nonExistentGameObjectId, newMeshComponent);
 
     // Test
-    const testFunc = (): Promise<void> => mockSceneViewController.mutator.apply(mutation);
+    const testFunc = (): Promise<void> => mockSceneViewController.mutatorNew.apply(mutation);
 
     // Assert
     await expect(testFunc(), "Should throw error when GameObject doesn't exist in scene").rejects.toThrowError(
