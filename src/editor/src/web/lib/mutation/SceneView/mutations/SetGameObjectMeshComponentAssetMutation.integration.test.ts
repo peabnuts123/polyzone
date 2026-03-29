@@ -58,7 +58,7 @@ describe(SetGameObjectMeshComponentAssetMutation.name, () => {
     );
 
     // Test
-    await mockSceneViewController.mutator.apply(mutation);
+    await mockSceneViewController.mutatorNew.apply(mutation);
 
     const finalDataValue = mockMeshComponentData.meshAsset;
     const finalDefinitionValue = (mockSceneViewController.sceneDefinition.objects[0].components[0] as MeshComponentDefinition).meshFileId;
@@ -121,7 +121,7 @@ describe(SetGameObjectMeshComponentAssetMutation.name, () => {
     );
 
     // Test
-    await mockSceneViewController.mutator.apply(mutation);
+    await mockSceneViewController.mutatorNew.apply(mutation);
 
     const finalDataValue = mockMeshComponentData.meshAsset;
     const finalDefinitionValue = (mockSceneViewController.sceneDefinition.objects[0].components[0] as MeshComponentDefinition).meshFileId;
@@ -181,7 +181,7 @@ describe(SetGameObjectMeshComponentAssetMutation.name, () => {
     );
 
     // Test
-    await mockSceneViewController.mutator.apply(mutation);
+    await mockSceneViewController.mutatorNew.apply(mutation);
 
     const finalDataValue = mockMeshComponentData.meshAsset;
     const finalDefinitionValue = (mockSceneViewController.sceneDefinition.objects[0].components[0] as MeshComponentDefinition).meshFileId;
@@ -242,7 +242,7 @@ describe(SetGameObjectMeshComponentAssetMutation.name, () => {
     );
 
     // Test
-    const testFunc = (): Promise<void> => mockSceneViewController.mutator.apply(mutation);
+    const testFunc = (): Promise<void> => mockSceneViewController.mutatorNew.apply(mutation);
 
     // Assert
     await expect(testFunc(), "Should throw error when GameObject doesn't exist in scene").rejects.toThrow(`No GameObject exists with ID '${nonExistentGameObjectData.id}' in scene`);
@@ -288,7 +288,7 @@ describe(SetGameObjectMeshComponentAssetMutation.name, () => {
     );
 
     // Test
-    const testFunc = (): Promise<void> => mockSceneViewController.mutator.apply(mutation);
+    const testFunc = (): Promise<void> => mockSceneViewController.mutatorNew.apply(mutation);
 
     // Assert
     await expect(testFunc(), "Should throw error when component doesn't exist on GameObject").rejects.toThrow(`No component with ID '${nonExistentMeshComponentData.id}' exists on GameObjectData`);
