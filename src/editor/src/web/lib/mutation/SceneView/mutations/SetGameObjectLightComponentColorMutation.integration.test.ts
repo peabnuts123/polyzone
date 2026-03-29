@@ -56,13 +56,13 @@ describe(SetGameObjectLightComponentColorMutation.name, () => {
     const mutation = new SetGameObjectLightComponentColorMutation(mockGameObjectData, mockDirectionalLightComponentData);
 
     // Test
-    await mockSceneViewController.mutator.beginContinuous(mutation);
+    await mockSceneViewController.mutatorNew.beginContinuous(mutation);
 
     // Apply several updates in series
     let finalColor: Color3 = initialColor;
     for (let i = 0; i < 3; i++) {
       finalColor = new Color3(50 + i * 30, 100 + i * 20, 150 + i * 10);
-      await mockSceneViewController.mutator.updateContinuous(mutation, { color: finalColor });
+      await mockSceneViewController.mutatorNew.updateContinuous(mutation, { color: finalColor });
 
       // Each update should modify the data and Babylon state
       expect(mockDirectionalLightComponentData.color, `DirectionalLight data should have intermediate color after update ${i}`).toEqual(finalColor);
@@ -75,7 +75,7 @@ describe(SetGameObjectLightComponentColorMutation.name, () => {
     }
 
     // Apply should only persist the final value
-    await mockSceneViewController.mutator.apply(mutation);
+    await mockSceneViewController.mutatorNew.apply(mutation);
 
     const finalDataValue = mockDirectionalLightComponentData.color;
     const finalBabylonValue = toColor3Core(mockDirectionalLightComponent.color); // @NOTE Explicitly convert WrappedColor3Babylon into Color3
@@ -134,13 +134,13 @@ describe(SetGameObjectLightComponentColorMutation.name, () => {
     const mutation = new SetGameObjectLightComponentColorMutation(mockGameObjectData, mockPointLightComponentData);
 
     // Test
-    await mockSceneViewController.mutator.beginContinuous(mutation);
+    await mockSceneViewController.mutatorNew.beginContinuous(mutation);
 
     // Apply several updates in series
     let finalColor: Color3 = initialColor;
     for (let i = 0; i < 3; i++) {
       finalColor = new Color3(20 + i * 40, 60 + i * 30, 200 + i * 15);
-      await mockSceneViewController.mutator.updateContinuous(mutation, { color: finalColor });
+      await mockSceneViewController.mutatorNew.updateContinuous(mutation, { color: finalColor });
 
       // Each update should modify the data and Babylon state
       expect(mockPointLightComponentData.color, `PointLight data should have intermediate color after update ${i}`).toEqual(finalColor);
@@ -153,7 +153,7 @@ describe(SetGameObjectLightComponentColorMutation.name, () => {
     }
 
     // Apply should only persist the final value
-    await mockSceneViewController.mutator.apply(mutation);
+    await mockSceneViewController.mutatorNew.apply(mutation);
 
     const finalDataValue = mockPointLightComponentData.color;
     const finalBabylonValue = toColor3Core(mockPointLightComponent.color); // @NOTE Explicitly convert WrappedColor3Babylon into Color3
@@ -216,7 +216,7 @@ describe(SetGameObjectLightComponentColorMutation.name, () => {
 
     // Test
     const testFunc = async (): Promise<void> => {
-      await mockSceneViewController.mutator.beginContinuous(mutationWithInvalidGameObjectId);
+      await mockSceneViewController.mutatorNew.beginContinuous(mutationWithInvalidGameObjectId);
     };
 
     // Assert
@@ -256,7 +256,7 @@ describe(SetGameObjectLightComponentColorMutation.name, () => {
 
     // Test
     const testFunc = async (): Promise<void> => {
-      await mockSceneViewController.mutator.beginContinuous(mutationWithInvalidComponentId);
+      await mockSceneViewController.mutatorNew.beginContinuous(mutationWithInvalidComponentId);
     };
 
     // Assert

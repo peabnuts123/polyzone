@@ -42,6 +42,7 @@ export abstract class BaseContinuousMutation<TMutationDependencies, TMutationArg
   public updateMutation(dependencies: TMutationDependencies, mutationArgs: TMutationArgs): void | Promise<void> {
     return this.update(dependencies, mutationArgs);
   }
+  // @TODO Consdier making these just async
   protected abstract update(dependencies: TMutationDependencies, mutationArgs: TMutationArgs): void | Promise<void>;
 
   // @NOTE Only exists for naming consistency

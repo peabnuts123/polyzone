@@ -12,7 +12,7 @@ export const DirectionalLightInspector: InspectorComponent<DirectionalLightCompo
       <ColorInput
         label="Color"
         color={component.color}
-        onChange={(newValue) => void controller.mutator.debounceContinuous(
+        onChange={(newValue) => void controller.mutatorNew.debounceContinuous(
           SetGameObjectLightComponentColorMutation,
           gameObject,
           () => new SetGameObjectLightComponentColorMutation(gameObject, component),
