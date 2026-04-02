@@ -1,9 +1,9 @@
-import type { FunctionComponent } from "react";
+import type { ElementType, FunctionComponent } from "react";
 import { useEffect, useRef } from "react";
 import { ArrowsPointingOutIcon, ArrowPathIcon, ArrowsPointingInIcon } from '@heroicons/react/24/solid';
 import { observer } from "mobx-react-lite";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
-
+import cn from 'classnames';
 
 import type { ISceneViewController } from "@lib/composer/scene";
 import { CurrentSelectionTool } from "@lib/composer/scene/SelectionManager";
@@ -77,35 +77,7 @@ const SceneViewComponent: FunctionComponent<Props> = observer(({ controller }) =
           }
         }
       };
-      const onKeyDown = (e: KeyboardEvent): void => {
-        // @TODO rebindable input system
-        if (e.key === 'Escape') {
-          e.preventDefault();
-          /* Deselect */
-          controller.selectionManager.deselectAll();
-        } else if (controller.selectedObjectData !== undefined && e.key === 'd' && (e.ctrlKey || e.metaKey)) {
-          /* Duplicate */
-          e.preventDefault();
-          const selectedObjectDefinition = controller.selectedObjectData.toDefinition();
-          const parentObjectData = controller.scene.getGameObjectParent(controller.selectedObjectData.id);
-          void controller.mutatorNew.apply(
-            new CreateGameObjectFromDefinitionMutation({
-              definition: selectedObjectDefinition,
-              parent: parentObjectData,
-              siblingTarget: {
-                gameObjectId: selectedObjectDefinition.id,
-                type: 'after',
-              },
-              type: CreateGameObjectType.Duplicate,
-            }),
-          );
-        } else if (controller.selectedObjectData !== undefined && (e.key === 'Delete' || (e.key === 'Backspace' && e.metaKey))) {
-          /* Delete */
-          void controller.mutatorNew.apply(
-            new DeleteGameObjectMutation(controller.selectedObjectData),
-          );
-        }
-      };
+      const onKeyDown = (e: KeyboardEvent): void => handleKeyPress(controller, e);
       tabContainerElement.addEventListener('copy', onCopy);
       tabContainerElement.addEventListener('paste', onPaste);
       tabContainerElement.addEventListener('keydown', onKeyDown);
@@ -117,12 +89,25 @@ const SceneViewComponent: FunctionComponent<Props> = observer(({ controller }) =
     }
   }, []);
 
+  const ToolButton = observer(({ tool, Icon, label }: { tool: CurrentSelectionTool, Icon: ElementType, label: string }) => {
+    return (
+      <button
+        className={cn("button", {
+          "!bg-blue-900 text-white": controller.selectionManager.currentTool === tool,
+        })}
+        onClick={() => controller.setCurrentTool(tool)}
+      >
+        <Icon className="icon mr-1" /> {label}
+      </button>
+    );
+  });
+
   return (
     <div className="h-full flex flex-col" tabIndex={0} ref={tabContainerRef}>
       <div className="p-2 pt-0 bg-white flex flex-row shrink-0">
-        <button className="button" onClick={() => controller.setCurrentTool(CurrentSelectionTool.Move)}><ArrowsPointingOutIcon className="icon mr-1" /> Move</button>
-        <button className="button" onClick={() => controller.setCurrentTool(CurrentSelectionTool.Rotate)}><ArrowPathIcon className="icon mr-1" /> Rotate</button>
-        <button className="button" onClick={() => controller.setCurrentTool(CurrentSelectionTool.Scale)}><ArrowsPointingInIcon className="icon mr-1" /> Scale</button>
+        <ToolButton tool={CurrentSelectionTool.Move} Icon={ArrowsPointingOutIcon} label="Move" />
+        <ToolButton tool={CurrentSelectionTool.Rotate} Icon={ArrowPathIcon} label="Rotate" />
+        <ToolButton tool={CurrentSelectionTool.Scale} Icon={ArrowsPointingInIcon} label="Scale" />
       </div>
       <PanelGroup direction="horizontal" className="grow select-none">
         <Panel defaultSize={20} minSize={10}>
@@ -152,5 +137,48 @@ const SceneViewComponent: FunctionComponent<Props> = observer(({ controller }) =
     </div>
   );
 });
+
+function handleKeyPress(controller: ISceneViewController, e: KeyboardEvent): void {
+  // @TODO rebindable input system
+  if (e.key === 'Escape') {
+    e.preventDefault();
+    /* Deselect */
+    controller.selectionManager.deselectAll();
+  } else if (controller.selectedObjectData !== undefined && e.key === 'd' && (e.ctrlKey || e.metaKey)) {
+    /* Duplicate */
+    e.preventDefault();
+    const selectedObjectDefinition = controller.selectedObjectData.toDefinition();
+    const parentObjectData = controller.scene.getGameObjectParent(controller.selectedObjectData.id);
+    void controller.mutatorNew.apply(
+      new CreateGameObjectFromDefinitionMutation({
+        definition: selectedObjectDefinition,
+        parent: parentObjectData,
+        siblingTarget: {
+          gameObjectId: selectedObjectDefinition.id,
+          type: 'after',
+        },
+        type: CreateGameObjectType.Duplicate,
+      }),
+    );
+  } else if (controller.selectedObjectData !== undefined && (e.key === 'Delete' || (e.key === 'Backspace' && e.metaKey))) {
+    /* Delete */
+    e.preventDefault();
+    void controller.mutatorNew.apply(
+      new DeleteGameObjectMutation(controller.selectedObjectData),
+    );
+  } else if (e.key === '1') {
+    /* Select 'Move' tool */
+    e.preventDefault();
+    controller.setCurrentTool(CurrentSelectionTool.Move);
+  } else if (e.key === '2') {
+    /* Select 'Rotate' tool */
+    e.preventDefault();
+    controller.setCurrentTool(CurrentSelectionTool.Rotate);
+  } else if (e.key === '3') {
+    /* Select 'Scale' tool */
+    e.preventDefault();
+    controller.setCurrentTool(CurrentSelectionTool.Scale);
+  }
+}
 
 export default SceneViewComponent;

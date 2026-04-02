@@ -34,7 +34,7 @@ export class SelectionManager {
   private readonly scaleGizmo: ScaleGizmo;
   private readonly boundingBoxGizmo: BoundingBoxGizmo;
 
-  private _currentTool: CurrentSelectionTool = CurrentSelectionTool.Rotate;
+  private _currentTool: CurrentSelectionTool = CurrentSelectionTool.Move;
   private _selectedObjectId: string | undefined = undefined;
   private fakeTransformTarget: TransformNode | undefined = undefined;
 
