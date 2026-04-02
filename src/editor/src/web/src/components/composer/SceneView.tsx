@@ -11,7 +11,7 @@ import { CurrentSelectionTool } from "@lib/composer/scene/SelectionManager";
 import { Inspector } from "./Inspector";
 import { Hierarchy } from './Hierarchy';
 import { GameObjectDefinition } from "@polyzone/runtime/src/cartridge";
-import { CreateGameObjectFromDefinitionMutation, CreateGameObjectType } from "@lib/mutation/SceneView/mutations";
+import { CreateGameObjectFromDefinitionMutation, CreateGameObjectType, DeleteGameObjectMutation } from "@lib/mutation/SceneView/mutations";
 
 
 interface Props {
@@ -83,24 +83,27 @@ const SceneViewComponent: FunctionComponent<Props> = observer(({ controller }) =
           e.preventDefault();
           /* Deselect */
           controller.selectionManager.deselectAll();
-        } else if (e.key === 'd' && (e.ctrlKey || e.metaKey)) {
+        } else if (controller.selectedObjectData !== undefined && e.key === 'd' && (e.ctrlKey || e.metaKey)) {
           /* Duplicate */
-          if (controller.selectedObjectData !== undefined) {
-            e.preventDefault();
-            const selectedObjectDefinition = controller.selectedObjectData.toDefinition();
-            const parentObjectData = controller.scene.getGameObjectParent(controller.selectedObjectData.id);
-            void controller.mutatorNew.apply(
-              new CreateGameObjectFromDefinitionMutation({
-                definition: selectedObjectDefinition,
-                parent: parentObjectData,
-                siblingTarget: {
-                  gameObjectId: selectedObjectDefinition.id,
-                  type: 'after',
-                },
-                type: CreateGameObjectType.Duplicate,
-              }),
-            );
-          }
+          e.preventDefault();
+          const selectedObjectDefinition = controller.selectedObjectData.toDefinition();
+          const parentObjectData = controller.scene.getGameObjectParent(controller.selectedObjectData.id);
+          void controller.mutatorNew.apply(
+            new CreateGameObjectFromDefinitionMutation({
+              definition: selectedObjectDefinition,
+              parent: parentObjectData,
+              siblingTarget: {
+                gameObjectId: selectedObjectDefinition.id,
+                type: 'after',
+              },
+              type: CreateGameObjectType.Duplicate,
+            }),
+          );
+        } else if (controller.selectedObjectData !== undefined && (e.key === 'Delete' || (e.key === 'Backspace' && e.metaKey))) {
+          /* Delete */
+          void controller.mutatorNew.apply(
+            new DeleteGameObjectMutation(controller.selectedObjectData),
+          );
         }
       };
       tabContainerElement.addEventListener('copy', onCopy);
