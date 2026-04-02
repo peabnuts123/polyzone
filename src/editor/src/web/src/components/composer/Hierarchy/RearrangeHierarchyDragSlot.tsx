@@ -108,11 +108,11 @@ export const RearrangeHierarchyDragSlot: FunctionComponent<RearrangeHierarchyDra
       <div
         className={cn("transition-[height] duration-200 overflow-hidden",
           { 'h-0': !isDraggingOverThisZone }, // @NOTE overridden by min-height animation
-          { '!h-full': isLastTopLevelSlot }, // Expand to fill the rest of the space so that user can drop into bottom whitespace
+          { 'grow min-h-6': isLastTopLevelSlot }, // Expand to fill the rest of the space so that user can drop into bottom whitespace
         )}
         ref={dropZoneElement}
       >
-        <div className="w-full h-full" ref={DropTarget}>
+        <div className="w-full h-full" ref={DropTarget} data-blank-space={isLastTopLevelSlot}>
           {isDragOverThisTarget && (
             <HierarchyObjectFacade
               gameObject={dragSourceGameObject}

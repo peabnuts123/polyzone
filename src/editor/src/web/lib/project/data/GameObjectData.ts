@@ -4,7 +4,8 @@ import { ClassReference } from "@polyzone/core/src/util";
 
 import type { IComposerComponentData } from "./components";
 import type { TransformData } from "./TransformData";
-import { IGameObjectData, GameObjectData as GameObjectDataRuntime } from "@polyzone/runtime/src/cartridge";
+import { IGameObjectData, GameObjectData as GameObjectDataRuntime, GameObjectDefinition } from "@polyzone/runtime/src/cartridge";
+import { toVector3Definition } from "@polyzone/runtime/src/util";
 
 export class GameObjectData implements IGameObjectData {
   private _gameObjectData: GameObjectDataRuntime;
@@ -106,6 +107,20 @@ export class GameObjectData implements IGameObjectData {
     }
 
     return undefined;
+  }
+
+  public toDefinition(): GameObjectDefinition {
+    return {
+      id: this.id,
+      name: this.name,
+      transform: {
+        position: toVector3Definition(this.transform.position),
+        rotation: toVector3Definition(this.transform.rotation),
+        scale: toVector3Definition(this.transform.scale),
+      },
+      components: this.components.map((component) => component.toComponentDefinition()),
+      children: this.children.map((child) => child.toDefinition()),
+    };
   }
 
   public get id(): string { return this._gameObjectData.id; }

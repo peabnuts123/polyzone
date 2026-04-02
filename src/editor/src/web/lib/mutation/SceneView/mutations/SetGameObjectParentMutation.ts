@@ -19,8 +19,8 @@ interface SetGameObjectParentMutationAfterArgs extends SetGameObjectParentMutati
   after: GameObjectData;
 }
 
-interface SiblingTarget {
-  type: 'before' | 'after',
+export interface SiblingTarget {
+  type: 'before' | 'after';
   gameObjectId: string;
 }
 

@@ -186,7 +186,7 @@ export const HierarchyObject: FunctionComponent<HierarchyObjectProps> = observer
 
   return (
     <div
-      className={cn(
+      className={cn('flex flex-col',
         { 'opacity-40': isDraggingThisItem },
         { 'grow': isLastTopLevelObject },
       )}
