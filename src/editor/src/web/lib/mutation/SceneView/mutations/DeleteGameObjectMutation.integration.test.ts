@@ -40,7 +40,7 @@ describe(DeleteGameObjectMutation.name, () => {
     const mutation = new DeleteGameObjectMutation(mockGameObjectData);
 
     // Test
-    await mockSceneViewController.mutator.apply(mutation);
+    await mockSceneViewController.mutatorNew.apply(mutation);
 
     const finalDataObjects = mockScene.data.objects;
     const finalBabylonGameObjects = mockSceneViewController.babylonScene.transformNodes.length;
@@ -98,7 +98,7 @@ describe(DeleteGameObjectMutation.name, () => {
     const mutation = new DeleteGameObjectMutation(mockChildGameObjectData);
 
     // Test
-    await mockSceneViewController.mutator.apply(mutation);
+    await mockSceneViewController.mutatorNew.apply(mutation);
 
     const finalDataObjects = mockScene.data.objects;
     const finalParentChildren = mockParentGameObjectData.children;
@@ -167,7 +167,7 @@ describe(DeleteGameObjectMutation.name, () => {
     const mutation = new DeleteGameObjectMutation(mockParentGameObjectData);
 
     // Test
-    await mockSceneViewController.mutator.apply(mutation);
+    await mockSceneViewController.mutatorNew.apply(mutation);
 
     const finalDataObjects = mockScene.data.objects;
     const finalBabylonGameObjects = mockSceneViewController.babylonScene.transformNodes.length;
@@ -217,7 +217,7 @@ describe(DeleteGameObjectMutation.name, () => {
     const mutation = new DeleteGameObjectMutation(fakeParentGameObjectData);
 
     // Test
-    const testFunc = (): Promise<void> => mockSceneViewController.mutator.apply(mutation);
+    const testFunc = (): Promise<void> => mockSceneViewController.mutatorNew.apply(mutation);
 
     // Assert
     await expect(testFunc).rejects.toThrow(`No GameObject exists with ID '${mockGameObjectDefinition.id}' in scene`);

@@ -123,14 +123,7 @@ export class CreateGameObjectFromDefinitionMutation extends BaseSceneMutation {
       // 2. Update Scene
       const parentGameObject = SceneViewController.findGameObjectById(this.parentGameObjectId);
       if (parentGameObject === undefined) throw new Error(`Cannot apply mutation - no game object exists in the scene with id '${this.parentGameObjectId}'`);
-      const newGameObject = await SceneViewController.createGameObject(newGameObjectData, parentGameObject.transform);
-      runInAction(() => {
-        // @TODO is this needed?
-        // Kind of entirely un-necessary 🤷‍♀️ Because the default values will already match
-        newGameObject.transform.localPosition.setValue(toVector3Core(this.definition.transform.position));
-        newGameObject.transform.localRotation.setValue(Quaternion.fromEuler(toVector3Core(this.definition.transform.rotation)));
-        newGameObject.transform.localScale.setValue(toVector3Core(this.definition.transform.scale));
-      });
+      await SceneViewController.createGameObject(newGameObjectData, parentGameObject.transform);
 
       // 3. Update JSONC
       const mutationPath = resolvePathForSceneObjectMutation(
@@ -157,7 +150,7 @@ export class CreateGameObjectFromDefinitionMutation extends BaseSceneMutation {
   }
 
   protected override customUndo({ SceneViewController }: SceneViewMutationArguments): Promise<void> {
-    // @NOTE same as `DeleteGameObjectMutation.apply()`
+    // @NOTE Basically the same as `DeleteGameObjectMutation.apply()`
     // Find object's parent - we're going to remove the object from the parent's children
     const gameObjectData = SceneViewController.scene.getGameObject(this.definition.id);
     const gameObjectParentData = SceneViewController.scene.getGameObjectParent(this.definition.id);

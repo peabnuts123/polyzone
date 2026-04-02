@@ -40,7 +40,7 @@ export const Hierarchy: FunctionComponent<Props> = observer(({ controller }) => 
     }));
   };
   const deleteObject = (gameObjectData: GameObjectData): void => {
-    void controller.mutator.apply(new DeleteGameObjectMutation(gameObjectData));
+    void controller.mutatorNew.apply(new DeleteGameObjectMutation(gameObjectData));
   };
   const showContextMenu: MouseEventHandler = async (e) => {
     // @NOTE Skip context menu in browser
