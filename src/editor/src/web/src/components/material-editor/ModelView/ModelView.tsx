@@ -15,6 +15,7 @@ interface Props {
 export const ModelView: FunctionComponent<Props> = observer(({ controller }) => {
   // Refs
   const canvasParentRef = useRef<HTMLDivElement>(null);
+  const tabContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (canvasParentRef.current) {
@@ -24,8 +25,35 @@ export const ModelView: FunctionComponent<Props> = observer(({ controller }) => 
     return controller.startBabylonView();
   }, [controller, controller.canvas]);
 
+  // Keyboard shortcuts
+  useEffect(() => {
+    const isInputElement = (el: HTMLElement | null): boolean => {
+      return !!el && (
+        el instanceof HTMLInputElement ||
+        el instanceof HTMLTextAreaElement
+      );
+    };
+
+    const tabContainerElement = tabContainerRef.current;
+    if (tabContainerElement) {
+      const onKeyDown = (e: KeyboardEvent): void => {
+        if (!isInputElement(e.target as HTMLElement | null)) {
+          if (e.key === 'f') {
+            /* Focus model */
+            e.preventDefault();
+            controller.focusModel();
+          }
+        }
+      };
+      tabContainerElement.addEventListener('keydown', onKeyDown);
+      return () => {
+        tabContainerElement.removeEventListener('keydown', onKeyDown);
+      };
+    }
+  }, []);
+
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col" ref={tabContainerRef}>
       <PanelGroup direction="horizontal" className="grow select-none">
         <Panel defaultSize={20} minSize={10}>
           {/* Material selector */}

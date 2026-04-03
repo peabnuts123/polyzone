@@ -14,6 +14,9 @@ import { Vector3 } from '@polyzone/core/src/util/Vector3';
 import { AssetType } from '@polyzone/runtime/src/cartridge';
 import { GameObject, Transform } from '@polyzone/runtime/src/world';
 import { RetroMaterial } from '@polyzone/runtime/src/materials/RetroMaterial';
+import {
+  GameObject as GameObjectRuntime,
+} from '@polyzone/runtime/src/world';
 
 import type { IProjectController } from '@lib/project/ProjectController';
 import { GameObjectData, MeshAssetData, MeshComponentData, TransformData } from '@lib/project/data';
@@ -23,6 +26,7 @@ import { ModelEditorViewMutator, ModelEditorViewMutatorNew } from '@lib/mutation
 import { ComponentDependencyManager } from '@lib/common/ComponentDependencyManager';
 import { MeshComponent } from '@lib/composer/scene/components';
 import { MutationController } from '@lib/mutation/MutationController';
+import { toVector3Babylon } from '@polyzone/runtime/src/util';
 
 export interface IModelEditorViewController {
   startBabylonView(): () => void;
@@ -30,6 +34,7 @@ export interface IModelEditorViewController {
   reloadSceneData(model?: MeshAssetData): Promise<void>;
   getMaterialByName(materialName: string): RetroMaterial;
   selectMaterial(materialName: string): void;
+  focusModel(): void;
 
   get canvas(): HTMLCanvasElement;
   get model(): MeshAssetData;
@@ -271,6 +276,8 @@ export class ModelEditorViewController implements IModelEditorViewController {
     }
 
     await this.createScene();
+
+    this.focusModel();
   }
 
   public getMaterialByName(materialName: string): RetroMaterial {
@@ -283,6 +290,80 @@ export class ModelEditorViewController implements IModelEditorViewController {
 
   public selectMaterial(materialName: string): void {
     this._selectedMaterialName = materialName;
+  }
+
+  public focusModel(): void {
+    // @TODO Replace this crappy Babylon logic with a REAL engine!!
+    // const gameObject = this.findGameObjectById(gameObjectId);
+    const gameObject = this.previewGameObject;
+    if (gameObject === undefined) return;
+
+    /**
+     * Find all mesh components on this GameObject and within its hierarchy.
+     */
+    const getAllMeshComponents = (gameObject: GameObjectRuntime): MeshComponent[] => {
+      const meshComponents = gameObject.components.filter((component) => component instanceof MeshComponent);
+      const childMeshComponents = gameObject.transform.children.flatMap((child) => getAllMeshComponents(child.gameObject));
+      return meshComponents.concat(childMeshComponents);
+    };
+
+    // Get all mesh components in this object's hierarchy
+    const meshComponents = getAllMeshComponents(gameObject);
+
+    // Find the absolute minimum and maximum of all these mesh components' bounding boxes
+    let minimum: Vector3Babylon | undefined = undefined;
+    let maximum: Vector3Babylon | undefined = undefined;
+    for (const meshComponent of meshComponents) {
+      for (const mesh of meshComponent.allSelectableMeshes) {
+        const boundingBox = mesh.getBoundingInfo().boundingBox;
+        if (minimum === undefined) {
+          minimum = boundingBox.minimumWorld.clone();
+        } else {
+          if (boundingBox.minimumWorld.x < minimum.x) {
+            minimum.x = boundingBox.minimumWorld.x;
+          }
+          if (boundingBox.minimumWorld.y < minimum.y) {
+            minimum.y = boundingBox.minimumWorld.y;
+          }
+          if (boundingBox.minimumWorld.z < minimum.z) {
+            minimum.z = boundingBox.minimumWorld.z;
+          }
+        }
+        if (maximum === undefined) {
+          maximum = boundingBox.maximumWorld.clone();
+        } else {
+          if (boundingBox.maximumWorld.x > maximum.x) {
+            maximum.x = boundingBox.maximumWorld.x;
+          }
+          if (boundingBox.maximumWorld.y > maximum.y) {
+            maximum.y = boundingBox.maximumWorld.y;
+          }
+          if (boundingBox.maximumWorld.z > maximum.z) {
+            maximum.z = boundingBox.maximumWorld.z;
+          }
+        }
+      }
+    }
+
+    // Calculate size (half diagonal) of the absolute bounding box
+    let boundingBoxRadius: number;
+    if (minimum !== undefined && maximum !== undefined) {
+      boundingBoxRadius = maximum.subtract(minimum).length() / 2;
+    } else {
+      boundingBoxRadius = 1;
+    }
+
+    // Use trig to calculate 'adjacent' side (i.e. distance) based on bounding box size and camera FOV
+    const cameraDistance = boundingBoxRadius / Math.tan(this.sceneCamera.fov / 2);
+
+    this.sceneCamera.target.setAll(0); // Focus on 0,0,0
+    this.sceneCamera.radius = cameraDistance; // Set distance
+    // Stop animating
+    this.sceneCamera.inertialRadiusOffset = 0;
+    this.sceneCamera.inertialPanningX = 0;
+    this.sceneCamera.inertialPanningY = 0;
+    this.sceneCamera.inertialAlphaOffset = 0;
+    this.sceneCamera.inertialBetaOffset = 0;
   }
 
   public get canvas(): HTMLCanvasElement {
