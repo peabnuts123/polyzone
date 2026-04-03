@@ -77,7 +77,11 @@ const SceneViewComponent: FunctionComponent<Props> = observer(({ controller }) =
           }
         }
       };
-      const onKeyDown = (e: KeyboardEvent): void => handleKeyPress(controller, e);
+      const onKeyDown = (e: KeyboardEvent): void => {
+        if (!isInputElement(e.target as HTMLElement | null)) {
+          handleKeyPress(controller, e);
+        }
+      };
       tabContainerElement.addEventListener('copy', onCopy);
       tabContainerElement.addEventListener('paste', onPaste);
       tabContainerElement.addEventListener('keydown', onKeyDown);
