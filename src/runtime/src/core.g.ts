@@ -20,6 +20,7 @@ import * as WorldComponentsScriptComponent from '@polyzone/core/src/world/compon
 import * as WorldComponents from '@polyzone/core/src/world/components';
 import * as UtilColor3 from '@polyzone/core/src/util/Color3';
 import * as UtilColor4 from '@polyzone/core/src/util/Color4';
+import * as UtilQuaternion from '@polyzone/core/src/util/Quaternion';
 import * as UtilVector2 from '@polyzone/core/src/util/Vector2';
 import * as UtilVector3 from '@polyzone/core/src/util/Vector3';
 import * as Util from '@polyzone/core/src/util';
@@ -89,6 +90,10 @@ export const CoreModules: CoreModuleDefinition[] = [
   {
     name: '@polyzone/core/util/Color4',
     module: UtilColor4,
+  },
+  {
+    name: '@polyzone/core/util/Quaternion',
+    module: UtilQuaternion,
   },
   {
     name: '@polyzone/core/util/Vector2',

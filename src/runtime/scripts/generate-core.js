@@ -14,7 +14,8 @@ const ImportAliasRoot = '@polyzone/core';
 // Load all .ts files in the core project
 let modules = (await readdir('../core/src', { recursive: true }))
   .filter((file) =>
-    path.extname(file) === '.ts',
+    path.extname(file) === '.ts' &&         // .ts files (@TODO case insensitive I guess)
+  !file.endsWith('.test.ts'),             // Ignore test files
   )
   .map((file) => {
     return {
