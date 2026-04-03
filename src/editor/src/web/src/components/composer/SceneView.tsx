@@ -182,10 +182,10 @@ function handleKeyPress(controller: ISceneViewController, e: KeyboardEvent): voi
     /* Select 'Scale' tool */
     e.preventDefault();
     controller.setCurrentTool(CurrentSelectionTool.Scale);
-  } else if (controller.selectedObjectId !== undefined && e.key === 'f') {
+  } else if (controller.selectedObject !== undefined && e.key === 'f') {
     /* Focus selected object */
     e.preventDefault();
-    controller.focusObject(controller.selectedObjectId);
+    controller.focusObject(controller.selectedObject);
   }
 }
 
