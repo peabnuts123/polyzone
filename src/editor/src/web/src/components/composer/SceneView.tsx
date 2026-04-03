@@ -152,6 +152,7 @@ function handleKeyPress(controller: ISceneViewController, e: KeyboardEvent): voi
     /* Duplicate */
     e.preventDefault();
     const selectedObjectDefinition = controller.selectedObjectData.toDefinition();
+    selectedObjectDefinition.name = `${selectedObjectDefinition.name} copy`;
     const parentObjectData = controller.scene.getGameObjectParent(controller.selectedObjectData.id);
     void controller.mutatorNew.apply(
       new CreateGameObjectFromDefinitionMutation({

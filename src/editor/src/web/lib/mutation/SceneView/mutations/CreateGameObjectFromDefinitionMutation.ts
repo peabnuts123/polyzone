@@ -1,9 +1,6 @@
-import { runInAction } from 'mobx';
 import { v4 as uuid } from 'uuid';
 
 import { GameObjectDefinition } from "@polyzone/runtime/src/cartridge";
-import { toVector3Core } from '@polyzone/runtime/src/util';
-import { Quaternion } from '@polyzone/core/src/util/Quaternion';
 
 import { GameObjectData, loadObjectDefinition } from "@lib/project/data";
 import { resolvePathForSceneObjectMutation } from '@lib/mutation/util';
@@ -11,18 +8,6 @@ import { SceneViewMutationArguments } from "../SceneViewMutationArguments";
 import { BaseSceneMutation } from '../ISceneMutation';
 import { SiblingTarget } from './SetGameObjectParentMutation';
 
-
-/*
-  @TODO Test backlog
-    - Inserting before a sibling via siblingTarget
-    - Inserting after a sibling via siblingTarget
-    - Error when siblingTarget references a non-existent gameObjectId
-    - Undo after creating a top-level object
-    - Undo after creating a child object
-    - Undo deselects the created object if it was selected
-    - scrambleIds recurses through deeply nested children
-    - CreateNew preserves component and child IDs (not scrambled)
- */
 
 // @TODO enumify
 export const CreateGameObjectType = {
@@ -147,6 +132,8 @@ export class CreateGameObjectFromDefinitionMutation extends BaseSceneMutation {
         { isArrayInsertion: true },
       );
     }
+
+    SceneViewController.selectionManager.select(newGameObjectData.id);
   }
 
   protected override customUndo({ SceneViewController }: SceneViewMutationArguments): Promise<void> {

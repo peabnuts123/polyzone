@@ -11,6 +11,18 @@ import { MockSceneViewController } from '@test/integration/mock/scene/MockSceneV
 
 import { CreateGameObjectFromDefinitionMutation, CreateGameObjectType } from './CreateGameObjectFromDefinitionMutation';
 
+/*
+  @TODO Test backlog
+    - Inserting before a sibling via siblingTarget
+    - Inserting after a sibling via siblingTarget
+    - Error when siblingTarget references a non-existent gameObjectId
+    - Undo after creating a top-level object
+    - Undo after creating a child object
+    - Undo deselects the created object if it was selected
+    - scrambleIds recurses through deeply nested children
+    - CreateNew preserves component and child IDs (not scrambled)
+ */
+
 describe(CreateGameObjectFromDefinitionMutation.name, () => {
   describe(CreateGameObjectType.CreateNew, () => {
     test("Creating a new GameObject as a top-level object", async () => {
