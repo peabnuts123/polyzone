@@ -49,6 +49,7 @@ export default tseslint.config(
     files: ['**/*.js'],
     rules: {
       '@typescript-eslint/explicit-function-return-type': DISABLED,
+      '@typescript-eslint/no-unsafe-assignment': DISABLED,
     },
   },
   {

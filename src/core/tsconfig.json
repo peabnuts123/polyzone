@@ -16,6 +16,7 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
 
+    "skipLibCheck": true, // Fucks sake, TypeScript: https://github.com/microsoft/TypeScript/issues/40426
     "strict": true,
   },
   "include": [

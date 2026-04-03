@@ -1,6 +1,6 @@
 {
   "name": "@polyzone/core",
-  "version": "0.1.0-1",
+  "version": "0.1.0-3",
   "description": "PolyZone core API",
   "author": "peabnuts123",
   "keywords": [
@@ -20,11 +20,8 @@
     "directory": "src/core"
   },
   "type": "module",
-  "main": "dist/index.d.ts",
-  "module": "dist/index.d.ts",
-  "files": [
-    "dist/"
-  ],
+  "main": "index.d.ts",
+  "module": "index.d.ts",
   "scripts": {
     "start": "nodemon --watch src --ext 'ts' --exec npm run build",
     "build": "rm -rf dist && tsc --project tsconfig.build.json",
