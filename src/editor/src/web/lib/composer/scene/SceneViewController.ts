@@ -15,7 +15,7 @@ import {
   Transform as TransformRuntime,
   GameObject as GameObjectRuntime,
 } from '@polyzone/runtime/src/world';
-import { toColor3Babylon } from '@polyzone/runtime/src/util';
+import { toColor3Babylon, toVector3Babylon } from '@polyzone/runtime/src/util';
 import { createGameObject } from '@polyzone/runtime/src/world/createGameObject';
 
 import { JsoncContainer } from '@lib/util/JsoncContainer';
@@ -32,13 +32,14 @@ import { ComponentDependencyManager } from '@lib/common/ComponentDependencyManag
 import { createEditorGameObjectComponent } from '@lib/common/GameObjects';
 import { MutationController } from '@lib/mutation/MutationController';
 import { SceneViewSelectionCache } from './SceneViewSelectionCache';
-import { isAssetDependentComponent, ISelectableObject, isSelectableObject } from './components';
+import { isAssetDependentComponent, ISelectableObject, isSelectableObject, MeshComponent } from './components';
 import { CurrentSelectionTool, SelectionManager } from './SelectionManager';
 
 export interface ISceneViewController {
   startBabylonView(): () => void;
   destroy(): void;
   setCurrentTool(tool: CurrentSelectionTool): void;
+  focusObject(gameObjectId: string): void;
   addToSelectionCache(gameObjectId: string, component: ISelectableObject): void;
   removeFromSelectionCache(component: ISelectableObject): void;
   createGameObject(gameObjectData: GameObjectData, parentTransform?: TransformRuntime): Promise<GameObjectRuntime>;
@@ -344,6 +345,82 @@ export class SceneViewController implements ISceneViewController {
 
   public setCurrentTool(tool: CurrentSelectionTool): void {
     this.selectionManager.currentTool = tool;
+  }
+
+  public focusObject(gameObjectId: string): void {
+    // @TODO Replace this crappy Babylon logic with a REAL engine!!
+    const gameObject = this.findGameObjectById(gameObjectId);
+    if (gameObject === undefined) return;
+
+    /**
+     * Find all mesh components on this GameObject and within its hierarchy.
+     */
+    const getAllMeshComponents = (gameObject: GameObjectRuntime): MeshComponent[] => {
+      const meshComponents = gameObject.components.filter((component) => component instanceof MeshComponent);
+      const childMeshComponents = gameObject.transform.children.flatMap((child) => getAllMeshComponents(child.gameObject));
+      return meshComponents.concat(childMeshComponents);
+    };
+
+    // Get all mesh components in this object's hierarchy
+    const meshComponents = getAllMeshComponents(gameObject);
+
+    // Find the absolute minimum and maximum of all these mesh components' bounding boxes
+    let minimum: Vector3Babylon | undefined = undefined;
+    let maximum: Vector3Babylon | undefined = undefined;
+    for (const meshComponent of meshComponents) {
+      for (const mesh of meshComponent.allSelectableMeshes) {
+        const boundingBox = mesh.getBoundingInfo().boundingBox;
+        if (minimum === undefined) {
+          minimum = boundingBox.minimumWorld.clone();
+        } else {
+          if (boundingBox.minimumWorld.x < minimum.x) {
+            minimum.x = boundingBox.minimumWorld.x;
+          }
+          if (boundingBox.minimumWorld.y < minimum.y) {
+            minimum.y = boundingBox.minimumWorld.y;
+          }
+          if (boundingBox.minimumWorld.z < minimum.z) {
+            minimum.z = boundingBox.minimumWorld.z;
+          }
+        }
+        if (maximum === undefined) {
+          maximum = boundingBox.maximumWorld.clone();
+        } else {
+          if (boundingBox.maximumWorld.x > maximum.x) {
+            maximum.x = boundingBox.maximumWorld.x;
+          }
+          if (boundingBox.maximumWorld.y > maximum.y) {
+            maximum.y = boundingBox.maximumWorld.y;
+          }
+          if (boundingBox.maximumWorld.z > maximum.z) {
+            maximum.z = boundingBox.maximumWorld.z;
+          }
+        }
+      }
+    }
+
+    // Calculate size (half diagonal) and center of the absolute bounding box
+    let boundingBoxCenter: Vector3Babylon;
+    let boundingBoxRadius: number;
+    if (minimum !== undefined && maximum !== undefined) {
+      boundingBoxCenter = maximum.add(minimum).scaleInPlace(0.5);
+      boundingBoxRadius = maximum.subtract(minimum).length() / 2;
+    } else {
+      boundingBoxCenter = toVector3Babylon(gameObject.transform.absolutePosition);
+      boundingBoxRadius = 1;
+    }
+
+    // Use trig to calculate 'adjacent' side (i.e. distance) based on bounding box size and camera FOV
+    const cameraDistance = boundingBoxRadius / Math.tan(this.sceneCamera.fov / 2);
+
+    // Move camera such that it has the same direction but with the new distance, pointing at the target
+    const cameraDirection = this.sceneCamera.getDirection(Vector3Babylon.Forward());
+    const cameraPosition = boundingBoxCenter.subtract(
+      cameraDirection.normalize().scale(cameraDistance),
+    );
+    this.sceneCamera.position.copyFrom(cameraPosition);
+    this.sceneCamera.cameraDirection.setAll(0); // Stop movement
+    this.sceneCamera.cameraRotation.setAll(0); // Stop rotation
   }
 
   public addToSelectionCache(gameObjectId: string, component: ISelectableObject): void {
