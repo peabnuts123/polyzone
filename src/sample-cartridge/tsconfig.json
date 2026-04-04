@@ -16,8 +16,8 @@
 
     "baseUrl": ".",
     "paths": {
-      "@polyzone/core": ["../core/dist/src"], /* @TODO Fix `core` output dir */
-      "@polyzone/core/*": ["../core/dist/src/*"], /* @TODO Fix `core` output dir */
+      "@polyzone/core": ["../core/dist"],
+      "@polyzone/core/*": ["../core/dist/*"],
     },
 
     /* Linting */
