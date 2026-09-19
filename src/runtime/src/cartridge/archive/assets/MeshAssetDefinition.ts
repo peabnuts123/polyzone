@@ -26,8 +26,8 @@ export interface MeshAssetMaterialOverrideDefinition {
   materialAssetId?: string;
   diffuseColor?: Color3Definition;
   diffuseTextureAssetId?: string;
-  emissionColor?: Color3Definition;
   reflection?: MeshAssetMaterialOverrideReflectionDefinition;
+  lightingEnabled?: boolean;
 }
 
 export interface MeshAssetDefinition extends BaseAssetDefinition {

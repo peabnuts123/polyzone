@@ -13,6 +13,9 @@ import { LoadedAssetBase } from './LoadedAssetBase';
 import type { AssetCacheContext } from './AssetCache';
 import { ReflectionLoading } from './TextureAsset';
 
+// @NOTE Lighting enabled by default (for now?)
+const DefaultUnlitState = false;
+
 export class MeshAsset extends LoadedAssetBase<AssetType.Mesh> {
   public get type(): AssetType.Mesh { return AssetType.Mesh; }
 
@@ -64,9 +67,10 @@ export class MeshAsset extends LoadedAssetBase<AssetType.Mesh> {
     const materialNames = getAllMaterialNamesForModelDefinition(definition);
     for (const materialName of materialNames) {
       const materialOverrideData = assetData.getOverridesForMaterial(materialName);
-      if (materialOverrideData !== undefined) {
-        const materialOverrides = new Material();
+      const materialOverrides = new Material();
+      materialOverrides.unlit = DefaultUnlitState;
 
+      if (materialOverrideData !== undefined) {
         // BASE MATERIAL OVERRIDES
         if (materialOverrideData.material !== undefined) {
           assetCache.registerDependency(assetData.id, materialOverrideData.material.id);
@@ -76,8 +80,10 @@ export class MeshAsset extends LoadedAssetBase<AssetType.Mesh> {
           materialOverrides.diffuseTexture = material.diffuseTexture;
           materialOverrides.reflectionCubemap = material.reflectionCubemap;
           materialOverrides.reflectionIntensity = material.reflectionStrength;
+          if (material.lightingEnabled !== undefined) {
+            materialOverrides.unlit = !material.lightingEnabled;
+          }
         }
-
 
         // ASSET-SPECIFIC OVERRIDES
         /* Diffuse color */
@@ -102,9 +108,14 @@ export class MeshAsset extends LoadedAssetBase<AssetType.Mesh> {
           }
         }
 
-        // Apply overrides
-        model.setMaterialOverride(materialName, materialOverrides, 'override');
+        /* Lighting */
+        if (materialOverrideData.lightingEnabled !== undefined) {
+          materialOverrides.unlit = !materialOverrideData.lightingEnabled;
+        }
       }
+
+      // Apply overrides
+      model.setMaterialOverride(materialName, materialOverrides, 'override');
     }
 
     return new MeshAsset(assetData.id, model);

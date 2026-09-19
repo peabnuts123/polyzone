@@ -14,9 +14,9 @@ export class MaterialAsset extends LoadedAssetBase<AssetType.Material> {
 
   private _diffuseColor?: Color3;
   private _diffuseTexture?: Texture;
-  private _emissionColor?: Color3;
   private _reflectionCubemap?: Cubemap;
   private _reflectionStrength?: number;
+  private _lightingEnabled?: boolean;
 
   private constructor(id: string) {
     super(id);
@@ -38,9 +38,6 @@ export class MaterialAsset extends LoadedAssetBase<AssetType.Material> {
       materialAsset._diffuseTexture = diffuseTexture.texture;
     }
 
-    /* Emission color */
-    materialAsset._emissionColor = materialData.emissionColor;
-
     /* Reflection */
     if (materialData.reflection) {
       const reflection = await ReflectionLoading.load(materialData.reflection, assetCache, engine);
@@ -50,6 +47,9 @@ export class MaterialAsset extends LoadedAssetBase<AssetType.Material> {
         reflection.textureAssetData.forEach((textureAssetData) => assetCache.registerDependency(assetData.id, textureAssetData.id));
       }
     }
+
+    /* Lighting */
+    materialAsset._lightingEnabled = materialData.lightingEnabled;
 
     return materialAsset;
   }
@@ -66,9 +66,9 @@ export class MaterialAsset extends LoadedAssetBase<AssetType.Material> {
 
   public get diffuseColor(): Color3 | undefined { return this._diffuseColor; }
   public get diffuseTexture(): Texture | undefined { return this._diffuseTexture; }
-  public get emissionColor(): Color3 | undefined { return this._emissionColor; }
   public get reflectionCubemap(): Cubemap | undefined { return this._reflectionCubemap; }
   public get reflectionStrength(): number | undefined { return this._reflectionStrength; }
+  public get lightingEnabled(): boolean | undefined { return this._lightingEnabled; }
 }
 
 export interface IMaterialData {
@@ -76,17 +76,17 @@ export interface IMaterialData {
   set diffuseColor(value: Color3 | undefined);
   get diffuseTexture(): ITextureAssetData | undefined;
   set diffuseTexture(value: ITextureAssetData | undefined);
-  get emissionColor(): Color3 | undefined;
-  set emissionColor(value: Color3 | undefined);
   get reflection(): MeshAssetMaterialOverrideReflectionData | undefined;
   set reflection(value: MeshAssetMaterialOverrideReflectionData | undefined);
+  get lightingEnabled(): boolean | undefined;
+  set lightingEnabled(value: boolean | undefined);
 }
 
 export class MaterialData implements IMaterialData {
   public diffuseColor: Color3 | undefined;
   public diffuseTexture: ITextureAssetData | undefined;
-  public emissionColor: Color3 | undefined;
   public reflection: MeshAssetMaterialOverrideReflectionData | undefined;
+  public lightingEnabled: boolean | undefined;
 
   private constructor() {
   }
@@ -103,13 +103,11 @@ export class MaterialData implements IMaterialData {
       materialData.diffuseTexture = diffuseTextureData;
     }
 
-    if (definition.emissionColor) {
-      materialData.emissionColor = new Color3(definition.emissionColor);
-    }
-
     if (definition.reflection) {
       materialData.reflection = loadReflectionDefinition(definition.reflection, assetDb);
     }
+
+    materialData.lightingEnabled = definition.lightingEnabled;
 
     return materialData;
   }
@@ -118,6 +116,6 @@ export class MaterialData implements IMaterialData {
 export interface MaterialDefinition {
   diffuseColor?: Color3Definition;
   diffuseTextureAssetId?: string;
-  emissionColor?: Color3Definition;
   reflection?: MeshAssetMaterialOverrideReflectionDefinition;
+  lightingEnabled?: boolean;
 }

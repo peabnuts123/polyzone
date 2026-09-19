@@ -29,16 +29,16 @@ export interface IMeshAssetMaterialOverrideData {
   get material(): IMaterialAssetData | undefined;
   get diffuseColor(): Color3 | undefined;
   get diffuseTexture(): ITextureAssetData | undefined;
-  get emissionColor(): Color3 | undefined;
   get reflection(): MeshAssetMaterialOverrideReflectionData | undefined;
+  get lightingEnabled(): boolean | undefined;
 }
 
 export class MeshAssetMaterialOverrideData implements IMeshAssetMaterialOverrideData {
-  private _material: IMaterialAssetData | undefined;
-  private _diffuseColor: Color3 | undefined;
-  private _diffuseTexture: ITextureAssetData | undefined;
-  private _emissionColor: Color3 | undefined;
-  private _reflection: MeshAssetMaterialOverrideReflectionData | undefined;
+  public material: IMaterialAssetData | undefined;
+  public diffuseColor: Color3 | undefined;
+  public diffuseTexture: ITextureAssetData | undefined;
+  public reflection: MeshAssetMaterialOverrideReflectionData | undefined;
+  public lightingEnabled: boolean | undefined;
 
   public static createFrom(definition: MeshAssetMaterialOverrideDefinition, assetDb: IAssetDb): MeshAssetMaterialOverrideData {
     const self = new MeshAssetMaterialOverrideData();
@@ -52,26 +52,13 @@ export class MeshAssetMaterialOverrideData implements IMeshAssetMaterialOverride
     if (definition.diffuseTextureAssetId) {
       self.diffuseTexture = assetDb.getById(definition.diffuseTextureAssetId, AssetType.Texture);
     }
-    if (definition.emissionColor) {
-      self.emissionColor = new Color3(definition.emissionColor);
-    }
     if (definition.reflection) {
       self.reflection = loadReflectionDefinition(definition.reflection, assetDb);
     }
+    self.lightingEnabled = definition.lightingEnabled;
 
     return self;
   }
-
-  public get material(): IMaterialAssetData | undefined { return this._material; }
-  public set material(value: IMaterialAssetData | undefined) { this._material = value; }
-  public get diffuseColor(): Color3 | undefined { return this._diffuseColor; }
-  public set diffuseColor(value: Color3 | undefined) { this._diffuseColor = value; }
-  public get diffuseTexture(): ITextureAssetData | undefined { return this._diffuseTexture; }
-  public set diffuseTexture(value: ITextureAssetData | undefined) { this._diffuseTexture = value; }
-  public get emissionColor(): Color3 | undefined { return this._emissionColor; }
-  public set emissionColor(value: Color3 | undefined) { this._emissionColor = value; }
-  public get reflection(): MeshAssetMaterialOverrideReflectionData | undefined { return this._reflection; }
-  public set reflection(value: MeshAssetMaterialOverrideReflectionData | undefined) { this._reflection = value; }
 }
 
 export interface IMeshAssetData extends IBaseAssetData<AssetType.Mesh> {

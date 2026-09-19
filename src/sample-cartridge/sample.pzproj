@@ -39,11 +39,7 @@
             "strength": 0.6,
             "textureAssetId": "327f090a-ab45-4b9e-8612-006b86d76878"
           },
-          "emissionColor": {
-            "r": 135,
-            "g": 105,
-            "b": 0
-          }
+          "lightingEnabled": false
         }
       },
     },
@@ -92,7 +88,7 @@
             "type": "box-net",
             "strength": 0.2,
             "textureAssetId": "327f090a-ab45-4b9e-8612-006b86d76878"
-          }
+          },
         },
         "Material.001": {
           "reflection": {
@@ -105,12 +101,7 @@
             "g": 230,
             "b": 0
           },
-          "emissionColor": {
-            "r": 50,
-            "g": 44,
-            "b": 0
-          }
-        }
+        },
       }
     },
     {
@@ -405,11 +396,7 @@
       "type": "mesh",
       "materialOverrides": {
         "Main": {
-          "emissionColor": {
-            "r": 255,
-            "g": 255,
-            "b": 255
-          },
+          "lightingEnabled": false,
           "diffuseTextureAssetId": "04a6f729-bba5-4751-b779-6a1db3cc2d2d",
           "diffuseColor": {
             "r": 65,
@@ -452,11 +439,7 @@
           "diffuseTextureAssetId": "60e63799-8259-48e7-872c-a6523823160f"
         },
         "headlights": {
-          "emissionColor": {
-            "r": 255,
-            "g": 255,
-            "b": 255
-          },
+          "lightingEnabled": false,
           "reflection": {
             "type": "box-net",
             "strength": 0.6,
@@ -464,11 +447,7 @@
           }
         },
         "taillights": {
-          "emissionColor": {
-            "r": 255,
-            "g": 255,
-            "b": 255
-          },
+          "lightingEnabled": false,
           "reflection": {
             "type": "box-net",
             "strength": 0.6,
