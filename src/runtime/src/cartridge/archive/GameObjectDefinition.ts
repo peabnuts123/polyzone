@@ -1,4 +1,4 @@
-import type { GameObjectData } from '@polyzone/runtime/src/cartridge'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import type { GameObjectData } from '@polyzone/runtime/cartridge'; // eslint-disable-line @typescript-eslint/no-unused-vars
 
 import type { CartridgeArchive } from './CartridgeArchive'; // eslint-disable-line @typescript-eslint/no-unused-vars
 import { ComponentDefinition } from "./components";

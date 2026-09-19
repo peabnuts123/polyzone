@@ -3,6 +3,9 @@ import { UserConfigExport, defineConfig } from 'vite';
 // https://vitejs.dev/config/
 export default defineConfig((env) => {
   const config: UserConfigExport = {
+    resolve: {
+      tsconfigPaths: true,
+    },
     clearScreen: false,
     esbuild: {
       target: "es2020",

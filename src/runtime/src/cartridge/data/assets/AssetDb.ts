@@ -1,6 +1,6 @@
-import type { AssetDefinition, AssetDefinitionOfType } from '@polyzone/runtime/src/cartridge/archive';
-import type { IFileSystem, VirtualFile } from '@polyzone/runtime/src/filesystem';
-import { AssetType } from '@polyzone/runtime/src/cartridge';
+import type { IFileSystem, VirtualFile } from '@lopoly/engine/filesystem';
+import type { AssetDefinition, AssetDefinitionOfType } from '@polyzone/runtime/cartridge/archive';
+import { AssetType } from '@polyzone/runtime/cartridge';
 
 import { IAssetData, IAssetDataOfType } from './AssetData';
 import { IMeshAssetData, MeshAssetData } from './MeshAssetData';
@@ -34,10 +34,7 @@ export class AssetDb implements IAssetDb {
     // reading all the definition data. This is so that assets can load references to other assets
     // i.e. all assets have to be loaded in the AssetDb before we can initialise them.
     this.assets = assetDefinitions.map((assetDefinition) => {
-      return createAssetData(
-        assetDefinition,
-        fileSystem,
-      );
+      return createAssetData(assetDefinition);
     });
 
     // Initialise each "data" class, now that all assets are loaded into the db
@@ -72,13 +69,12 @@ export class AssetDb implements IAssetDb {
   }
 }
 
-export type CreateAssetDataFn = <TAssetType extends AssetType>(assetDefinition: AssetDefinitionOfType<TAssetType>, fileSystem: IFileSystem) => IAssetDataOfType<TAssetType>;
+export type CreateAssetDataFn = <TAssetType extends AssetType>(assetDefinition: AssetDefinitionOfType<TAssetType>) => IAssetDataOfType<TAssetType>;
 
-export function createAssetData<TAssetType extends AssetType>(assetDefinition: AssetDefinitionOfType<TAssetType>, fileSystem: IFileSystem): IAssetDataOfType<TAssetType> {
+export function createAssetData<TAssetType extends AssetType>(assetDefinition: AssetDefinitionOfType<TAssetType>): IAssetDataOfType<TAssetType> {
   const args: CommonAssetDataArgs = {
     id: assetDefinition.id,
     path: assetDefinition.path,
-    resolverProtocol: fileSystem.resolverProtocol,
   };
 
   // @TODO Why does TypeScript want everything to be type laundered here?

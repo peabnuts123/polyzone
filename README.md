@@ -257,7 +257,7 @@ Reading input is done using the `Input` module:
 
 ```typescript
 import { ScriptComponent } from '@polyzone/core/world';
-import { Vector2 } from '@polyzone/core/util';
+import { Vector2 } from '@polyzone/core/math';
 import { Input, InputButton } from '@polyzone/core/modules/Input';
 
 const MOVE_SPEED_PER_SECOND = 3.0;

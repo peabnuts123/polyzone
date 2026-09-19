@@ -1,4 +1,4 @@
-import { AssetType, ScriptAssetDefinition } from "../../archive/assets";
+import { AssetType, ScriptAssetDefinition } from "@polyzone/runtime/cartridge/archive/assets";
 import { BaseAssetData, IBaseAssetData } from "./BaseAssetData";
 import { IAssetDb } from "./AssetDb";
 

@@ -1,8 +1,8 @@
-import type { SceneData } from '@polyzone/runtime/src/cartridge'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import type { SceneData } from '@polyzone/runtime/cartridge'; // eslint-disable-line @typescript-eslint/no-unused-vars
 
 import type { CartridgeArchive } from './CartridgeArchive'; // eslint-disable-line @typescript-eslint/no-unused-vars
 import { GameObjectDefinition } from "./GameObjectDefinition";
-import { ColorDefinition } from "./util";
+import { Color3Definition } from "./util";
 
 
 /**
@@ -12,11 +12,11 @@ import { ColorDefinition } from "./util";
 export interface SceneDefinition {
   path: string;
   config: {
-    clearColor: ColorDefinition;
+    clearColor: Color3Definition;
     lighting: {
       ambient: {
         intensity: number;
-        color: ColorDefinition;
+        color: Color3Definition;
       }
     }
   }

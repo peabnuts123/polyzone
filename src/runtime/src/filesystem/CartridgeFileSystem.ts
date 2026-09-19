@@ -1,13 +1,12 @@
 import { Unzipped } from "fflate";
+import { IFileSystem, VirtualFile } from "@lopoly/engine/filesystem";
 
-import { IFileSystem } from "./IFileSystem";
-import { VirtualFile } from "./VirtualFile";
 
-export class CartridgeFileSystem extends IFileSystem {
+// @TODO What is the value of this thing? Is it the right abstraction?
+export class CartridgeFileSystem implements IFileSystem {
   private readonly cartridgeData: Unzipped;
 
   public constructor(cartridgeData: Unzipped) {
-    super(`pzcartfs`);
     this.cartridgeData = cartridgeData;
   }
 
@@ -32,7 +31,7 @@ export class CartridgeFileSystem extends IFileSystem {
     if (!fileBytes) {
       throw new NotFoundError(`No file found at path: '${path}'`);
     }
-    return new VirtualFile(fileBytes);
+    return new VirtualFile(fileBytes as Uint8Array<ArrayBuffer>);
   }
 }
 

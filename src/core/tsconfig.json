@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
     "declaration": true,
-    "emitDeclarationOnly": true,
+    "declarationMap": true,
+
     "outDir": "dist",
     "stripInternal": true,
     "allowJs": true,
@@ -12,16 +13,20 @@
     "module": "ESNext",
 
     "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
+
+    "paths": {
+      "@polyzone/core/*": ["./src/*"],
+    },
 
     "skipLibCheck": true, // Fucks sake, TypeScript: https://github.com/microsoft/TypeScript/issues/40426
     "strict": true,
   },
   "include": [
+    "src/",
+    "scripts/",
     "eslint.config.mjs",
-    "src/**/*.ts",
     "vitest.config.ts",
   ],
 }

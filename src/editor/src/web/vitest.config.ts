@@ -1,5 +1,4 @@
 import { defineConfig } from 'vitest/config';
-import tsconfigPaths from 'vite-tsconfig-paths';
 import path from 'path';
 
 /**
@@ -13,7 +12,6 @@ import path from 'path';
 export const ScriptFileExtensionGlob = `?(c|m)[jt]s?(x)`;
 
 export default defineConfig({
-  plugins: [tsconfigPaths()],
   assetsInclude: [
     '**/*.fx',
     'test/integration/mock/assets/models/*',
@@ -21,6 +19,7 @@ export default defineConfig({
     'test/integration/mock/assets/textures/*',
   ],
   resolve: {
+    tsconfigPaths: true,
     alias: {
       '@polyzone/runtime/src': path.resolve(__dirname, '../../../runtime/src'),
       '@polyzone/core/src': path.resolve(__dirname, '../../../core/src'),

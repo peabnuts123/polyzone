@@ -1,4 +1,4 @@
-import { ColorDefinition } from "../util";
+import { Color3Definition } from "../util";
 import { BaseAssetDefinition } from "./AssetDefinition";
 import { AssetType } from "./AssetType";
 
@@ -34,9 +34,9 @@ export type MeshAssetMaterialOverrideReflectionDefinitionOfType<T extends MeshAs
 
 export interface MeshAssetMaterialOverrideDefinition {
   materialAssetId?: string;
-  diffuseColor?: ColorDefinition;
+  diffuseColor?: Color3Definition;
   diffuseTextureAssetId?: string;
-  emissionColor?: ColorDefinition;
+  emissionColor?: Color3Definition;
   reflection?: MeshAssetMaterialOverrideReflectionDefinition;
 }
 

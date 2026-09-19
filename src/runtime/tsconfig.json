@@ -14,13 +14,20 @@
     "isolatedModules": true,
     "noEmit": true,
 
+    "paths": {
+      "@polyzone/runtime": ["./src/index"],
+      "@polyzone/runtime/*": ["./src/*"],
+      "@polyzone/core": ["../core/src/index"],
+      "@polyzone/core/*": ["../core/src/*"],
+    },
+
     /* Linting */
     "strict": true,
   },
   "include": [
     "eslint.config.mjs",
     "vitest.config.ts",
-    "scripts/generate-core.js",
+    "scripts/generate-core.ts",
     "src/**/*.ts",
   ]
 }

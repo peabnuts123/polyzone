@@ -1,13 +1,11 @@
-import type Resolver from "@polyzone/runtime/src/Resolver"; // eslint-disable-line @typescript-eslint/no-unused-vars
-import { baseName, getFileExtension, toPathList } from "@polyzone/runtime/src/util";
+import { baseName, getFileExtension, toPathList } from "@polyzone/runtime/util/path";
 
-import { AssetDefinitionOfType, AssetType } from "../../archive";
+import { AssetDefinitionOfType, AssetType } from "@polyzone/runtime/cartridge/archive";
 import { IAssetDb } from "./AssetDb";
 
 export interface CommonAssetDataArgs {
   id: string;
   path: string;
-  resolverProtocol: string;
 }
 
 export interface IBaseAssetData<TAssetType extends AssetType> {
@@ -15,8 +13,11 @@ export interface IBaseAssetData<TAssetType extends AssetType> {
   get path(): string;
   set path(value: string);
   toString(): string;
+  /**
+   * File extension of this file. Includes the dot e.g. `.txt`.
+   * Returns empty string if file has no extension.
+   */
   get fileExtension(): string;
-  get babylonFetchUrl(): string;
   get pathList(): string[];
   get baseName(): string;
   loadDefinition(assetDefinition: AssetDefinitionOfType<TAssetType>, assetDb: IAssetDb): void;
@@ -30,20 +31,12 @@ export abstract class BaseAssetData<TAssetType extends AssetType> implements IBa
   public readonly id: string;
   /**
    * The path within the game data wherein this asset lies.
-   * @NOTE This property is NOT for fetching the actual data.
-   * See {@link babylonFetchUrl} instead.
    */
   public path: string;
-  /**
-   * Protocol scheme for identifying which resolver handler should resolve this asset.
-   * @see {@link Resolver}
-   */
-  private readonly resolverProtocol: string;
 
-  public constructor({ id, path, resolverProtocol }: CommonAssetDataArgs) {
+  public constructor({ id, path }: CommonAssetDataArgs) {
     this.id = id;
     this.path = path;
-    this.resolverProtocol = resolverProtocol;
   }
 
   public toString(): string {
@@ -56,18 +49,6 @@ export abstract class BaseAssetData<TAssetType extends AssetType> implements IBa
    */
   public get fileExtension(): string {
     return getFileExtension(this.path);
-  }
-
-  /**
-   * The URL from which this asset can be fetched by Babylon.
-   * @NOTE different from {@link path}.
-   */
-  public get babylonFetchUrl(): string {
-    // @NOTE Append a random parameter to asset requests to prevent browser/babylon from caching the data
-    const cacheBustParam = (~~(Math.random() * 0x10000 + 0x10000)).toString(16);
-    const url = new URL(`${this.resolverProtocol}${this.path}`);
-    url.searchParams.set('cache_bust', cacheBustParam);
-    return url.toString();
   }
 
   /**

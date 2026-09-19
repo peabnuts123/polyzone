@@ -1,6 +1,6 @@
-import type { Color3 } from '@polyzone/core/src/util';
+import type { Color3 } from '@polyzone/core/math/Color3';
 
-import type { PointLightComponent } from '@polyzone/runtime/src/world/components'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import type { PointLightComponent } from '@polyzone/runtime/objects/components'; // eslint-disable-line @typescript-eslint/no-unused-vars
 import { IComponentData } from './ComponentData';
 
 export interface IPointLightComponentData extends IComponentData {

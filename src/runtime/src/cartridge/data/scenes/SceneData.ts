@@ -1,5 +1,4 @@
-import { toVector3Core, toColor3Core, isDefined } from "@polyzone/runtime/src/util";
-import { Color3 } from "@polyzone/core/src/util";
+import { Color3, Vector3 } from "@polyzone/core/math";
 
 import { SceneDefinition, ComponentDefinitionType, GameObjectDefinition, AssetType } from "../../archive";
 import { IAssetDb } from "../assets/AssetDb";
@@ -40,11 +39,11 @@ export class SceneData implements ISceneData {
 
     /* Config */
     this.config = {
-      clearColor: toColor3Core(sceneDefinition.config.clearColor),
+      clearColor: new Color3(sceneDefinition.config.clearColor),
       lighting: {
         ambient: {
           intensity: sceneDefinition.config.lighting.ambient.intensity,
-          color: toColor3Core(sceneDefinition.config.lighting.ambient.color),
+          color: new Color3(sceneDefinition.config.lighting.ambient.color),
         },
       },
     };
@@ -66,7 +65,7 @@ export function loadObjectDefinition(objectDefinition: GameObjectDefinition, ass
       case ComponentDefinitionType.Mesh: {
         const meshComponentDefinition = componentDefinition;
         let meshAsset: IMeshAssetData | undefined = undefined;
-        if (isDefined(meshComponentDefinition.meshFileId)) {
+        if (meshComponentDefinition.meshFileId !== null) {
           meshAsset = assetDb.getById(meshComponentDefinition.meshFileId, AssetType.Mesh);
         }
         components.push(new MeshComponentData(meshComponentDefinition.id, meshAsset));
@@ -75,7 +74,7 @@ export function loadObjectDefinition(objectDefinition: GameObjectDefinition, ass
       case ComponentDefinitionType.Script: {
         const scriptComponentDefinition = componentDefinition;
         let scriptAsset: IScriptAssetData | undefined = undefined;
-        if (isDefined(scriptComponentDefinition.scriptFileId)) {
+        if (scriptComponentDefinition.scriptFileId !== null) {
           scriptAsset = assetDb.getById(scriptComponentDefinition.scriptFileId, AssetType.Script);
         }
         components.push(new ScriptComponentData(scriptComponentDefinition.id, scriptAsset));
@@ -88,13 +87,13 @@ export function loadObjectDefinition(objectDefinition: GameObjectDefinition, ass
       }
       case ComponentDefinitionType.DirectionalLight: {
         const directionalLightComponentDefinition = componentDefinition;
-        const color = toColor3Core(directionalLightComponentDefinition.color);
+        const color = new Color3(directionalLightComponentDefinition.color);
         components.push(new DirectionalLightComponentData(directionalLightComponentDefinition.id, directionalLightComponentDefinition.intensity, color));
         break;
       }
       case ComponentDefinitionType.PointLight: {
         const pointLightComponentDefinition = componentDefinition;
-        const color = toColor3Core(pointLightComponentDefinition.color);
+        const color = new Color3(pointLightComponentDefinition.color);
         components.push(new PointLightComponentData(pointLightComponentDefinition.id, pointLightComponentDefinition.intensity, color));
         break;
       }
@@ -114,9 +113,9 @@ export function loadObjectDefinition(objectDefinition: GameObjectDefinition, ass
     objectDefinition.id,
     objectDefinition.name,
     new TransformData(
-      toVector3Core(objectDefinition.transform.position),
-      toVector3Core(objectDefinition.transform.rotation),
-      toVector3Core(objectDefinition.transform.scale),
+      new Vector3(objectDefinition.transform.position),
+      new Vector3(objectDefinition.transform.rotation),
+      new Vector3(objectDefinition.transform.scale),
     ),
     components,
     children,

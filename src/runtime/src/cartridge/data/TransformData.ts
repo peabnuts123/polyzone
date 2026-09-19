@@ -1,4 +1,4 @@
-import type { Vector3 } from '@polyzone/core/src/util';
+import type { Vector3 } from '@polyzone/core/math/Vector3';
 
 export interface ITransformData {
   get position(): Vector3;

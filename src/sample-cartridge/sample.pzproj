@@ -254,7 +254,7 @@
     {
       "id": "58189dec-56a3-44db-b7a5-c8171abfb3aa",
       "path": "scripts/my-object.ts",
-      "hash": "df3d4d092a1ed2f5",
+      "hash": "80da466db4bd1e77",
       "type": "script",
     },
     {
@@ -540,7 +540,7 @@
     {
       "id": "f2215ac1-2fbe-4d6d-a8fc-d63c88ecbf51",
       "path": "scenes/main.pzscene",
-      "hash": "79bbf8fb67de08a1",
+      "hash": "f7b0f9094bbaae92",
     },
     {
       "id": "d7641dad-c3f9-46cf-a0cc-79db0201ca0d",

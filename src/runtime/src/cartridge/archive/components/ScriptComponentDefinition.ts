@@ -1,4 +1,4 @@
-import type { ScriptComponentData } from '@polyzone/runtime/src/cartridge'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import type { ScriptComponentData } from '@polyzone/runtime/cartridge/data'; // eslint-disable-line @typescript-eslint/no-unused-vars
 import type { CartridgeArchive } from '../CartridgeArchive'; // eslint-disable-line @typescript-eslint/no-unused-vars
 import { ComponentDefinitionBase } from "./ComponentDefinition";
 import { ComponentDefinitionType } from "./ComponentDefinitionType";
@@ -10,5 +10,5 @@ import { ComponentDefinitionType } from "./ComponentDefinitionType";
  */
 export interface ScriptComponentDefinition extends ComponentDefinitionBase {
   type: ComponentDefinitionType.Script;
-  scriptFileId: string | null | undefined; // @TODO Rename to `scriptAssetId` // @TODO make everything nulldefinedable
+  scriptFileId: string | null; // @TODO Rename to `scriptAssetId`
 }

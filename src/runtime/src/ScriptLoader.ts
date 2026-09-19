@@ -1,9 +1,10 @@
-import { IAssetData, AssetType } from './cartridge';
+import { VirtualFile } from '@lopoly/engine/filesystem';
+
+import { IAssetData, AssetType, IScriptAssetData } from './cartridge';
 import { CoreModules } from './core.g';
-import { VirtualFile } from './filesystem';
 
 // @TODO lol uhhhhhhhhhhhhhhhh
-const SCRIPT_PATH_PREFIX = `scripts/`;
+// const SCRIPT_PATH_PREFIX = `scripts/`;
 
 type ModuleGetterFn = (...args: unknown[]) => void;
 
@@ -82,7 +83,7 @@ export class ScriptLoader {
     @TODO this could just be cached and async, removing the need
     to pre-load all the modules
    */
-  public getModule(scriptAsset: IAssetData): Module {
+  public getModule(scriptAsset: IScriptAssetData): Module {
     if (scriptAsset.type !== AssetType.Script) {
       throw new Error(`Cannot get module for non-script file: ${scriptAsset}`);
     }
@@ -139,10 +140,11 @@ export class ScriptLoader {
    */
   private pathToModuleId(path: string): string {
     // Strip prefix (if present)
-    if (path.indexOf(SCRIPT_PATH_PREFIX) === 0) {
-      // Replace with relative import (./)
-      path = path.replace(SCRIPT_PATH_PREFIX, './');
-    } else throw new Error(`Unrecognised; path does not contain magic prefix: ${path}`);
+    // @TODO I don't even remember what this logic did (sorry)
+    // if (path.indexOf(SCRIPT_PATH_PREFIX) === 0) {
+    //   // Replace with relative import (./)
+    //   path = path.replace(SCRIPT_PATH_PREFIX, './');
+    // } else throw new Error(`Unrecognised; path does not contain magic prefix: ${path}`);
 
     // Strip file extension (if any)
     const extMatch = /(\.[^.]*)$/.exec(path);

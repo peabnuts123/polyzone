@@ -1,4 +1,4 @@
-import { AssetType } from "../../archive";
+import { AssetType } from "@polyzone/runtime/cartridge/archive";
 import { IMaterialAssetData } from "./MaterialAssetData";
 
 import { IMeshAssetData } from './MeshAssetData';

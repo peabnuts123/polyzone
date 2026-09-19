@@ -1,8 +1,9 @@
 {
   "name": "@polyzone/core",
-  "version": "0.1.0-3",
+  "version": "0.2.0-0",
   "description": "PolyZone core API",
   "author": "peabnuts123",
+  "license": "UNLICENSED",
   "keywords": [
     "gamedev",
     "game development",
@@ -23,28 +24,26 @@
   "main": "index.d.ts",
   "module": "index.d.ts",
   "scripts": {
-    "start": "nodemon --watch src --ext 'ts' --exec npm run build",
-    "build": "rm -rf dist && tsc --project tsconfig.build.json",
-    "simulate-ci": "npm run typecheck && npm run lint && npm run test && npm run build && echo 'Build succeeded'",
-    "publish": "npm run simulate-ci && node scripts/publish.js",
+    "start": "nodemon --watch src --ext 'ts' --exec npm run publish",
+    "build": "tsx scripts/build.ts",
+    "publish": "tsx scripts/publish.ts",
+    "publish:validate-version": "tsx scripts/validate-version.ts",
     "test": "vitest run",
     "test:watch": "npm run test -- --watch",
     "test:coverage": "npm run test -- --coverage && http-server coverage -p 8080",
-    "lint": "eslint --max-warnings 0 --no-error-on-unmatched-pattern \"*.{js,mjs,cjs,jsx,mjsx,ts,tsx,mtsx}\" \"src/**/*.{js,mjs,cjs,jsx,mjsx,ts,tsx,mtsx}\" \"test/**/*.{js,mjs,cjs,jsx,mjsx,ts,tsx,mtsx}\"",
-    "typecheck": "tsc --project tsconfig.json --noEmit"
+    "lint": "eslint --max-warnings 0 --no-error-on-unmatched-pattern",
+    "typecheck": "tsc --project tsconfig.json --noEmit",
+    "checkall": "npm run typecheck && npm run lint && npm run test && npm run build && echo 'Build succeeded'"
   },
   "devDependencies": {
     "@eslint/js": "^9.27.0",
-    "@vitest/coverage-v8": "^3.2.4",
+    "@lopoly/engine": "^0.1.0",
     "eslint": "^9.27.0",
     "globals": "^16.1.0",
     "http-server": "^14.1.1",
     "jsdom": "^26.1.0",
     "nodemon": "3.1.4",
     "typescript": "^5.8.3",
-    "typescript-eslint": "^8.32.1",
-    "vite-tsconfig-paths": "^5.1.4",
-    "vitest": "^3.2.4"
-  },
-  "license": "UNLICENSED"
+    "typescript-eslint": "^8.32.1"
+  }
 }

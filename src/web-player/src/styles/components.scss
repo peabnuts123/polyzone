@@ -35,11 +35,14 @@
   display: flex;
   justify-content: center;
   flex-grow: 1;
+  padding-bottom: $m
 }
 
 .canvas {
   object-fit: contain;
   image-rendering: pixelated;
+  touch-action: none;
+  user-select: none;
 }
 
 /* ===================== */

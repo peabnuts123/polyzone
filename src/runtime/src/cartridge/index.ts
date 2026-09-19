@@ -29,7 +29,7 @@ export async function readCartridgeArchive(cartridgeBytes: Uint8Array): Promise<
   const startTime = performance.now();
   const cartridgeData = await unzipAsync(cartridgeBytes);
   const endTime = performance.now();
-  console.log(`[Cartridge] (unzipAsync) Decompressed cartridge in ${endTime - startTime}ms`);
+  console.log(`[${Cartridge.name}] (${readCartridgeArchive.name}) Decompressed cartridge in ${Math.trunc(endTime - startTime)}ms (${Math.trunc(cartridgeBytes.length / 1024)}kb)`);
   return new CartridgeArchive(cartridgeData);
 }
 
@@ -41,7 +41,7 @@ export async function fetchCartridge(url: string): Promise<CartridgeArchive> {
   const response = await fetch(url);
   const responseBytes = await response.arrayBuffer();
   const cartridgeBytes = new Uint8Array(responseBytes);
-  console.log(`Got cartridge data: ${Math.round(cartridgeBytes.byteLength / 1024)}kb`);
+  console.log(`[${Cartridge.name}] (${fetchCartridge.name}) Fetched cartridge '${url}'`);
 
   return readCartridgeArchive(cartridgeBytes);
 }
@@ -52,7 +52,7 @@ export async function fetchCartridge(url: string): Promise<CartridgeArchive> {
  * @param cartridgeArchive {@link CartridgeArchive} file to load.
  */
 export function loadCartridge(cartridgeArchive: CartridgeArchive): Cartridge {
-  // @TODO validate DTO
+  // @TODO validate DTO with zod
   const cartridgeManifest = cartridgeArchive.manifest;
 
   const assetDb = new AssetDb(cartridgeManifest.assets, cartridgeArchive.fileSystem, createAssetData);

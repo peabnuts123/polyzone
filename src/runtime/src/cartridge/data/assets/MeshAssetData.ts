@@ -1,6 +1,4 @@
-import { Color3 } from "@polyzone/core/src";
-
-import { toColor3Core } from '@polyzone/runtime/src/util/color';
+import { Color3 } from "@polyzone/core/math/Color3";
 
 import { AssetType, MeshAssetDefinition, MeshAssetMaterialOverrideDefinition, MeshAssetMaterialOverrideReflection3x2Definition, MeshAssetMaterialOverrideReflection6x1Definition, MeshAssetMaterialOverrideReflectionBoxNetDefinition, MeshAssetMaterialOverrideReflectionDefinitionOfType, MeshAssetMaterialOverrideReflectionSeparateDefinition, MeshAssetMaterialOverrideReflectionType } from "../../archive/assets";
 import { BaseAssetData, IBaseAssetData } from "./BaseAssetData";
@@ -60,13 +58,13 @@ export class MeshAssetMaterialOverrideData implements IMeshAssetMaterialOverride
       self.material = assetDb.getById(definition.materialAssetId, AssetType.Material);
     }
     if (definition.diffuseColor) {
-      self.diffuseColor = toColor3Core(definition.diffuseColor);
+      self.diffuseColor = new Color3(definition.diffuseColor);
     }
     if (definition.diffuseTextureAssetId) {
       self.diffuseTexture = assetDb.getById(definition.diffuseTextureAssetId, AssetType.Texture);
     }
     if (definition.emissionColor) {
-      self.emissionColor = toColor3Core(definition.emissionColor);
+      self.emissionColor = new Color3(definition.emissionColor);
     }
     if (definition.reflection) {
       self.reflection = loadReflectionDefinition(definition.reflection, assetDb);

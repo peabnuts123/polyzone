@@ -1,4 +1,4 @@
-import type { MeshComponent } from '@polyzone/runtime/src/world/components'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import type { MeshComponent } from '@polyzone/runtime/objects/components'; // eslint-disable-line @typescript-eslint/no-unused-vars
 
 import type { IMeshAssetData } from '../assets';
 import { IComponentData } from './ComponentData';

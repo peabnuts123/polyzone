@@ -1,4 +1,4 @@
-import type { SceneDefinition } from '../../archive';
+import type { SceneDefinition } from '@polyzone/runtime/cartridge/archive';
 import { IAssetDb } from '../assets/AssetDb';
 import { loadObjectDefinition, SceneData } from './SceneData';
 

@@ -1,4 +1,4 @@
-import { AssetType, MeshSupplementaryAssetDefinition } from "../../archive/assets";
+import { AssetType, MeshSupplementaryAssetDefinition } from "@polyzone/runtime/cartridge/archive/assets";
 import { BaseAssetData, IBaseAssetData } from "./BaseAssetData";
 import { IAssetDb } from "./AssetDb";
 

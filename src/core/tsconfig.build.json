@@ -2,6 +2,7 @@
   "extends": "./tsconfig.json",
   "exclude": [
     "**/*.test.ts",
+    "scripts/",
     "eslint.config.mjs",
     "vitest.config.ts",
   ]

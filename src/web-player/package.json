@@ -12,19 +12,8 @@
     "typecheck": "tsc"
   },
   "devDependencies": {
-    "@eslint/js": "^9.27.0",
-    "eslint": "^9.27.0",
-    "globals": "^16.1.0",
-    "sass": "^1.74.1",
-    "typescript": "^5.8.3",
-    "typescript-eslint": "^8.32.1",
-    "vite": "^6.3.5"
+    "sass": "^1.74.1"
   },
   "author": "peabnuts123",
-  "license": "UNLICENSED",
-  "overrides": {
-    "vite": {
-      "esbuild": "0.21.4"
-    }
-  }
+  "license": "UNLICENSED"
 }

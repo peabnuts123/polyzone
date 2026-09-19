@@ -1,5 +1,5 @@
-import type { Color3 } from '@polyzone/core/src/util';
-import type { DirectionalLightComponent } from '@polyzone/runtime/src/world/components'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import type { Color3 } from '@polyzone/core/math/Color3';
+import type { DirectionalLightComponent } from '@polyzone/runtime/objects/components'; // eslint-disable-line @typescript-eslint/no-unused-vars
 import { IComponentData } from './ComponentData';
 
 export interface IDirectionalLightComponentData extends IComponentData {

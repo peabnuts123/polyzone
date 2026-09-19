@@ -1,4 +1,4 @@
-import { AssetType, SoundAssetDefinition } from "../../archive/assets";
+import { AssetType, SoundAssetDefinition } from "@polyzone/runtime/cartridge/archive/assets";
 import { BaseAssetData, IBaseAssetData } from "./BaseAssetData";
 import { IAssetDb } from "./AssetDb";
 
