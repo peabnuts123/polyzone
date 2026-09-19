@@ -1,6 +1,6 @@
 import { Color3 } from "@polyzone/core/math/Color3";
 
-import { AssetType, MeshAssetDefinition, MeshAssetMaterialOverrideDefinition, MeshAssetMaterialOverrideReflection3x2Definition, MeshAssetMaterialOverrideReflection6x1Definition, MeshAssetMaterialOverrideReflectionBoxNetDefinition, MeshAssetMaterialOverrideReflectionDefinitionOfType, MeshAssetMaterialOverrideReflectionSeparateDefinition, MeshAssetMaterialOverrideReflectionType } from "../../archive/assets";
+import { AssetType, MeshAssetDefinition, MeshAssetMaterialOverrideDefinition, MeshAssetMaterialOverrideReflectionBoxNetDefinition, MeshAssetMaterialOverrideReflectionDefinitionOfType, MeshAssetMaterialOverrideReflectionSeparateDefinition, MeshAssetMaterialOverrideReflectionType } from "../../archive/assets";
 import { BaseAssetData, IBaseAssetData } from "./BaseAssetData";
 import { IAssetDb } from "./AssetDb";
 import { ITextureAssetData } from "./TextureAssetData";
@@ -11,17 +11,6 @@ export interface MeshAssetMaterialOverrideReflectionBoxNetData {
   strength?: number;
   texture?: ITextureAssetData;
 }
-export interface MeshAssetMaterialOverrideReflection3x2Data {
-  type: '3x2',
-  strength?: number;
-  texture?: ITextureAssetData;
-}
-export interface MeshAssetMaterialOverrideReflection6x1Data {
-  type: '6x1',
-  strength?: number;
-  texture?: ITextureAssetData;
-}
-
 export interface MeshAssetMaterialOverrideReflectionSeparateData {
   type: 'separate',
   strength?: number;
@@ -33,7 +22,7 @@ export interface MeshAssetMaterialOverrideReflectionSeparateData {
   nzTexture?: ITextureAssetData;
 }
 
-export type MeshAssetMaterialOverrideReflectionData = MeshAssetMaterialOverrideReflectionBoxNetData | MeshAssetMaterialOverrideReflection3x2Data | MeshAssetMaterialOverrideReflection6x1Data | MeshAssetMaterialOverrideReflectionSeparateData;
+export type MeshAssetMaterialOverrideReflectionData = MeshAssetMaterialOverrideReflectionBoxNetData | MeshAssetMaterialOverrideReflectionSeparateData;
 export type MeshAssetMaterialOverrideReflectionDataOfType<T extends MeshAssetMaterialOverrideReflectionType> = Extract<MeshAssetMaterialOverrideReflectionData, { type: T }>;
 
 export interface IMeshAssetMaterialOverrideData {
@@ -123,22 +112,6 @@ export function loadReflectionDefinition<TReflectionType extends MeshAssetMateri
         strength: reflectionBoxNet.strength,
         texture: reflectionBoxNet.textureAssetId ? assetDb.getById(reflectionBoxNet.textureAssetId, AssetType.Texture) : undefined,
       } as MeshAssetMaterialOverrideReflectionBoxNetData as MeshAssetMaterialOverrideReflectionDataOfType<TReflectionType>;
-    }
-    case "3x2": {
-      const reflection3x2 = reflection as MeshAssetMaterialOverrideReflection3x2Definition;
-      return {
-        type: reflection3x2.type,
-        strength: reflection3x2.strength,
-        texture: reflection3x2.textureAssetId ? assetDb.getById(reflection3x2.textureAssetId, AssetType.Texture) : undefined,
-      } as MeshAssetMaterialOverrideReflection3x2Data as MeshAssetMaterialOverrideReflectionDataOfType<TReflectionType>;
-    }
-    case "6x1": {
-      const reflection6x1 = reflection as MeshAssetMaterialOverrideReflection6x1Definition;
-      return {
-        type: reflection6x1.type,
-        strength: reflection6x1.strength,
-        texture: reflection6x1.textureAssetId ? assetDb.getById(reflection6x1.textureAssetId, AssetType.Texture) : undefined,
-      } as MeshAssetMaterialOverrideReflection6x1Data as MeshAssetMaterialOverrideReflectionDataOfType<TReflectionType>;
     }
     case "separate": {
       const reflectionSeparate = reflection as MeshAssetMaterialOverrideReflectionSeparateDefinition;

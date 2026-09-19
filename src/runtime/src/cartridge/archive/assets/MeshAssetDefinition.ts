@@ -7,16 +7,6 @@ export interface MeshAssetMaterialOverrideReflectionBoxNetDefinition {
   strength?: number;
   textureAssetId?: string;
 }
-export interface MeshAssetMaterialOverrideReflection3x2Definition {
-  type: '3x2',
-  strength?: number;
-  textureAssetId?: string;
-}
-export interface MeshAssetMaterialOverrideReflection6x1Definition {
-  type: '6x1',
-  strength?: number;
-  textureAssetId?: string;
-}
 export interface MeshAssetMaterialOverrideReflectionSeparateDefinition {
   type: 'separate',
   strength?: number;
@@ -29,7 +19,7 @@ export interface MeshAssetMaterialOverrideReflectionSeparateDefinition {
 }
 
 export type MeshAssetMaterialOverrideReflectionType = MeshAssetMaterialOverrideReflectionDefinition['type'];
-export type MeshAssetMaterialOverrideReflectionDefinition = MeshAssetMaterialOverrideReflectionBoxNetDefinition | MeshAssetMaterialOverrideReflection3x2Definition | MeshAssetMaterialOverrideReflection6x1Definition | MeshAssetMaterialOverrideReflectionSeparateDefinition;
+export type MeshAssetMaterialOverrideReflectionDefinition = MeshAssetMaterialOverrideReflectionBoxNetDefinition | MeshAssetMaterialOverrideReflectionSeparateDefinition;
 export type MeshAssetMaterialOverrideReflectionDefinitionOfType<T extends MeshAssetMaterialOverrideReflectionType> = Extract<MeshAssetMaterialOverrideReflectionDefinition, { type: T }>;
 
 export interface MeshAssetMaterialOverrideDefinition {

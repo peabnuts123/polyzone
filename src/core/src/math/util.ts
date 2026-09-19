@@ -1,5 +1,7 @@
-export const Pi = Math.PI;
-export const Tau = Pi * 2;
+export * from '@lopoly/engine/math/util';
+
+// export const Pi = Math.PI;
+// export const Tau = Pi * 2;
 
 // @TODO REMOVE ANYTHING WE DON'T NEED
 // @TODO JUST EXPORT FROM LOPOLY? We have the dependency now anyway
@@ -40,13 +42,13 @@ export const Tau = Pi * 2;
 //   return (value - start) / (end - start);
 // }
 
-export function clamp(value: number, min: number, max: number): number {
-  return Math.min(Math.max(value, min), max);
-}
+// export function clamp(value: number, min: number, max: number): number {
+//   return Math.min(Math.max(value, min), max);
+// }
 
-export function clamp01(value: number): number {
-  return clamp(value, 0, 1);
-}
+// export function clamp01(value: number): number {
+//   return clamp(value, 0, 1);
+// }
 
 // export function sinDegrees(value: number): number {
 //   return Math.sin(value / 360 * Tau);

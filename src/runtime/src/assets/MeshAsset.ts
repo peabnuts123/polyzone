@@ -11,6 +11,7 @@ import { areUrisCanonicallyEquivalent } from "@polyzone/runtime/util/path";
 
 import { LoadedAssetBase } from './LoadedAssetBase';
 import type { AssetCacheContext } from './AssetCache';
+import { ReflectionLoading } from './TextureAsset';
 
 export class MeshAsset extends LoadedAssetBase<AssetType.Mesh> {
   public get type(): AssetType.Mesh { return AssetType.Mesh; }
@@ -72,9 +73,9 @@ export class MeshAsset extends LoadedAssetBase<AssetType.Mesh> {
           const material = await assetCache.loadAsset(materialOverrideData.material);
 
           materialOverrides.diffuseColor = material.diffuseColor?.toColor4();
-          // @TODO dependency on diffuse texture
           materialOverrides.diffuseTexture = material.diffuseTexture;
-          // @TODO Reflection + dependency
+          materialOverrides.reflectionCubemap = material.reflectionCubemap;
+          materialOverrides.reflectionIntensity = material.reflectionStrength;
         }
 
 
@@ -91,13 +92,18 @@ export class MeshAsset extends LoadedAssetBase<AssetType.Mesh> {
           materialOverrides.diffuseTexture = textureAsset.texture;
         }
 
-        // @TODO Reflection
-        // /* Reflection */
-        // if (materialOverrideData.reflection !== undefined) {
-        //   const reflection = await ReflectionLoading.load(materialOverrideData.reflection, assetCache, scene);
-        //   reflection?.textureAssetData.forEach((textureAssetData) => assetCache.registerDependency(assetData.id, textureAssetData.id));
-        //   newMaterial.overridesFromAsset.reflectionTexture = reflection?.texture;
-        // }
+        /* Reflection */
+        if (materialOverrideData.reflection !== undefined) {
+          const reflection = await ReflectionLoading.load(materialOverrideData.reflection, assetCache, engine);
+          if (reflection) {
+            materialOverrides.reflectionCubemap = reflection.cubemap;
+            materialOverrides.reflectionIntensity = reflection.strength;
+            reflection.textureAssetData.forEach((textureAssetData) => assetCache.registerDependency(assetData.id, textureAssetData.id));
+          }
+        }
+
+        // Apply overrides
+        model.setMaterialOverride(materialName, materialOverrides, 'override');
       }
     }
 

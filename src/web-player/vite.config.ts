@@ -10,6 +10,20 @@ export default defineConfig((env) => {
     esbuild: {
       target: "es2020",
     },
+    plugins: [
+      {
+        name: 'watch-pzcart',
+        configureServer(server) {
+          // Watch the public directory for changes to cartridges
+          server.watcher.add('public/*.pzcart');
+          server.watcher.on('change', (file) => {
+            if (file.includes('pzcart')) {
+              server.hot.send({ type: 'full-reload' });
+            }
+          });
+        },
+      },
+    ],
     server: {
       port: 1420,
     },

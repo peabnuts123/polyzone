@@ -1,12 +1,13 @@
 import { parse } from 'jsonc-parser';
 
-import { Texture } from '@lopoly/engine/textures';
+import { Cubemap, Texture } from '@lopoly/engine/textures';
 import { Color3 } from '@polyzone/core/math/Color3';
 import { AssetType, Color3Definition, MeshAssetMaterialOverrideReflectionDefinition } from '@polyzone/runtime/cartridge/archive';
 import { IAssetDb, IMaterialAssetData, ITextureAssetData, loadReflectionDefinition, MeshAssetMaterialOverrideReflectionData } from '@polyzone/runtime/cartridge/data';
 
 import { LoadedAssetBase } from './LoadedAssetBase';
 import type { AssetCacheContext } from './AssetCache';
+import { ReflectionLoading } from './TextureAsset';
 
 export class MaterialAsset extends LoadedAssetBase<AssetType.Material> {
   public get type(): AssetType.Material { return AssetType.Material; }
@@ -14,14 +15,15 @@ export class MaterialAsset extends LoadedAssetBase<AssetType.Material> {
   private _diffuseColor?: Color3;
   private _diffuseTexture?: Texture;
   private _emissionColor?: Color3;
-  // private _reflectionTexture?: CubeTextureBabylon; // @TODO
+  private _reflectionCubemap?: Cubemap;
+  private _reflectionStrength?: number;
 
   private constructor(id: string) {
     super(id);
   }
 
   public static async fromMaterialData(materialData: IMaterialData, assetData: IMaterialAssetData, context: AssetCacheContext): Promise<MaterialAsset> {
-    const { assetCache } = context;
+    const { engine, assetCache } = context;
 
     // Construct material asset
     const materialAsset = new MaterialAsset(assetData.id);
@@ -40,12 +42,14 @@ export class MaterialAsset extends LoadedAssetBase<AssetType.Material> {
     materialAsset._emissionColor = materialData.emissionColor;
 
     /* Reflection */
-    // @TODO bring back reflection
-    // if (materialData.reflection) {
-    //   const reflection = await ReflectionLoading.load(materialData.reflection, assetCache, scene);
-    //   materialAsset._reflectionTexture = reflection?.texture;
-    //   reflection?.textureAssetData.forEach((textureAssetData) => assetCache.registerDependency(assetData.id, textureAssetData.id));
-    // }
+    if (materialData.reflection) {
+      const reflection = await ReflectionLoading.load(materialData.reflection, assetCache, engine);
+      if (reflection) {
+        materialAsset._reflectionCubemap = reflection.cubemap;
+        materialAsset._reflectionStrength = reflection.strength;
+        reflection.textureAssetData.forEach((textureAssetData) => assetCache.registerDependency(assetData.id, textureAssetData.id));
+      }
+    }
 
     return materialAsset;
   }
@@ -63,7 +67,8 @@ export class MaterialAsset extends LoadedAssetBase<AssetType.Material> {
   public get diffuseColor(): Color3 | undefined { return this._diffuseColor; }
   public get diffuseTexture(): Texture | undefined { return this._diffuseTexture; }
   public get emissionColor(): Color3 | undefined { return this._emissionColor; }
-  // public get reflectionTexture(): CubeTextureBabylon | undefined { return this._reflectionTexture; }
+  public get reflectionCubemap(): Cubemap | undefined { return this._reflectionCubemap; }
+  public get reflectionStrength(): number | undefined { return this._reflectionStrength; }
 }
 
 export interface IMaterialData {

@@ -35,9 +35,9 @@
       "materialOverrides": {
         "yellow": {
           "reflection": {
-            "type": "3x2",
+            "type": "box-net",
             "strength": 0.6,
-            "textureAssetId": "d7644c9c-c573-4a7b-8152-8015f3ae1581"
+            "textureAssetId": "327f090a-ab45-4b9e-8612-006b86d76878"
           },
           "emissionColor": {
             "r": 135,
@@ -61,16 +61,16 @@
       "materialOverrides": {
         "wall_metal": {
           "reflection": {
-            "type": "3x2",
+            "type": "box-net",
             "strength": 0.1,
-            "textureAssetId": "d7644c9c-c573-4a7b-8152-8015f3ae1581"
+            "textureAssetId": "327f090a-ab45-4b9e-8612-006b86d76878"
           }
         },
         "roof": {
           "reflection": {
-            "type": "3x2",
+            "type": "box-net",
             "strength": 0.2,
-            "textureAssetId": "d7644c9c-c573-4a7b-8152-8015f3ae1581"
+            "textureAssetId": "327f090a-ab45-4b9e-8612-006b86d76878"
           }
         }
       },
@@ -89,16 +89,16 @@
       "materialOverrides": {
         "truck_alien": {
           "reflection": {
-            "type": "3x2",
+            "type": "box-net",
             "strength": 0.2,
-            "textureAssetId": "d7644c9c-c573-4a7b-8152-8015f3ae1581"
+            "textureAssetId": "327f090a-ab45-4b9e-8612-006b86d76878"
           }
         },
         "Material.001": {
           "reflection": {
-            "type": "3x2",
+            "type": "box-net",
             "strength": 0.1,
-            "textureAssetId": "d7644c9c-c573-4a7b-8152-8015f3ae1581"
+            "textureAssetId": "327f090a-ab45-4b9e-8612-006b86d76878"
           },
           "diffuseColor": {
             "r": 255,
@@ -254,7 +254,7 @@
     {
       "id": "58189dec-56a3-44db-b7a5-c8171abfb3aa",
       "path": "scripts/my-object.ts",
-      "hash": "80da466db4bd1e77",
+      "hash": "e9a33c10237e9f80",
       "type": "script",
     },
     {
@@ -279,63 +279,57 @@
       }
     },
     {
-      "id": "b39e2652-a840-4f26-9beb-0c031953031a",
-      "path": "textures/skyboxes/outdoor-concrete_3x2.png",
-      "hash": "684fc901d2199941",
+      "id": "1819915f-ec0a-4e43-a4b4-8df96cb6be6a",
+      "path": "textures/skyboxes/outdoor-concrete_box-net.png",
+      "hash": "3825465c08d1dee9",
       "type": "texture"
     },
     {
-      "id": "bc1d2659-bd6f-43e3-9386-87bbed7dedbe",
-      "path": "textures/skyboxes/outdoor-bridge_3x2.png",
-      "hash": "8b4acefbf8c20df",
+      "id": "a9fac2ee-0c41-4398-a534-9a476a61261a",
+      "path": "textures/skyboxes/outdoor-bridge_box-net.png",
+      "hash": "ac3b99bb6c9bb5c8",
       "type": "texture"
     },
     {
-      "id": "358536a2-3e92-47e2-b9a3-9016f54b40a4",
-      "path": "textures/skyboxes/indoor-chapel_3x2.png",
-      "hash": "cf0bf159c95ec0f2",
+      "id": "64491d9f-a0e4-4eb3-a9bf-c7f90a2264e3",
+      "path": "textures/skyboxes/indoor-chapel_box-net.png",
+      "hash": "c9b6365dcdd3b46d",
       "type": "texture"
     },
     {
-      "id": "d7644c9c-c573-4a7b-8152-8015f3ae1581",
-      "path": "textures/skyboxes/outdoor-twilight_3x2.png",
-      "hash": "d5845999877c95fe",
+      "id": "327f090a-ab45-4b9e-8612-006b86d76878",
+      "path": "textures/skyboxes/outdoor-twilight_box-net.png",
+      "hash": "8adfcd7f451d1774",
       "type": "texture"
     },
     {
-      "id": "ac07ded2-de12-4dab-a049-70a5bb7b6dbd",
-      "path": "textures/skyboxes/indoor-basilica_3x2.png",
-      "hash": "ac4bc6a72eb9c308",
+      "id": "cb706bdc-ad6b-4f8e-83ca-22e9d64d5efa",
+      "path": "textures/skyboxes/indoor-basilica_box-net.png",
+      "hash": "e36486bc6137fac6",
       "type": "texture"
     },
     {
-      "id": "2fe0a95a-e9de-4a17-b4b5-b7237fd90f58",
-      "path": "textures/skyboxes/outdoor-grassy_3x2.png",
-      "hash": "3566283894d9d934",
+      "id": "3f018446-14e3-4c3c-9912-52f075fdb325",
+      "path": "textures/skyboxes/outdoor-grassy_box-net.png",
+      "hash": "ee121485836467f2",
       "type": "texture"
     },
     {
-      "id": "1367d8a5-6162-484d-9081-aa86e4f3186d",
-      "path": "textures/skyboxes/outdoor-night_3x2.png",
-      "hash": "3ebaf47ab938cb2d",
+      "id": "05893118-c7ba-45c1-a7a9-37f661748fdb",
+      "path": "textures/skyboxes/outdoor-night_box-net.png",
+      "hash": "77bc8981c5a5ca",
       "type": "texture"
     },
     {
-      "id": "f0253831-c6d7-4762-b965-62add67c5267",
-      "path": "textures/skyboxes/debug_3x2.png",
-      "hash": "4d59a9d819166ad8",
-      "type": "texture"
-    },
-    {
-      "id": "173f55a1-7727-4868-bc9a-52762dc6744a",
-      "path": "textures/skyboxes/sample/6x1.png",
-      "hash": "683b70c28334b037",
+      "id": "0c4e2465-5d8f-4f3b-bf65-0afa377e2033",
+      "path": "textures/skyboxes/debug_box-net.png",
+      "hash": "42479c771f9e8e0d",
       "type": "texture"
     },
     {
       "id": "21fb5402-9506-401a-b722-40802ca0e0a9",
       "path": "textures/skyboxes/sample/box-net.png",
-      "hash": "a638549967977eca",
+      "hash": "77bc8981c5a5ca",
       "type": "texture"
     },
     {
@@ -451,9 +445,9 @@
       "materialOverrides": {
         "car": {
           "reflection": {
-            "type": "3x2",
+            "type": "box-net",
             "strength": 0.2,
-            "textureAssetId": "1367d8a5-6162-484d-9081-aa86e4f3186d"
+            "textureAssetId": "21fb5402-9506-401a-b722-40802ca0e0a9"
           },
           "diffuseTextureAssetId": "60e63799-8259-48e7-872c-a6523823160f"
         },
@@ -464,9 +458,9 @@
             "b": 255
           },
           "reflection": {
-            "type": "3x2",
+            "type": "box-net",
             "strength": 0.6,
-            "textureAssetId": "1367d8a5-6162-484d-9081-aa86e4f3186d"
+            "textureAssetId": "21fb5402-9506-401a-b722-40802ca0e0a9"
           }
         },
         "taillights": {
@@ -476,9 +470,9 @@
             "b": 255
           },
           "reflection": {
-            "type": "3x2",
+            "type": "box-net",
             "strength": 0.6,
-            "textureAssetId": "1367d8a5-6162-484d-9081-aa86e4f3186d"
+            "textureAssetId": "21fb5402-9506-401a-b722-40802ca0e0a9"
           }
         }
       }
@@ -528,12 +522,6 @@
       "hash": "ee60f6dd5246a2d1",
       "type": "texture"
     },
-    {
-      "id": "9b5f7188-ab1e-4afd-b6b2-e4ff9bd80df0",
-      "path": "textures/skyboxes/sample/3x2.png",
-      "hash": "3ebaf47ab938cb2d",
-      "type": "texture"
-    }
   ],
   "scenes": [
     /* How do you change scenes? By file name? What about file suffix? */
