@@ -2,6 +2,8 @@ import { Model } from '@lopoly/engine/models';
 import { GltfLoader } from '@lopoly/engine/loaders/GltfLoader';
 import { ObjLoader } from '@lopoly/engine/loaders/ObjLoader';
 import { ModelDefinition } from '@lopoly/engine/loaders/definitions';
+import { getAllMaterialNamesForModelDefinition } from '@lopoly/engine/util';
+import { Material } from '@lopoly/engine';
 
 import { AssetType } from '@polyzone/runtime/cartridge/archive';
 import { IMeshAssetData } from '@polyzone/runtime/cartridge/data';
@@ -49,28 +51,55 @@ export class MeshAsset extends LoadedAssetBase<AssetType.Mesh> {
       });
 
       if (textureAsset === undefined) {
-        console.error(`[MeshAsset] (fromAssetData) Mesh has reference to non-tracked asset: '${textureDependency.path}'`);
+        console.error(`[${MeshAsset.name}] (${this.fromAssetData.name}) Mesh has reference to non-tracked asset: '${textureDependency.path}'`);
       } else {
         // @TODO store loaded texture asset in asset cache (in case anybody else wants it)
         assetCache.registerDependency(assetData.id, textureAsset.id);
       }
     }
 
-    // @TODO Consider stripping out unsupported material features from model definition
-    // e.g. restrict materials to only PolyZone concepts e.g. diffuse color, diffuse texture, etc.
-
     const model = await Model.fromDefinition(engine, definition);
 
-    /*
-      @TODO Apply material overrides
-        - For each material in the definition
-        - Read `assetData.getOverridesForMaterial(material.name)`
-          - Apply overrides from base material asset
-          - Apply diffuse color override
-          - Apply diffuse texture override
-          - Apply emission color override
-          - Apply reflection override
-     */
+    const materialNames = getAllMaterialNamesForModelDefinition(definition);
+    for (const materialName of materialNames) {
+      const materialOverrideData = assetData.getOverridesForMaterial(materialName);
+      if (materialOverrideData !== undefined) {
+        const materialOverrides = new Material();
+
+        // BASE MATERIAL OVERRIDES
+        if (materialOverrideData.material !== undefined) {
+          assetCache.registerDependency(assetData.id, materialOverrideData.material.id);
+          const material = await assetCache.loadAsset(materialOverrideData.material);
+
+          materialOverrides.diffuseColor = material.diffuseColor?.toColor4();
+          // @TODO dependency on diffuse texture
+          materialOverrides.diffuseTexture = material.diffuseTexture;
+          // @TODO Reflection + dependency
+        }
+
+
+        // ASSET-SPECIFIC OVERRIDES
+        /* Diffuse color */
+        if (materialOverrideData.diffuseColor !== undefined) {
+          materialOverrides.diffuseColor = materialOverrideData.diffuseColor.toColor4();
+        }
+
+        /* Diffuse texture */
+        if (materialOverrideData.diffuseTexture !== undefined) {
+          assetCache.registerDependency(assetData.id, materialOverrideData.diffuseTexture.id);
+          const textureAsset = await assetCache.loadAsset(materialOverrideData.diffuseTexture);
+          materialOverrides.diffuseTexture = textureAsset.texture;
+        }
+
+        // @TODO Reflection
+        // /* Reflection */
+        // if (materialOverrideData.reflection !== undefined) {
+        //   const reflection = await ReflectionLoading.load(materialOverrideData.reflection, assetCache, scene);
+        //   reflection?.textureAssetData.forEach((textureAssetData) => assetCache.registerDependency(assetData.id, textureAssetData.id));
+        //   newMaterial.overridesFromAsset.reflectionTexture = reflection?.texture;
+        // }
+      }
+    }
 
     return new MeshAsset(assetData.id, model);
   }

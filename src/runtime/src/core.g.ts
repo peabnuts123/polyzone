@@ -10,7 +10,6 @@
 import * as Context from '@polyzone/core/Context';
 import * as IEngine from '@polyzone/core/IEngine';
 import * as Core from '@polyzone/core';
-import * as UtilMath from '@polyzone/core/util/math';
 import * as UtilTypes from '@polyzone/core/util/types';
 import * as TransformRotation from '@polyzone/core/transform/Rotation';
 import * as Transform from '@polyzone/core/transform';
@@ -59,10 +58,6 @@ export const CoreModules: CoreModuleDefinition[] = [
   {
     name: '@polyzone/core',
     module: Core,
-  },
-  {
-    name: '@polyzone/core/util/math',
-    module: UtilMath,
   },
   {
     name: '@polyzone/core/util/types',

@@ -10,16 +10,6 @@ export default defineConfig((env) => {
     esbuild: {
       target: "es2020",
     },
-    plugins: [
-      {
-        name: 'inline-shaders',
-        transform(code, id) {
-          if (/\.fx$/.test(id)) {
-            return `export default ${JSON.stringify(code)}`;
-          }
-        },
-      },
-    ],
     server: {
       port: 1420,
     },

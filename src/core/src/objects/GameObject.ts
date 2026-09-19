@@ -1,4 +1,3 @@
-import type { GameObjectComponent } from "./GameObjectComponent";
 import { Rotation } from '@polyzone/core/transform';
 import type { Vector3 } from "@polyzone/core/math";
 import { Scene } from "../scene/Scene";
