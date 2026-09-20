@@ -2,7 +2,6 @@ import { Unzipped } from "fflate";
 import { IFileSystem, VirtualFile } from "@lopoly/engine/filesystem";
 
 
-// @TODO What is the value of this thing? Is it the right abstraction?
 export class CartridgeFileSystem implements IFileSystem {
   private readonly cartridgeData: Unzipped;
 

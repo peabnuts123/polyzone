@@ -1,9 +1,9 @@
 import { fetchCartridge, loadCartridge, readCartridgeArchive } from "./cartridge";
-import { CartridgeArchive } from "./cartridge/archive";
 import { Game } from "./Game";
 import { Engine } from "@lopoly/engine";
 import { Context } from "@polyzone/core/Context";
 import { Input } from "./input";
+import { CartridgeFileSystem } from "./filesystem";
 
 export type OnUpdateCallback = (dt: number, time: number) => void;
 
@@ -34,18 +34,18 @@ export class Runtime {
     const timerStart = performance.now();
 
     // Fetch and read cartridge archive raw data
-    let cartridgeArchive: CartridgeArchive;
+    let cartridgeFileSystem: CartridgeFileSystem;
     if (source instanceof Uint8Array) {
-      cartridgeArchive = await readCartridgeArchive(source);
+      cartridgeFileSystem = await readCartridgeArchive(source);
     } else {
-      cartridgeArchive = await fetchCartridge(source);
+      cartridgeFileSystem = await fetchCartridge(source);
     }
 
     // Parse cartridge archive
-    const cartridge = loadCartridge(cartridgeArchive);
+    const cartridge = loadCartridge(cartridgeFileSystem);
     console.log(`[${Runtime.name}] (${this.loadCartridge.name}) Loaded cartridge in ${Math.trunc(performance.now() - timerStart)}ms: ${cartridge.assetDb.assets.length} assets, ${cartridge.sceneDb.allScenes.length} scenes.`);
 
-    const engine = new Engine(this.canvas, cartridgeArchive.fileSystem);
+    const engine = new Engine(this.canvas, cartridgeFileSystem);
 
     Input.configureDefaultBindings(engine.inputSystem);
 

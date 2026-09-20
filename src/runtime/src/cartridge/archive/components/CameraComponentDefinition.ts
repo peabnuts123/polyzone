@@ -1,14 +1,10 @@
 import type { CameraComponentData } from '@polyzone/runtime/cartridge/data'; // eslint-disable-line @typescript-eslint/no-unused-vars
 
-import type { CartridgeArchive } from '../CartridgeArchive'; // eslint-disable-line @typescript-eslint/no-unused-vars
-
 import { ComponentDefinitionBase } from "./ComponentDefinition";
 import { ComponentDefinitionType } from "./ComponentDefinitionType";
 
-
 /**
- * Raw camera component data within the {@link CartridgeArchive}.
- * i.e. The raw data in the archive before being loaded by the engine into a {@link CameraComponentData}.
+ * Raw data from the cartridge archive before being loaded by the engine into a {@link CameraComponentData}.
  */
 export interface CameraComponentDefinition extends ComponentDefinitionBase {
   type: ComponentDefinitionType.Camera;

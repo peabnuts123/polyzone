@@ -1,5 +1,4 @@
 import type { DirectionalLightComponentData } from '@polyzone/runtime/cartridge/data'; // eslint-disable-line @typescript-eslint/no-unused-vars
-import type { CartridgeArchive } from '../CartridgeArchive'; // eslint-disable-line @typescript-eslint/no-unused-vars
 import { Color3Definition } from "../util";
 
 import { ComponentDefinitionBase } from "./ComponentDefinition";
@@ -7,8 +6,7 @@ import { ComponentDefinitionType } from "./ComponentDefinitionType";
 
 
 /**
- * Raw directional light component data within the {@link CartridgeArchive}.
- * i.e. The raw data in the archive before being loaded by the engine into a {@link DirectionalLightComponentData}.
+ * Raw data from the cartridge archive before being loaded by the engine into a {@link DirectionalLightComponentData}.
  */
 export interface DirectionalLightComponentDefinition extends ComponentDefinitionBase {
   type: ComponentDefinitionType.DirectionalLight;
