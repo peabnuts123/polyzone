@@ -6,6 +6,11 @@ export default defineConfig({
   },
   test: {
     environment: 'jsdom',
+    server: {
+      deps: {
+        inline: ['@lopoly/engine'],
+      },
+    },
     expect: {
       requireAssertions: true,
     },

@@ -17,6 +17,7 @@ const ImportAliasRoot = '@polyzone/core';
 const modules = (await readdir(CoreSrcDir, { recursive: true }))
   .filter((file) =>
     path.extname(file) === '.ts' &&         // .ts files (@TODO case insensitive I guess)
+    !file.startsWith('test/') &&    // @TODO remove - tmp "test" files laying around in core at the moment. They need to be moved out.
     !file.endsWith('.test.ts'),             // Ignore test files
   )
   .map((file) => {

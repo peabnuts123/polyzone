@@ -73,7 +73,7 @@ export class Game {
     this.currentScene = scene;
   }
 
-  private onUpdate(dt: number, time: number, stop: () => void): void {
+  private onUpdate(dt: number, time: number, _stop: () => void): void {
     if (this.currentScene !== undefined) {
       this.currentScene.onUpdate(dt, time);
     }

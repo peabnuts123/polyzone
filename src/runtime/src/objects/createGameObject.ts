@@ -17,7 +17,7 @@ import {
   PointLightComponent,
   GameObjectComponent,
 } from './components';
-import { GameObject, GameObjectNode } from "./GameObject";
+import { GameObject } from "./GameObject";
 import { ScriptComponent } from "./components/ScriptComponent";
 
 export type CreateGameObjectComponentFn = (

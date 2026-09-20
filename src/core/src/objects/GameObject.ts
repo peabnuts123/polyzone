@@ -1,5 +1,5 @@
-import { Rotation } from '@polyzone/core/transform';
-import type { Vector3 } from "@polyzone/core/math";
+// @TODO `Rotation` should be throwing a lint / ts error because it is only used as a type
+import { type Vector3, Rotation } from "@polyzone/core/math";
 import { Scene } from "../scene/Scene";
 
 /**

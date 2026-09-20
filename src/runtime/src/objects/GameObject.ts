@@ -1,7 +1,6 @@
 import { IScene, ObjectNode, SceneNode } from '@lopoly/engine/scene';
 import { GameObject as GameObjectCore } from '@polyzone/core/objects/GameObject';
-import { Vector3 } from '@polyzone/core/math';
-import { Rotation } from '@polyzone/core/transform';
+import { Vector3, Rotation } from '@polyzone/core/math';
 import { Scene } from '@polyzone/runtime/scene';
 import { GameObjectComponent } from './components';
 
@@ -119,13 +118,6 @@ export class GameObject extends GameObjectCore {
   // }
 
   // @TODO lift into core?
-  // /**
-  //  * Find a GameObject in this GameObject's children.
-  //  * @param gameObjectId ID of the GameObject to find.
-  //  */
-  // public findGameObjectInChildren(gameObjectId: string): GameObject | undefined {
-  //   return this.selfNode.findChildGameObject((childGameObject) => childGameObject.id === gameObjectId, true);
-  // }
 
   public forEachChild(fn: (child: GameObject) => void, recursive: boolean = false): void {
     this.sceneNode.forEachChildGameObject(fn, recursive);

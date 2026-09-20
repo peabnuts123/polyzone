@@ -10,6 +10,11 @@ const WARNING = 'warn';
 const ERROR = 'error';
 
 export default tseslint.config(
+  {
+    ignores: [
+      'dist/**/*',
+    ],
+  },
   eslint.configs.recommended,
   tseslint.configs.recommendedTypeChecked,
   {
@@ -19,9 +24,6 @@ export default tseslint.config(
         tsconfigRootDir: import.meta.dirname,
       },
     },
-    ignores: [
-      'dist/**/*',
-    ],
     rules: {
       // Rules that are explicitly disabled
       '@typescript-eslint/no-explicit-any': DISABLED, // Too restrictive, you need `any` in certain situations

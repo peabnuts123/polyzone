@@ -6,7 +6,8 @@ import { Plugin } from 'vitest/config';
   And then the idea is that all of this would live in like a PolyZone testing development package
  */
 
-const SetupFilePath = 'setup.js';
+// @TODO
+// const SetupFilePath = 'setup.js';
 
 // @TODO A good name
 export function polyzone(): Plugin {

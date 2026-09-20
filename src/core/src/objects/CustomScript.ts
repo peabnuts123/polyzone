@@ -28,6 +28,10 @@ export abstract class CustomScript {
   }
 
   public init(): void { }
-  public onUpdate(deltaTime: number, time: number): void { void deltaTime; }
+  public onUpdate(deltaTime: number, time: number): void {
+    // @NOTE Suppressing linter / tsc
+    void deltaTime;
+    void time;
+  }
   public onDestroy(): void { }
 }

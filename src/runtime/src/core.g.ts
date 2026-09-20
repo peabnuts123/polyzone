@@ -11,12 +11,6 @@ import * as Context from '@polyzone/core/Context';
 import * as IEngine from '@polyzone/core/IEngine';
 import * as Core from '@polyzone/core';
 import * as UtilTypes from '@polyzone/core/util/types';
-import * as TransformRotation from '@polyzone/core/transform/Rotation';
-import * as Transform from '@polyzone/core/transform';
-import * as TestMockEngine from '@polyzone/core/test/MockEngine';
-import * as Test from '@polyzone/core/test';
-import * as TestVitestPlugin from '@polyzone/core/test/vitest/plugin';
-import * as TestVitestSetup from '@polyzone/core/test/vitest/setup';
 import * as SceneScene from '@polyzone/core/scene/Scene';
 import * as SceneSceneQuery from '@polyzone/core/scene/SceneQuery';
 import * as Scene from '@polyzone/core/scene';
@@ -32,6 +26,7 @@ import * as ObjectsComponentsScriptComponent from '@polyzone/core/objects/compon
 import * as ObjectsComponents from '@polyzone/core/objects/components';
 import * as MathColor3 from '@polyzone/core/math/Color3';
 import * as MathColor4 from '@polyzone/core/math/Color4';
+import * as MathRotation from '@polyzone/core/math/Rotation';
 import * as MathVector2 from '@polyzone/core/math/Vector2';
 import * as MathVector3 from '@polyzone/core/math/Vector3';
 import * as Math from '@polyzone/core/math';
@@ -62,30 +57,6 @@ export const CoreModules: CoreModuleDefinition[] = [
   {
     name: '@polyzone/core/util/types',
     module: UtilTypes,
-  },
-  {
-    name: '@polyzone/core/transform/Rotation',
-    module: TransformRotation,
-  },
-  {
-    name: '@polyzone/core/transform',
-    module: Transform,
-  },
-  {
-    name: '@polyzone/core/test/MockEngine',
-    module: TestMockEngine,
-  },
-  {
-    name: '@polyzone/core/test',
-    module: Test,
-  },
-  {
-    name: '@polyzone/core/test/vitest/plugin',
-    module: TestVitestPlugin,
-  },
-  {
-    name: '@polyzone/core/test/vitest/setup',
-    module: TestVitestSetup,
   },
   {
     name: '@polyzone/core/scene/Scene',
@@ -146,6 +117,10 @@ export const CoreModules: CoreModuleDefinition[] = [
   {
     name: '@polyzone/core/math/Color4',
     module: MathColor4,
+  },
+  {
+    name: '@polyzone/core/math/Rotation',
+    module: MathRotation,
   },
   {
     name: '@polyzone/core/math/Vector2',

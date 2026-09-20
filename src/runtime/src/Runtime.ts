@@ -7,7 +7,6 @@ import { Input } from "./input";
 
 export type OnUpdateCallback = (dt: number, time: number) => void;
 
-// @TODO move into `Runtime.ts`
 export class Runtime {
   private canvas: HTMLCanvasElement;
   private onUpdateHooks: OnUpdateCallback[];
@@ -53,7 +52,7 @@ export class Runtime {
     this.game = new Game(cartridge, engine);
 
     Context.bindEngine({
-      consumeFrameBudget(budget) {
+      consumeFrameBudget(_budget) {
         // @TODO - Feel like this should be owned by some kind of 'Constraints' module or something
         // console.log(`[DEBUG] (consumeFrameBudget) Consumed budget: ${budget}`);
       },
