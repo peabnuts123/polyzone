@@ -18,9 +18,6 @@ async function main(): Promise<void> {
     framesDrawn++;
   });
   setInterval(() => {
-    if (framesDrawn > 0) {
-      console.log(`Frames drawn: ${framesDrawn}`);
-    }
     fpsCounter.innerText = `${framesDrawn}fps`;
     framesDrawn = 0;
   }, 1000);

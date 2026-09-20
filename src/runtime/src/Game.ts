@@ -5,6 +5,7 @@ import { ScriptLoader } from "./ScriptLoader";
 import { AssetType } from "./cartridge/archive/assets";
 import { SceneData } from "./cartridge/data/scenes";
 import { Scene } from "./scene";
+import { OnUpdateCallback } from "./Runtime";
 
 export class Game {
   // References
@@ -23,7 +24,7 @@ export class Game {
     this.scriptLoader = new ScriptLoader();
   }
 
-  public async boot(): Promise<void> {
+  public async boot(onUpdate?: OnUpdateCallback): Promise<void> {
     // Load all scripts from the cartridge
     // We do this proactively because scripts can depend on other scripts
     // which need to be injected when they are requested
@@ -43,7 +44,7 @@ export class Game {
 
     this.engine.run((dt, time, stop) => {
       this.onUpdate(dt, time, stop);
-      // @TODO Callbacks
+      onUpdate?.(dt, time);
     });
   }
 
