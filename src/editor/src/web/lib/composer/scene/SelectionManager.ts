@@ -413,15 +413,19 @@ export class MoveGizmoNode extends ModelNode {
     this.enabled = false;
   }
 
-  private tmp_onUpdateDeltaCamera: Vector3 = Vector3.zero();
   public override onUpdate(): void {
     if (this.scene.activeCamera) {
-      // Maintain gizmo constant screen size
-      const distanceToCamera = this.tmp_onUpdateDeltaCamera.setValue(this.scene.activeCamera.absolutePosition)
-        .subtractSelf(this.absolutePosition)
-        .length();
+      // Calculate camera position in local coordinates
+      const worldToLocal = this.parent.worldMatrix.invert();
+      const cameraPositionLocal = worldToLocal.transformPoint(this.scene.activeCamera.absolutePosition);
+      const distanceToCamera = cameraPositionLocal.length();
+      // Maintain gizmo constant screen size + flip gizmo to face camera
       const scale = distanceToCamera / MoveGizmoNode.FullSizeDistance;
-      this.scale.setValue(scale, scale, scale);
+      this.scale.setValue(
+        scale * Math.sign(cameraPositionLocal.x),
+        scale * Math.sign(cameraPositionLocal.y),
+        scale * Math.sign(cameraPositionLocal.z),
+      );
 
       // // @DEBUG Draw colliders
       // for (const colliderType of Object.keys(this.colliders) as GizmoColliderType[]) {
