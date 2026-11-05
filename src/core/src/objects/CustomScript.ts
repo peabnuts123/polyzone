@@ -5,14 +5,12 @@ import { GameObject } from "./GameObject";
 export interface CustomScriptArgs {
   id: string;
   gameObject: GameObject;
-  scene: Scene;
   input: Input;
 }
 
 export abstract class CustomScript {
   public readonly id: string;
   public readonly gameObject: GameObject;
-  public readonly scene: Scene;
   protected readonly input: Input;
 
   /**
@@ -20,10 +18,9 @@ export abstract class CustomScript {
    * @NOTE Marked as internal since constructor is called before scene is initialised
    * which leads to spooky action.
    */
-  public constructor({ id, gameObject, scene, input }: CustomScriptArgs) {
+  public constructor({ id, gameObject, input }: CustomScriptArgs) {
     this.id = id;
     this.gameObject = gameObject;
-    this.scene = scene;
     this.input = input;
   }
 
@@ -34,4 +31,6 @@ export abstract class CustomScript {
     void time;
   }
   public onDestroy(): void { }
+
+  protected scene(): Scene { return this.gameObject.scene; }
 }

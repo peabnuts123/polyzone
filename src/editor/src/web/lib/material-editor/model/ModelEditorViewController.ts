@@ -1,24 +1,26 @@
+/* eslint-disable */
+
 import { makeAutoObservable, runInAction } from 'mobx';
 import { v4 as uuid } from 'uuid';
-import { Engine } from '@babylonjs/core/Engines/engine';
-import { Scene as BabylonScene } from '@babylonjs/core/scene';
-import { Vector3 as Vector3Babylon } from '@babylonjs/core/Maths/math.vector';
-import { ArcRotateCamera } from '@babylonjs/core/Cameras/arcRotateCamera';
-import { HemisphericLight as HemisphericLightBabylon } from '@babylonjs/core/Lights/hemisphericLight';
-import { DirectionalLight as DirectionalLightBabylon } from '@babylonjs/core/Lights/directionalLight';
-import { Color3 as Color3Babylon } from '@babylonjs/core/Maths/math.color';
-import { FreeCamera } from '@babylonjs/core/Cameras/freeCamera';
-import { TargetCamera } from '@babylonjs/core/Cameras/targetCamera';
-import "@babylonjs/loaders/OBJ/objFileLoader";
-import "@babylonjs/loaders/glTF";
+// import { Engine } from '@babylonjs/core/Engines/engine';
+// import { Scene as BabylonScene } from '@babylonjs/core/scene';
+// import { Vector3 as Vector3Babylon } from '@babylonjs/core/Maths/math.vector';
+// import { ArcRotateCamera } from '@babylonjs/core/Cameras/arcRotateCamera';
+// import { HemisphericLight as HemisphericLightBabylon } from '@babylonjs/core/Lights/hemisphericLight';
+// import { DirectionalLight as DirectionalLightBabylon } from '@babylonjs/core/Lights/directionalLight';
+// import { Color3 as Color3Babylon } from '@babylonjs/core/Maths/math.color';
+// import { FreeCamera } from '@babylonjs/core/Cameras/freeCamera';
+// import { TargetCamera } from '@babylonjs/core/Cameras/targetCamera';
+// import "@babylonjs/loaders/OBJ/objFileLoader";
+// import "@babylonjs/loaders/glTF";
 
-import { Vector3 } from '@polyzone/core/src/util/Vector3';
-import { AssetType } from '@polyzone/runtime/src/cartridge';
-import { GameObject, Transform } from '@polyzone/runtime/src/world';
-import { RetroMaterial } from '@polyzone/runtime/src/materials/RetroMaterial';
+// import { Vector3 } from '@polyzone/core/src/util/Vector3';
+import { AssetType } from '@polyzone/runtime/cartridge';
+// import { GameObject } from '@polyzone/runtime/src/world';
+// import { RetroMaterial } from '@polyzone/runtime/src/materials/RetroMaterial';
 import {
   GameObject as GameObjectRuntime,
-} from '@polyzone/runtime/src/world';
+} from '@polyzone/runtime/objects';
 
 import type { IProjectController } from '@lib/project/ProjectController';
 import { GameObjectData, MeshAssetData, MeshComponentData, TransformData } from '@lib/project/data';

@@ -2,7 +2,7 @@ import { runInAction } from "mobx";
 import { UnwatchFn } from "@tauri-apps/plugin-fs";
 import { listen } from "@tauri-apps/api/event";
 
-import { AssetType } from "@polyzone/runtime/src/cartridge";
+import { AssetType } from "@polyzone/runtime/cartridge";
 
 import { TauriEvents } from "@lib/util/TauriEvents";
 import { resolvePath } from "@lib/util/JsoncContainer";
@@ -10,6 +10,7 @@ import { AssetDefinition, ProjectDefinition } from "../definition";
 import type { IProjectController } from "../ProjectController";
 import { AssetData } from "../data/AssetData";
 import { createAssetData } from "../data/AssetDb";
+import { AnyViewController } from "@lib/common/ViewController";
 
 
 // EVENTS - INCOMING
@@ -64,20 +65,36 @@ export interface ProjectAssetCreatedEvent {
 export interface ProjectAssetDeletedEvent {
   type: ProjectAssetEventType.Delete;
   asset: AssetData;
-  /** Direct and transitive dependents of the asset related to this event */
-  assetDependents: string[];
-  /** Direct and transitive dependencies of the asset related to this event */
-  assetDependencies: string[];
+  /**
+   * Get direct and transitive dependents of the asset related to this event
+   * for a given view controller.
+   * @param viewController ViewController to look up assets for.
+   */
+  getAssetDependents: (viewController: AnyViewController) => string[];
+  /**
+   * Get direct and transitive dependencies of the asset related to this event
+   * for a given view controller.
+   * @param viewController ViewController to look up assets for.
+   */
+  getAssetDependencies: (viewController: AnyViewController) => string[];
 }
 /** Frontend event that an asset has been modified. */
 export interface ProjectAssetModifiedEvent {
   type: ProjectAssetEventType.Modify;
   asset: AssetData;
   oldHash: string;
-  /** Direct and transitive dependents of the asset related to this event */
-  assetDependents: string[];
-  /** Direct and transitive dependencies of the asset related to this event */
-  assetDependencies: string[];
+  /**
+   * Get direct and transitive dependents of the asset related to this event
+   * for a given view controller.
+   * @param viewController ViewController to look up assets for.
+   */
+  getAssetDependents: (viewController: AnyViewController) => string[];
+  /**
+   * Get direct and transitive dependencies of the asset related to this event
+   * for a given view controller.
+   * @param viewController ViewController to look up assets for.
+   */
+  getAssetDependencies: (viewController: AnyViewController) => string[];
 }
 /** Frontend event that an asset has been renamed. */
 export interface ProjectAssetRenamedEvent {
@@ -166,10 +183,7 @@ export class ProjectAssetsWatcher {
       hash,
       type,
     };
-    const newAsset = createAssetData(
-      newAssetDefinition,
-      assetDb.fileSystem,
-    );
+    const newAsset = createAssetData(newAssetDefinition);
     assetDb.add(newAsset);
 
     // 2. Update JSON
@@ -199,18 +213,18 @@ export class ProjectAssetsWatcher {
     const jsonPath = resolvePath((project: ProjectDefinition) => project.assets[jsonIndex]);
     this.projectController.projectJson.delete(jsonPath);
 
-    // Look up dependencies
-    const assetDependencies = this.projectController.assetCache.getAssetDependencies(assetId);
-    const assetDependents = this.projectController.assetCache.getAssetDependents(assetId);
-
-    // Invalidate asset (and dependents) in asset cache
-    this.projectController.assetCache.delete(assetId);
+    // Invalidate asset (and dependents) in all asset caches
+    this.projectController.viewControllers.forEach((viewController) => viewController.assetCache.delete(assetId));
 
     return {
       type: ProjectAssetEventType.Delete,
       asset,
-      assetDependencies,
-      assetDependents,
+      getAssetDependencies: (viewController) => {
+        return viewController.assetCache.getAssetDependencies(assetId);
+      },
+      getAssetDependents: (viewController) => {
+        return viewController.assetCache.getAssetDependents(assetId);
+      },
     };
   }
 
@@ -231,19 +245,19 @@ export class ProjectAssetsWatcher {
     const jsonPath = resolvePath((project: ProjectDefinition) => project.assets[jsonIndex].hash);
     this.projectController.projectJson.mutate(jsonPath, newHash);
 
-    // Look up dependencies
-    const assetDependencies = this.projectController.assetCache.getAssetDependencies(assetId);
-    const assetDependents = this.projectController.assetCache.getAssetDependents(assetId);
-
-    // Invalidate asset (and dependents) in asset cache
-    this.projectController.assetCache.delete(assetId);
+    // Invalidate asset (and dependents) in all asset caches
+    this.projectController.viewControllers.forEach((viewController) => viewController.assetCache.delete(assetId));
 
     return {
       type: ProjectAssetEventType.Modify,
       asset,
       oldHash,
-      assetDependencies,
-      assetDependents,
+      getAssetDependencies: (viewController) => {
+        return viewController.assetCache.getAssetDependencies(assetId);
+      },
+      getAssetDependents: (viewController) => {
+        return viewController.assetCache.getAssetDependents(assetId);
+      },
     };
   }
 

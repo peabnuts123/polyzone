@@ -1,4 +1,4 @@
-import { ComponentDefinition } from "@polyzone/runtime/src/cartridge";
+import { ComponentDefinition } from "@polyzone/runtime/cartridge";
 import { ReportProblemFn, ScannerContext } from "../../ProblemScanner";
 
 export interface IComponentScanner {

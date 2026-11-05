@@ -4,7 +4,7 @@ import { PlusIcon } from '@heroicons/react/24/outline';
 import { observer } from "mobx-react-lite";
 import cn from 'classnames';
 
-import { baseName, toPathList } from "@polyzone/runtime/src/util";
+import { baseName, toPathList } from "@polyzone/runtime/util/path";
 
 import { useLibrary } from "@lib/index";
 import { CreateNewMaterialAssetMutation, MoveAssetMutation } from "@lib/mutation/Project/mutations";
@@ -14,7 +14,7 @@ import { useAssetDrop } from "@app/interactions";
 import { ListItem } from '@app/components/common/ListItem';
 import { CreateNewMaterialListFileItem, MaterialListFileItem, MaterialListVirtualFile } from './MaterialListFileItem';
 import { MaterialListDirectoryItem, MaterialListVirtualDirectory } from './MaterialListDirectoryItem';
-import { AssetType } from "@polyzone/runtime/src/cartridge/archive";
+import { AssetType } from "@polyzone/runtime/cartridge/archive";
 
 interface Props {
   openMaterial: (material: MaterialAssetData) => void;

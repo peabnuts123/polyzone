@@ -133,8 +133,8 @@ export class ProjectFileWatcher {
 
     const newProject = await this.projectController.reloadProjectFileFromFs();
 
-    // Completely invalidate asset cache - any asset might have been changed
-    this.projectController.assetCache.clear();
+    // Completely invalidate all asset caches - any asset might have been changed
+    this.projectController.viewControllers.forEach((viewController) => viewController.assetCache.clear());
 
     return {
       type: ProjectFileEventType.Modify,

@@ -1,4 +1,4 @@
-import { AssetType, IMaterialAssetData, MaterialAssetData as MaterialAssetDataRuntime } from "@polyzone/runtime/src/cartridge";
+import { AssetType, IMaterialAssetData, MaterialAssetData as MaterialAssetDataRuntime } from "@polyzone/runtime/cartridge";
 import { MaterialAssetDefinition } from "@lib/project/definition";
 import { BaseAssetData, CommonAssetDataArgs } from "../BaseAssetData";
 

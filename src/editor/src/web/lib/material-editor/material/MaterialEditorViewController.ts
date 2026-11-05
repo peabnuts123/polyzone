@@ -1,18 +1,18 @@
 import { makeAutoObservable } from 'mobx';
-import { Engine } from '@babylonjs/core/Engines/engine';
-import { Scene as BabylonScene } from '@babylonjs/core/scene';
-import { Vector3 as Vector3Babylon } from '@babylonjs/core/Maths/math.vector';
-import { ArcRotateCamera } from '@babylonjs/core/Cameras/arcRotateCamera';
-import { HemisphericLight as HemisphericLightBabylon } from '@babylonjs/core/Lights/hemisphericLight';
-import { DirectionalLight as DirectionalLightBabylon } from '@babylonjs/core/Lights/directionalLight';
-import { Color3 as Color3Babylon } from '@babylonjs/core/Maths/math.color';
-import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder';
-import "@babylonjs/loaders/OBJ/objFileLoader";
-import "@babylonjs/loaders/glTF";
+// import { Engine } from '@babylonjs/core/Engines/engine';
+// import { Scene as BabylonScene } from '@babylonjs/core/scene';
+// import { Vector3 as Vector3Babylon } from '@babylonjs/core/Maths/math.vector';
+// import { ArcRotateCamera } from '@babylonjs/core/Cameras/arcRotateCamera';
+// import { HemisphericLight as HemisphericLightBabylon } from '@babylonjs/core/Lights/hemisphericLight';
+// import { DirectionalLight as DirectionalLightBabylon } from '@babylonjs/core/Lights/directionalLight';
+// import { Color3 as Color3Babylon } from '@babylonjs/core/Maths/math.color';
+// import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder';
+// import "@babylonjs/loaders/OBJ/objFileLoader";
+// import "@babylonjs/loaders/glTF";
 
 import { AssetType } from '@polyzone/runtime/src/cartridge';
-import { MaterialAsset, MaterialDefinition } from '@polyzone/runtime/src/world';
-import { RetroMaterial } from '@polyzone/runtime/src/materials/RetroMaterial';
+import { MaterialAsset, MaterialDefinition } from '@polyzone/runtime/assets';
+// import { RetroMaterial } from '@polyzone/runtime/src/materials/RetroMaterial';
 
 import type { IProjectController } from '@lib/project/ProjectController';
 import { MaterialAssetData } from '@lib/project/data';

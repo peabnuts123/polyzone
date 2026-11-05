@@ -1,5 +1,4 @@
-import { ComponentDefinition, ComponentDefinitionType } from "@polyzone/runtime/src/cartridge";
-import { isDefined } from "@polyzone/runtime/src/util";
+import { ComponentDefinition, ComponentDefinitionType } from "@polyzone/runtime/cartridge";
 import { ScriptAssetData } from "@lib/project/data/assets";
 import { ReportProblemFn, ScannerContext } from "../../ProblemScanner";
 import { IComponentScanner } from "./IComponentScanner";
@@ -9,7 +8,7 @@ export const ScriptComponentScanner: IComponentScanner = {
     const componentPath = [`Script component (id='${component.id}')`];
 
     if (component.type === ComponentDefinitionType.Script) {
-      if (isDefined(component.scriptFileId)) {
+      if (component.scriptFileId !== null) {
         const asset = assetDb.findById(component.scriptFileId);
 
         if (asset === undefined) {

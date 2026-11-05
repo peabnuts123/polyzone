@@ -1,4 +1,4 @@
-import { AssetType, BaseAssetDefinition as RuntimeBaseAssetDefinition } from '@polyzone/runtime/src/cartridge/archive';
+import { AssetType, BaseAssetDefinition as RuntimeBaseAssetDefinition } from '@polyzone/runtime/cartridge/archive';
 import {
   MeshAssetDefinition as RuntimeMeshAssetDefinition,
   MeshSupplementaryAssetDefinition as RuntimeMeshSupplementaryAssetDefinition,
@@ -6,7 +6,7 @@ import {
   SoundAssetDefinition as RuntimeSoundAssetDefinition,
   TextureAssetDefinition as RuntimeTextureAssetDefinition,
   MaterialAssetDefinition as RuntimeMaterialAssetDefinition,
-} from '@polyzone/runtime/src/cartridge/archive';
+} from '@polyzone/runtime/cartridge/archive';
 
 export interface BaseAssetDefinition extends RuntimeBaseAssetDefinition {
   hash: string;

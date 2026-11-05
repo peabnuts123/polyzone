@@ -25,7 +25,7 @@ export class SceneViewMutator extends Mutator<SceneViewMutationArguments> {
   }
 
   protected override async persistChanges(): Promise<void> {
-    const { scene, sceneJson } = this.sceneViewController;
+    const { sceneData: scene, sceneJson } = this.sceneViewController;
     const { project, projectJson, projectDefinition, mutator: projectMutator } = this.projectController;
 
     const sceneDefinitionJson = sceneJson.toString();
@@ -71,7 +71,7 @@ export class SceneViewMutatorNew extends MutatorNew<SceneViewMutationArguments> 
   }
 
   protected override async persistChanges(): Promise<void> {
-    const { scene, sceneJson } = this.sceneViewController;
+    const { sceneData: scene, sceneJson } = this.sceneViewController;
     const { project, projectJson, projectDefinition, mutator: projectMutator } = this.projectController;
 
     const sceneDefinitionJson = sceneJson.toString();

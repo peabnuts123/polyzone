@@ -1,4 +1,4 @@
-import { AssetType, ITextureAssetData, TextureAssetData as TextureAssetDataRuntime } from "@polyzone/runtime/src/cartridge";
+import { AssetType, ITextureAssetData, TextureAssetData as TextureAssetDataRuntime } from "@polyzone/runtime/cartridge";
 import { BaseAssetData, CommonAssetDataArgs } from "../BaseAssetData";
 import { TextureAssetDefinition } from "@lib/project/definition";
 

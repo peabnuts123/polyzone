@@ -23,7 +23,7 @@ export class SetGameObjectScriptComponentAssetMutation extends BaseSceneMutation
 
   public override apply({ SceneViewController }: SceneViewMutationArguments, { scriptAsset }: MutationArgs): Promise<void> {
     // 1. Update data
-    const gameObjectData = SceneViewController.scene.getGameObject(this.gameObjectId);
+    const gameObjectData = SceneViewController.sceneData.getGameObject(this.gameObjectId);
     const componentData = gameObjectData.getComponent(this.componentId, ScriptComponentData);
     // - Replace asset reference
     componentData.scriptAsset = scriptAsset;
@@ -46,7 +46,7 @@ export class SetGameObjectScriptComponentAssetMutation extends BaseSceneMutation
   }
 
   protected override getUndoArgs({ SceneViewController }: SceneViewMutationArguments): MutationArgs {
-    const gameObjectData = SceneViewController.scene.getGameObject(this.gameObjectId);
+    const gameObjectData = SceneViewController.sceneData.getGameObject(this.gameObjectId);
     const componentData = gameObjectData.getComponent(this.componentId, ScriptComponentData);
 
     return {

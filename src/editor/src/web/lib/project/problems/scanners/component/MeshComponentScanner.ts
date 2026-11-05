@@ -1,5 +1,4 @@
-import { ComponentDefinition, ComponentDefinitionType } from "@polyzone/runtime/src/cartridge";
-import { isDefined } from "@polyzone/runtime/src/util";
+import { ComponentDefinition, ComponentDefinitionType } from "@polyzone/runtime/cartridge";
 import { MeshAssetData } from "@lib/project/data/assets";
 import { ReportProblemFn, ScannerContext } from "../../ProblemScanner";
 import { IComponentScanner } from "./IComponentScanner";
@@ -9,7 +8,7 @@ export const MeshComponentScanner: IComponentScanner = {
     const componentPath = [`Mesh component (id='${component.id}')`];
 
     if (component.type === ComponentDefinitionType.Mesh) {
-      if (isDefined(component.meshFileId)) {
+      if (component.meshFileId !== null) {
         const asset = assetDb.findById(component.meshFileId);
 
         if (asset === undefined) {

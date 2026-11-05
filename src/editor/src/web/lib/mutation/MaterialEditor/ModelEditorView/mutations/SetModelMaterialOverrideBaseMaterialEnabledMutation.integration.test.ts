@@ -28,7 +28,7 @@ describe(SetModelMaterialOverrideBaseMaterialEnabledMutation.name, () => {
 
       const mockMaterial = createMockMaterial({
         reflection: {
-          type: '3x2',
+          type: 'box-net',
           strength: 1.0,
           textureAssetId: mockTextureAssetDefinition.id,
         },

@@ -22,7 +22,7 @@ export class SetGameObjectMeshComponentAssetMutation extends BaseSceneMutation<M
 
   public override async apply({ SceneViewController }: SceneViewMutationArguments, { meshAsset }: MutationArgs): Promise<void> {
     // 1. Update data
-    const gameObjectData = SceneViewController.scene.getGameObject(this.gameObjectId);
+    const gameObjectData = SceneViewController.sceneData.getGameObject(this.gameObjectId);
     const componentData = gameObjectData.getComponent(this.componentId, MeshComponentData);
     // - Replace asset reference
     componentData.meshAsset = meshAsset;
@@ -43,7 +43,7 @@ export class SetGameObjectMeshComponentAssetMutation extends BaseSceneMutation<M
   }
 
   protected override getUndoArgs({ SceneViewController }: SceneViewMutationArguments): MutationArgs {
-    const gameObjectData = SceneViewController.scene.getGameObject(this.gameObjectId);
+    const gameObjectData = SceneViewController.sceneData.getGameObject(this.gameObjectId);
     const componentData = gameObjectData.getComponent(this.componentId, MeshComponentData);
 
     return {

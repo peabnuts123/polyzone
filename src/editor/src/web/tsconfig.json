@@ -24,6 +24,10 @@
       "@app/*": ["./src/*"],
       "@lib/*": ["./lib/*"],
       "@test/*": ["./test/*"],
+      "@polyzone/core": ["../../../core/src"],
+      "@polyzone/core/*": ["../../../core/src/*"],
+      "@polyzone/runtime": ["../../../runtime/src"],
+      "@polyzone/runtime/*": ["../../../runtime/src/*"],
     },
   },
   "include": [

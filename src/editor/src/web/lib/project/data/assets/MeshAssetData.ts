@@ -1,7 +1,5 @@
 import { makeAutoObservable, makeObservable } from "mobx";
 
-import { Color3 } from "@polyzone/core/src";
-
 import {
   AssetType,
   IMeshAssetData,
@@ -15,15 +13,13 @@ import {
   MeshAssetMaterialOverrideReflectionDataOfType,
   MeshAssetMaterialOverrideReflectionBoxNetData,
   MeshAssetMaterialOverrideReflectionDefinitionOfType,
-  MeshAssetMaterialOverrideReflection3x2Data,
-  MeshAssetMaterialOverrideReflection6x1Data,
   MeshAssetMaterialOverrideReflectionSeparateData,
   IMaterialAssetData,
-} from "@polyzone/runtime/src/cartridge";
+} from "@polyzone/runtime/cartridge";
 import { MeshAssetDefinition } from "@lib/project/definition";
 import { BaseAssetData, CommonAssetDataArgs } from "../BaseAssetData";
 import type { IEditorAssetDb } from "../AssetDb";
-import { toColor3Definition } from "@polyzone/runtime/src/util";
+import { Color3 } from "@polyzone/core/math";
 
 
 export class MeshAssetMaterialOverrideData implements IMeshAssetMaterialOverrideData {
@@ -32,8 +28,8 @@ export class MeshAssetMaterialOverrideData implements IMeshAssetMaterialOverride
   public materialEnabled: boolean;
   public diffuseColorEnabled: boolean;
   public diffuseTextureEnabled: boolean;
-  public emissionColorEnabled: boolean;
   public reflectionEnabled: boolean;
+  public lightingEnabled: boolean;
 
   public constructor(meshAssetMaterialOverrideDataRuntime: MeshAssetMaterialOverrideDataRuntime) {
     this._meshAssetMaterialOverrideData = meshAssetMaterialOverrideDataRuntime;
@@ -41,8 +37,8 @@ export class MeshAssetMaterialOverrideData implements IMeshAssetMaterialOverride
     this.materialEnabled = meshAssetMaterialOverrideDataRuntime.material !== undefined;
     this.diffuseColorEnabled = meshAssetMaterialOverrideDataRuntime.diffuseColor !== undefined;
     this.diffuseTextureEnabled = meshAssetMaterialOverrideDataRuntime.diffuseTexture !== undefined;
-    this.emissionColorEnabled = meshAssetMaterialOverrideDataRuntime.emissionColor !== undefined;
     this.reflectionEnabled = meshAssetMaterialOverrideDataRuntime.reflection !== undefined;
+    this.lightingEnabled = meshAssetMaterialOverrideDataRuntime.lightingEnabled !== undefined;
 
     makeAutoObservable(this);
     makeAutoObservable(this._meshAssetMaterialOverrideData);
@@ -51,15 +47,14 @@ export class MeshAssetMaterialOverrideData implements IMeshAssetMaterialOverride
   public toDefinition(): MeshAssetMaterialOverrideDefinition {
     return {
       materialAssetId: this.material?.id,
-      diffuseColor: this.diffuseColor ? toColor3Definition(this.diffuseColor) : undefined,
-      emissionColor: this.emissionColor ? toColor3Definition(this.emissionColor) : undefined,
+      diffuseColor: this.diffuseColor,
       diffuseTextureAssetId: this.diffuseTexture?.id,
       reflection: this.reflection ? reflectionDataToDefinition(this.reflection) : undefined,
     };
   }
 
   public isEmpty(): boolean {
-    return this.material === undefined && this.diffuseColor === undefined && this.diffuseTexture === undefined && this.emissionColor === undefined && this.reflection === undefined;
+    return this.material === undefined && this.diffuseColor === undefined && this.diffuseTexture === undefined && this.reflection === undefined;
   }
 
   public static createNew(): MeshAssetMaterialOverrideData {
@@ -94,13 +89,6 @@ export class MeshAssetMaterialOverrideData implements IMeshAssetMaterialOverride
     else return undefined;
   }
   public set diffuseTexture(value: ITextureAssetData | undefined) { this._meshAssetMaterialOverrideData.diffuseTexture = value; }
-
-  public get emissionColorRawValue(): Color3 | undefined { return this._meshAssetMaterialOverrideData.emissionColor; }
-  public get emissionColor(): Color3 | undefined {
-    if (this.emissionColorEnabled) return this._meshAssetMaterialOverrideData.emissionColor;
-    else return undefined;
-  }
-  public set emissionColor(value: Color3 | undefined) { this._meshAssetMaterialOverrideData.emissionColor = value; }
 
   public get reflectionRawValue(): MeshAssetMaterialOverrideReflectionData | undefined { return this._meshAssetMaterialOverrideData.reflection; }
   public get reflection(): MeshAssetMaterialOverrideReflectionData | undefined {
@@ -200,22 +188,6 @@ export function reflectionDataToDefinition<TReflectionType extends MeshAssetMate
         type: reflectionBoxNet.type,
         strength: reflectionBoxNet.strength,
         textureAssetId: reflectionBoxNet.texture?.id,
-      } as MeshAssetMaterialOverrideReflectionDefinitionOfType<TReflectionType>;
-    }
-    case "3x2": {
-      const reflection3x2 = reflection as MeshAssetMaterialOverrideReflection3x2Data;
-      return {
-        type: reflection3x2.type,
-        strength: reflection3x2.strength,
-        textureAssetId: reflection3x2.texture?.id,
-      } as MeshAssetMaterialOverrideReflectionDefinitionOfType<TReflectionType>;
-    }
-    case "6x1": {
-      const reflection6x1 = reflection as MeshAssetMaterialOverrideReflection6x1Data;
-      return {
-        type: reflection6x1.type,
-        strength: reflection6x1.strength,
-        textureAssetId: reflection6x1.texture?.id,
       } as MeshAssetMaterialOverrideReflectionDefinitionOfType<TReflectionType>;
     }
     case "separate": {

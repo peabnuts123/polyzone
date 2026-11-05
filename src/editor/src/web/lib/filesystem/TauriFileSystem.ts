@@ -1,8 +1,8 @@
 import { convertFileSrc } from '@tauri-apps/api/core';
 import { readFile, writeFile, remove, rename, exists } from '@tauri-apps/plugin-fs';
 import { makeObservable, runInAction } from 'mobx';
+import { VirtualFile } from '@lopoly/engine/filesystem';
 
-import { VirtualFile } from "@polyzone/runtime/src/filesystem";
 import { joinToNativePath } from '@lib/util/path';
 import { IWritableFileSystem, WritingState } from './IWritableFileSystem';
 
@@ -16,13 +16,12 @@ const MinimumWritingStatusDurationMs = 500;
 // finished saving.
 // + Also maybe some way to disable saving
 
-export class TauriFileSystem extends IWritableFileSystem {
+export class TauriFileSystem implements IWritableFileSystem {
   private readonly projectRootDir: string;
   private _writingState: WritingState = WritingState.UpToDate;
   private withWritingStateTimeout: ReturnType<typeof setTimeout> | undefined;
 
   public constructor(projectRootDir: string) {
-    super(`pzedfs`);
     this.projectRootDir = projectRootDir;
 
     // @NOTE List of private property names, so that MobX can reference them
@@ -47,7 +46,7 @@ export class TauriFileSystem extends IWritableFileSystem {
   }
 
   public async readFile(path: string): Promise<VirtualFile> {
-    const fileBytes = await readFile(this.resolvePathFromProjectRoot(path));
+    const fileBytes = await readFile(this.resolvePathFromProjectRoot(path)) as Uint8Array<ArrayBuffer>;
     return new VirtualFile(fileBytes);
   }
 

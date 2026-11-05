@@ -25,5 +25,8 @@ coverage/
 # PolyZone cartridges
 *.pzcart
 
+# Blender
+*.blend1
+
 # local changes
 src/scratch/

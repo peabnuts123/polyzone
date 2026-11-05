@@ -1,5 +1,4 @@
 import { GameObjectDefinition } from "@polyzone/runtime/src/cartridge";
-import { toVector3Definition } from "@polyzone/runtime/src/util";
 
 import { GameObjectData } from "@lib/project/data";
 import { resolvePathForSceneObjectMutation } from "@lib/mutation/util";
@@ -7,6 +6,7 @@ import { MutationPath, readValueAtPath, resolvePath } from "@lib/util/JsoncConta
 import { SceneDefinition } from "@lib/project/definition/scene/SceneDefinition";
 import { BaseSceneMutation } from "../ISceneMutation";
 import { SceneViewMutationArguments } from "../SceneViewMutationArguments";
+import { Vector3 } from "@polyzone/core/math";
 
 interface SetGameObjectParentMutationArgs {
   gameObject: GameObjectData;
@@ -63,13 +63,13 @@ export class SetGameObjectParentMutation extends BaseSceneMutation<MutationArgs>
 
   public apply({ SceneViewController }: SceneViewMutationArguments, { newParentId, siblingTarget }: MutationArgs): void {
     // 1A. Update data
-    const gameObjectData = SceneViewController.scene.getGameObject(this.gameObjectId);
-    const newParentData = newParentId !== undefined ? SceneViewController.scene.getGameObject(newParentId) : undefined;
+    const gameObjectData = SceneViewController.sceneData.getGameObject(this.gameObjectId);
+    const newParentData = newParentId !== undefined ? SceneViewController.sceneData.getGameObject(newParentId) : undefined;
     const newSiblingDataCollection = newParentData !== undefined ?
       newParentData.children :
-      SceneViewController.scene.objects;
-    const currentParentData = SceneViewController.scene.getGameObjectParent(this.gameObjectId);
-    const currentParentChildrenData = currentParentData !== undefined ? currentParentData.children : SceneViewController.scene.objects;
+      SceneViewController.sceneData.objects;
+    const currentParentData = SceneViewController.sceneData.getGameObjectParent(this.gameObjectId);
+    const currentParentChildrenData = currentParentData !== undefined ? currentParentData.children : SceneViewController.sceneData.objects;
 
     // Remove from old parent
     const currentGameObjectDataIndex = currentParentChildrenData.findIndex((child) => child.id === this.gameObjectId);
@@ -125,12 +125,12 @@ export class SetGameObjectParentMutation extends BaseSceneMutation<MutationArgs>
     // @TODO update World list of object instances if parent is null (?)
 
     // 1B. Update transform with new absolute values
-    const newLocalPosition = gameObject.transform.localPosition;
-    const newLocalRotation = gameObject.transform.localRotation.toEuler();
-    const newLocalScale = gameObject.transform.localScale;
+    const newLocalPosition = gameObject.position;
+    const newLocalRotation = gameObject.rotation.euler;
+    const newLocalScale = gameObject.scale;
 
     gameObjectData.transform.position = newLocalPosition;
-    gameObjectData.transform.rotation = newLocalRotation;
+    gameObjectData.transform.rotation = new Vector3(newLocalRotation);
     gameObjectData.transform.scale = newLocalScale;
 
     // 3. Update JSONC
@@ -145,9 +145,9 @@ export class SetGameObjectParentMutation extends BaseSceneMutation<MutationArgs>
     SceneViewController.sceneJson.delete(currentPath);
 
     // Update object definition before writing back to JSON
-    currentDefinitionValue.transform.position = toVector3Definition(newLocalPosition);
-    currentDefinitionValue.transform.rotation = toVector3Definition(newLocalRotation);
-    currentDefinitionValue.transform.scale = toVector3Definition(newLocalScale);
+    currentDefinitionValue.transform.position = { x: newLocalPosition.x, y: newLocalPosition.y, z: newLocalPosition.z };
+    currentDefinitionValue.transform.rotation = { x: newLocalRotation.x, y: newLocalRotation.y, z: newLocalRotation.z };
+    currentDefinitionValue.transform.scale = { x: newLocalScale.x, y: newLocalScale.y, z: newLocalScale.z };
 
     // Read parent data (if specified)
     let newParentDefinition: GameObjectDefinition | undefined = undefined;
@@ -200,8 +200,8 @@ export class SetGameObjectParentMutation extends BaseSceneMutation<MutationArgs>
   }
 
   protected override getUndoArgs({ SceneViewController }: SceneViewMutationArguments): MutationArgs {
-    const gameObjectData = SceneViewController.scene.getGameObject(this.gameObjectId);
-    const parentGameObjectData = SceneViewController.scene.getGameObjectParent(this.gameObjectId);
+    const gameObjectData = SceneViewController.sceneData.getGameObject(this.gameObjectId);
+    const parentGameObjectData = SceneViewController.sceneData.getGameObjectParent(this.gameObjectId);
 
     /*
       @NOTE We need to figure out the current GameObject's parent and (if it has a parent)
@@ -234,7 +234,7 @@ export class SetGameObjectParentMutation extends BaseSceneMutation<MutationArgs>
       // GameObject HAS NO parent
       return {
         newParentId: undefined,
-        siblingTarget: calculateSiblingTarget(SceneViewController.scene.objects),
+        siblingTarget: calculateSiblingTarget(SceneViewController.sceneData.objects),
       };
     } else {
       // GameObject has a parent

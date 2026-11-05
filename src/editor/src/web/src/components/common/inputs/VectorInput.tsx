@@ -1,7 +1,7 @@
 import { observer } from "mobx-react-lite";
 import type { FunctionComponent } from "react";
 
-import { Vector3 } from "@polyzone/core/src/util/Vector3";
+import { Vector3 } from "@polyzone/core/math";
 import { NumberInput } from "./NumberInput";
 
 

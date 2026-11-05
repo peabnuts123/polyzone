@@ -1,4 +1,4 @@
-import { AssetType } from "@polyzone/runtime/src/cartridge";
+import { AssetType } from "@polyzone/runtime/cartridge";
 
 import { MaterialAssetData, MeshAssetData, MeshSupplementaryAssetData, ScriptAssetData, SoundAssetData, TextureAssetData } from './assets';
 

@@ -21,7 +21,7 @@ describe(SetMaterialReflectionEnabledMutation.name, () => {
       mockTextureAssetDefinition = asset(AssetType.Texture, 'textures/skybox.png', MockAssets.textures.stonesPng);
       mockMaterial = createMockMaterial({
         reflection: {
-          type: '3x2',
+          type: 'box-net',
           strength: 0.8,
           textureAssetId: mockTextureAssetDefinition.id,
         },
@@ -77,11 +77,11 @@ describe(SetMaterialReflectionEnabledMutation.name, () => {
     /* Initial state (reflection enabled) */
     expect(initialDataEnabledValue, "Material data should have reflection enabled initially").toBe(true);
     expect(initialDataValue, "Material data should have reflection defined initially").toBeDefined();
-    expect(initialDataValue?.type, "Material data should have 3x2 reflection type initially").toBe('3x2');
+    expect(initialDataValue?.type, "Material data should have box-net reflection type initially").toBe('box-net');
     expect(initialDataValue?.strength, "Material data should have correct reflection strength initially").toBe(0.8);
     expect(initialBabylonTextureValue, "Babylon material should have reflection texture defined initially").toBeDefined();
     expect(initialJsonValue, "Material asset should have reflection defined initially").toBeDefined();
-    expect(initialJsonValue?.type, "Material asset should have 3x2 reflection type initially").toBe('3x2');
+    expect(initialJsonValue?.type, "Material asset should have box-net reflection type initially").toBe('box-net');
     expect(initialCachedAsset.reflectionTexture, "Cached material should have reflection texture defined initially").toBeDefined();
 
     /* After disabling */
@@ -94,11 +94,11 @@ describe(SetMaterialReflectionEnabledMutation.name, () => {
     /* After re-enabling */
     expect(enabledDataEnabledValue, "Material data should have reflection enabled after re-enabling").toBe(true);
     expect(enabledDataValue, "Material data should have reflection defined after re-enabling").toBeDefined();
-    expect(enabledDataValue?.type, "Material data should still have 3x2 reflection type after re-enabling").toBe('3x2');
+    expect(enabledDataValue?.type, "Material data should still have box-net reflection type after re-enabling").toBe('box-net');
     expect(enabledDataValue?.strength, "Material data should still have correct reflection strength after re-enabling").toBe(0.8);
     expect(enabledBabylonTextureValue, "Babylon material should have reflection texture defined after re-enabling").toBeDefined();
     expect(enabledJsonValue, "Material asset should have reflection defined after re-enabling").toBeDefined();
-    expect(enabledJsonValue?.type, "Material asset should have 3x2 reflection type after re-enabling").toBe('3x2');
+    expect(enabledJsonValue?.type, "Material asset should have box-net reflection type after re-enabling").toBe('box-net');
     expect(enabledCachedAsset.reflectionTexture, "Cached material should have reflection texture defined after re-enabling").toBeDefined();
   });
 });

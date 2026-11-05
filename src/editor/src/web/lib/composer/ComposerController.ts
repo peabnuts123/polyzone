@@ -1,7 +1,7 @@
 import { makeAutoObservable, runInAction } from 'mobx';
 import { v4 as uuid } from 'uuid';
 
-import { AssetType, CartridgeArchiveManifest } from '@polyzone/runtime/src/cartridge';
+import { AssetType, CartridgeArchiveManifest } from '@polyzone/runtime/cartridge';
 
 import type { IProjectController } from '@lib/project/ProjectController';
 import { toRuntimeSceneDefinition } from '@lib/project/definition';
@@ -52,9 +52,9 @@ export class ComposerController implements IComposerController {
 
     for (const tab of this.currentlyOpenTabs) {
       if (tab.sceneViewController) {
-        const sceneDbRecord = this.projectController.project.scenes.getById(tab.sceneViewController.scene.id);
+        const sceneDbRecord = this.projectController.project.scenes.getById(tab.sceneViewController.sceneData.id);
         if (sceneDbRecord === undefined) {
-          throw new Error(`Error reloading scene - could not find scene with id '${tab.sceneViewController.scene.id}' in SceneDb`);
+          throw new Error(`Error reloading scene - could not find scene with id '${tab.sceneViewController.sceneData.id}' in SceneDb`);
         }
 
         console.log(`[ComposerController] (onEnter) Reloading active scene: ${sceneDbRecord.data.path}`);

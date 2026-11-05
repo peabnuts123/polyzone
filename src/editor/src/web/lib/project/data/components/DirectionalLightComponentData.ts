@@ -1,15 +1,14 @@
 import { makeAutoObservable } from "mobx";
 import { v4 as uuid } from 'uuid';
 
-import { Color3 } from '@polyzone/core/src/util';
+import { Color3 } from '@polyzone/core/math';
 import {
   type ComponentDefinition,
   ComponentDefinitionType,
   type DirectionalLightComponentDefinition,
   DirectionalLightComponentData as DirectionalLightComponentDataRuntime,
   type IDirectionalLightComponentData,
-} from "@polyzone/runtime/src/cartridge";
-import { toColor3Definition } from "@polyzone/runtime/src/util";
+} from "@polyzone/runtime/cartridge";
 
 import type { IComposerComponentData } from "./IComposerComponentData";
 
@@ -27,7 +26,7 @@ export class DirectionalLightComponentData implements IComposerComponentData, ID
     return {
       id: this.id,
       type: ComponentDefinitionType.DirectionalLight,
-      color: toColor3Definition(this.color),
+      color: this.color.clone(),
       intensity: this.intensity,
     } satisfies DirectionalLightComponentDefinition as DirectionalLightComponentDefinition;
   }

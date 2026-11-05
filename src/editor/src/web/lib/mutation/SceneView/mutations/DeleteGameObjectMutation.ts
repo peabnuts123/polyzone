@@ -26,15 +26,15 @@ export class DeleteGameObjectMutation extends BaseSceneMutation {
 
   public override apply({ SceneViewController }: SceneViewMutationArguments): Promise<void> {
     // Find object's parent - we're going to remove the object from the parent's children
-    const gameObjectData = this.deletedGameObjectData = SceneViewController.scene.getGameObject(this.gameObjectId);
-    const gameObjectParentData = SceneViewController.scene.getGameObjectParent(this.gameObjectId);
+    const gameObjectData = this.deletedGameObjectData = SceneViewController.sceneData.getGameObject(this.gameObjectId);
+    const gameObjectParentData = SceneViewController.sceneData.getGameObjectParent(this.gameObjectId);
     this.deletedGameObjectParentId = gameObjectParentData?.id ?? null;
 
     // @NOTE We need to find the game object's position and store it, so we can
     // put it back in the right place when undo is requested.
     const gameObjectDataCollection = (
       gameObjectParentData === undefined ?
-        SceneViewController.scene.objects :
+        SceneViewController.sceneData.objects :
         gameObjectParentData.children
     );
     const targetIndex = this.deletedGameObjectDataIndex = gameObjectDataCollection.findIndex((object) => object.id === this.gameObjectId);
@@ -45,8 +45,6 @@ export class DeleteGameObjectMutation extends BaseSceneMutation {
     // 2. Update Scene
     const gameObject = SceneViewController.findGameObjectById(this.gameObjectId);
     if (gameObject === undefined) throw new Error(`Cannot apply mutation - no game object exists in the scene with id '${this.gameObjectId}'`);
-    SceneViewController.removeGameObject(gameObject);
-    gameObject.transform.parent = undefined;
     gameObject.destroy();
     if (SceneViewController.selectionManager.selectedObjectId === gameObjectData.id) {
       SceneViewController.selectionManager.deselectAll();
@@ -79,13 +77,13 @@ export class DeleteGameObjectMutation extends BaseSceneMutation {
     if (this.deletedGameObjectParentId !== null) {
       /* Deleted object had parent */
       // 1. Update Data
-      const parentGameObjectData = SceneViewController.scene.getGameObject(this.deletedGameObjectParentId);
+      const parentGameObjectData = SceneViewController.sceneData.getGameObject(this.deletedGameObjectParentId);
       parentGameObjectData.children.splice(this.deletedGameObjectDataIndex, 0, this.deletedGameObjectData);
 
       // 2. Update Scene
       const parentGameObject = SceneViewController.findGameObjectById(this.deletedGameObjectParentId);
       if (parentGameObject === undefined) throw new Error(`Cannot undo mutation - no game object exists in the scene with id '${this.deletedGameObjectParentId}'`);
-      await SceneViewController.createGameObject(this.deletedGameObjectData, parentGameObject.transform);
+      await SceneViewController.createGameObject(this.deletedGameObjectData, parentGameObject);
 
       // 3. Update JSONC
       const mutationPath = resolvePathForSceneObjectMutation(
@@ -97,7 +95,7 @@ export class DeleteGameObjectMutation extends BaseSceneMutation {
     } else {
       // Add directly to scene
       // 1. Update Data
-      SceneViewController.scene.objects.splice(this.deletedGameObjectDataIndex, 0, this.deletedGameObjectData);
+      SceneViewController.sceneData.objects.splice(this.deletedGameObjectDataIndex, 0, this.deletedGameObjectData);
 
       // 2. Update Scene
       await SceneViewController.createGameObject(this.deletedGameObjectData);

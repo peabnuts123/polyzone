@@ -1,5 +1,5 @@
 import { Vector3Definition as ArchiveVector3 } from "@polyzone/runtime/src/cartridge/archive/util";
-import { Quaternion } from "@polyzone/core/src/util/Quaternion";
+import { Quaternion } from "@polyzone/core/math";
 
 import { resolvePathForSceneObjectMutation } from "@lib/mutation/util";
 import { SceneViewMutationArguments } from "../SceneViewMutationArguments";
@@ -20,7 +20,7 @@ export class SetGameObjectRotationMutation extends BaseContinuousSceneMutation<S
   }
 
   public override update({ SceneViewController }: SceneViewMutationArguments, { rotation, resetGizmo }: SetGameObjectRotationMutationUpdateArgs): void {
-    const gameObjectData = SceneViewController.scene.getGameObject(this.gameObjectId);
+    const gameObjectData = SceneViewController.sceneData.getGameObject(this.gameObjectId);
     const gameObject = SceneViewController.findGameObjectById(this.gameObjectId);
     if (gameObject === undefined) throw new Error(`Cannot update mutation - no game object exists in the scene with id '${this.gameObjectId}'`);
 
@@ -34,7 +34,7 @@ export class SetGameObjectRotationMutation extends BaseContinuousSceneMutation<S
   }
 
   public override apply({ SceneViewController }: SceneViewMutationArguments): void {
-    const gameObjectData = SceneViewController.scene.getGameObject(this.gameObjectId);
+    const gameObjectData = SceneViewController.sceneData.getGameObject(this.gameObjectId);
 
     // - 3. Update JSONC
     const updatedValue: ArchiveVector3 = {
@@ -55,7 +55,7 @@ export class SetGameObjectRotationMutation extends BaseContinuousSceneMutation<S
   }
 
   protected override getUndoArgs({ SceneViewController }: SceneViewMutationArguments): SetGameObjectRotationMutationUpdateArgs {
-    const gameObjectData = SceneViewController.scene.getGameObject(this.gameObjectId);
+    const gameObjectData = SceneViewController.sceneData.getGameObject(this.gameObjectId);
 
     return {
       rotation: Quaternion.fromEuler(gameObjectData.transform.rotation),

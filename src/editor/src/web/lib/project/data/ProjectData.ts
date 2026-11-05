@@ -1,5 +1,6 @@
 import { makeAutoObservable } from "mobx";
-import { IFileSystem } from "@polyzone/runtime/src/filesystem";
+import { IFileSystem } from "@lopoly/engine/filesystem";
+
 import { ProjectDefinition, ProjectManifest } from "../definition";
 import { AssetDb, type IEditorAssetDb } from "./AssetDb";
 import { SceneDb, type IEditorSceneDb } from "./SceneDb";

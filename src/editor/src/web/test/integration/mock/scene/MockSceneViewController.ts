@@ -29,7 +29,7 @@ import { MockSceneViewMutator, MockSceneViewMutatorNew } from "./MockSceneViewMu
 export class MockSceneViewController implements ISceneViewController {
   private projectController: MockProjectController;
   public canvas: HTMLCanvasElement;
-  public scene: SceneData;
+  public sceneData: SceneData;
   public babylonScene: BabylonScene;
   public sceneJson: JsoncContainer<SceneDefinition>;
   public mutationController: MutationController;
@@ -47,7 +47,7 @@ export class MockSceneViewController implements ISceneViewController {
   ) {
     this.projectController = projectController;
     this.canvas = canvas;
-    this.scene = scene;
+    this.sceneData = scene;
     this.sceneJson = sceneJson;
     this.babylonScene = babylonScene;
     this.mutationController = new MutationController();
@@ -77,7 +77,7 @@ export class MockSceneViewController implements ISceneViewController {
 
   private async createScene(): Promise<void> {
     await Promise.all(
-      this.scene.objects.map((sceneObject) =>
+      this.sceneData.objects.map((sceneObject) =>
         this.createGameObject(sceneObject),
       ),
     );
@@ -141,22 +141,22 @@ export class MockSceneViewController implements ISceneViewController {
   findGameObjectById: (gameObjectId: string) => GameObjectRuntime | undefined = (gameObjectId) => {
     return this.gameObjectInstances.find((gameObject) => gameObject.id === gameObjectId);
   };
-  addGameObject: (gameObject: GameObjectRuntime) => void = (gameObject) => {
-    this.gameObjectInstances.push(gameObject);
-  };
-  removeGameObject: (gameObject: GameObjectRuntime) => void = (gameObject) => {
-    const index = this.gameObjectInstances.findIndex((existingGameObject) => existingGameObject.id === gameObject.id);
-    if (index !== -1) {
-      this.gameObjectInstances.splice(index, 1);
-    }
-  };
+  // addGameObject: (gameObject: GameObjectRuntime) => void = (gameObject) => {
+  //   this.gameObjectInstances.push(gameObject);
+  // };
+  // removeGameObject: (gameObject: GameObjectRuntime) => void = (gameObject) => {
+  //   const index = this.gameObjectInstances.findIndex((existingGameObject) => existingGameObject.id === gameObject.id);
+  //   if (index !== -1) {
+  //     this.gameObjectInstances.splice(index, 1);
+  //   }
+  // };
 
   public get sceneDefinition(): SceneDefinition {
     return this.sceneJson.value;
   }
   public get selectedObjectData(): GameObjectData | undefined {
     if (this.selectedObjectId) {
-      return this.scene.findGameObject(this.selectedObjectId);
+      return this.sceneData.findGameObject(this.selectedObjectId);
     } else {
       return undefined;
     }

@@ -1,22 +1,12 @@
 import { makeAutoObservable } from 'mobx';
-import { Engine } from '@babylonjs/core/Engines/engine';
-import { Scene as BabylonScene } from '@babylonjs/core/scene';
-import { FreeCamera, FreeCamera as FreeCameraBabylon } from '@babylonjs/core/Cameras/freeCamera';
-import { Vector3 as Vector3Babylon } from '@babylonjs/core/Maths/math.vector';
-import { HemisphericLight as HemisphericLightBabylon } from '@babylonjs/core/Lights/hemisphericLight';
-import { Color3 as Color3Babylon } from '@babylonjs/core/Maths/math.color';
-import "@babylonjs/loaders/OBJ/objFileLoader";
-import "@babylonjs/loaders/glTF";
-import { PointerEventTypes } from '@babylonjs/core/Events/pointerEvents';
-import '@babylonjs/core/Culling/ray'; // @NOTE needed for mesh picking - contains side effects
+import { CameraNode, IScene } from '@lopoly/engine/scene';
 
-import { GameObjectComponent } from '@polyzone/core/src/world';
 import {
-  Transform as TransformRuntime,
   GameObject as GameObjectRuntime,
-} from '@polyzone/runtime/src/world';
-import { toColor3Babylon } from '@polyzone/runtime/src/util';
-import { createGameObject } from '@polyzone/runtime/src/world/createGameObject';
+  createGameObject,
+  GameObject,
+} from '@polyzone/runtime/objects';
+import { Scene as LoPolyScene } from '@lopoly/engine/scene';
 
 import { JsoncContainer } from '@lib/util/JsoncContainer';
 import type { IProjectController } from '@lib/project/ProjectController';
@@ -32,92 +22,71 @@ import { ComponentDependencyManager } from '@lib/common/ComponentDependencyManag
 import { createEditorGameObjectComponent } from '@lib/common/GameObjects';
 import { MutationController } from '@lib/mutation/MutationController';
 import { SceneViewSelectionCache } from './SceneViewSelectionCache';
-import { isAssetDependentComponent, ISelectableObject, isSelectableObject, MeshComponent } from './components';
-import { CurrentSelectionTool, SelectionManager } from './SelectionManager';
-import { TargetCamera } from '@babylonjs/core/Cameras/targetCamera';
-import { ArcRotateCamera } from '@babylonjs/core/Cameras/arcRotateCamera';
+import { isAssetDependentComponent, ISelectableObject, isSelectableObject } from './components';
+import { CurrentSelectionTool, SelectionManager, SelectionManagerResources } from './SelectionManager';
+import { Vector3 } from '@polyzone/core/math';
+import { clamp, GamepadAxis, GamepadButton, IEngine, IInputSystem, KeyCode, MouseButton } from '@lopoly/engine';
+import { Scene } from '@polyzone/runtime/scene';
+import { IViewController, ViewCamera, ViewController } from '@lib/common/view';
+import { AssetCache } from '@polyzone/runtime/assets';
 
-export interface ISceneViewController {
-  startBabylonView(): () => void;
-  destroy(): void;
+export interface ISceneViewController extends IViewController<SceneViewMutator, SceneViewMutatorNew> {
   setCurrentTool(tool: CurrentSelectionTool): void;
   focusObject(gameObject: GameObjectRuntime): void;
   addToSelectionCache(gameObjectId: string, component: ISelectableObject): void;
   removeFromSelectionCache(component: ISelectableObject): void;
-  createGameObject(gameObjectData: GameObjectData, parentTransform?: TransformRuntime): Promise<GameObjectRuntime>;
-  createGameObjectComponent(gameObjectData: GameObjectData, gameObject: GameObjectRuntime, componentData: IComposerComponentData): Promise<GameObjectComponent | undefined>;
+  createGameObject(gameObjectData: GameObjectData, parentGameObject?: GameObject): Promise<GameObjectRuntime>;
+  createGameObjectComponent(componentData: IComposerComponentData, gameObject: GameObjectRuntime, gameObjectData: GameObjectData, atIndex?: number): Promise<void>;
   reinitializeComponentInstance(componentData: IComposerComponentData, gameObjectData: GameObjectData): Promise<void>;
   reloadSceneData(scene: SceneDbRecord): Promise<void>;
   findGameObjectById(gameObjectId: string): GameObjectRuntime | undefined;
-  addGameObject(gameObject: GameObjectRuntime): void;
-  removeGameObject(gameObject: GameObjectRuntime): void;
 
-  get canvas(): HTMLCanvasElement;
-  get scene(): SceneData;
+  get sceneData(): SceneData;
   get sceneJson(): JsoncContainer<SceneDefinition>;
   get sceneDefinition(): SceneDefinition;
-  // @TODO Remove, replace with New
-  get mutator(): SceneViewMutator;
-  get mutatorNew(): SceneViewMutatorNew;
   get selectedObject(): GameObjectRuntime | undefined
   get selectedObjectData(): GameObjectData | undefined;
   get selectedObjectId(): string | undefined;
   get selectionManager(): SelectionManager;
+  get camera(): ViewCamera;
 }
 
-type BoundingBox = [minimum: Vector3Babylon, maximum: Vector3Babylon];
-
 export class SceneViewController implements ISceneViewController {
-  private _scene: SceneData;
-  private _sceneJson: JsoncContainer<SceneDefinition>;
-  private readonly projectController: IProjectController;
-  private readonly mutationController: MutationController;
-  private readonly _mutator: SceneViewMutator;
-  private readonly _mutatorNew: SceneViewMutatorNew;
-
-  private readonly _canvas: HTMLCanvasElement;
-  private readonly engine: Engine;
-  private readonly babylonScene: BabylonScene;
-  private sceneCamera!: FreeCameraBabylon;
   private readonly componentDependencyManager: ComponentDependencyManager;
   private readonly _selectionManager: SelectionManager;
   private readonly selectionCache: SceneViewSelectionCache;
   private readonly unlistenToFileSystemEvents: () => void;
 
-  private _gameObjectInstances: GameObjectRuntime[];
+  private readonly viewController: ViewController<SceneViewMutator, SceneViewMutatorNew>;
 
-  private constructor(scene: SceneData, sceneJson: JsoncContainer<SceneDefinition>, projectController: IProjectController, mutationController: MutationController) {
-    this._scene = scene;
-    this._sceneJson = sceneJson;
-    this.projectController = projectController;
-    this.mutationController = mutationController;
-    this._gameObjectInstances = [];
+  private constructor(
+    scene: SceneData,
+    sceneJson: JsoncContainer<SceneDefinition>,
+    projectController: IProjectController,
+    mutationController: MutationController,
+    selectionManagerResources: SelectionManagerResources,
+  ) {
     this.componentDependencyManager = new ComponentDependencyManager();
     this.selectionCache = new SceneViewSelectionCache();
-    this._mutator = new SceneViewMutator(
-      this,
-      projectController,
-    );
-    this._mutatorNew = new SceneViewMutatorNew(
-      this,
+    this.viewController = new ViewController(
       projectController,
       mutationController,
+      new SceneViewMutator(this, projectController),
+      new SceneViewMutatorNew(this, projectController, mutationController),
+      scene,
+      sceneJson,
     );
 
-    this._canvas = document.createElement('canvas');
-    this.canvas.classList.add('w-full', 'h-full', '[image-rendering:_pixelated]');
-
-    // @NOTE `preserveDrawingBuffer` needed to be able to capture canvas contents
-    this.engine = new Engine(this.canvas, false, { preserveDrawingBuffer: true }, true);
-    this.babylonScene = new BabylonScene(this.engine);
-    this._selectionManager = new SelectionManager(this.babylonScene, this);
+    this.configureInput(this.engine);
+    this._selectionManager = new SelectionManager(this.lopolyScene, this, selectionManagerResources);
+    this.camera.onClickPress = (pointer) => this._selectionManager.onClickPress(pointer);
 
     const stopListeningToProjectFileEvents = projectController.filesWatcher.onProjectFileChanged((event) => {
       if (event.type === ProjectFileEventType.Modify) {
-        const scene = event.project.scenes.getById(this.scene.id);
+        const scene = event.project.scenes.getById(this.sceneData.id);
         if (scene === undefined) {
           // @TODO - close tab or something (gracefully exit)
-          throw new Error(`Error while reloading scene due to project file change - no scene with ID '${this.scene.id}' could be found in new project data`);
+          throw new Error(`Error while reloading scene due to project file change - no scene with ID '${this.sceneData.id}' could be found in new project data`);
         } else {
           void this.reloadSceneData(scene);
         }
@@ -125,7 +94,7 @@ export class SceneViewController implements ISceneViewController {
     });
     const stopListeningToSceneFileEvents = projectController.filesWatcher.onSceneChanged((event) => {
       // Ignore events for other scenes
-      if (event.scene.data.id !== this.scene.id) return;
+      if (event.scene.data.id !== this.sceneData.id) return;
 
       if (event.type === ProjectSceneEventType.Modify) {
         void this.reloadSceneData(event.scene);
@@ -143,7 +112,7 @@ export class SceneViewController implements ISceneViewController {
            */
           const allAffectedAssets: string[] = [
             event.asset.id,
-            ...event.assetDependents,
+            ...event.getAssetDependents(this),
           ];
 
           // Find all components that depend on these affected assets
@@ -179,99 +148,78 @@ export class SceneViewController implements ISceneViewController {
   }
 
   public static async create(scene: SceneData, sceneJson: JsoncContainer<SceneDefinition>, projectController: IProjectController, mutationController: MutationController): Promise<SceneViewController> {
-    const sceneViewController = new SceneViewController(scene, sceneJson, projectController, mutationController);
+    const selectionManagerResources = await SelectionManager.loadResources();
+    const sceneViewController = new SceneViewController(scene, sceneJson, projectController, mutationController, selectionManagerResources);
     await sceneViewController.buildScene();
     return sceneViewController;
   }
 
-  private async buildScene(): Promise<void> {
-    // @DEBUG Random camera constants
-    const camera = this.sceneCamera = new FreeCameraBabylon("main", new Vector3Babylon(6, 2, -1), this.babylonScene);
-    camera.setTarget(Vector3Babylon.Zero());
-    camera.attachControl(this.canvas, true);
-    camera.speed = 0.3;
-    camera.minZ = 0.1;
+  private configureInput(engine: IEngine): void {
+    engine.inputSystem.configure({
+      axes: [
+        {
+          name: 'camera:move:x', bindings: [
+            { min: KeyCode.KeyA, max: KeyCode.KeyD },
+            GamepadAxis.JoyLeftX,
+          ],
+        },
+        {
+          name: 'camera:move:y', bindings: [
+            { min: KeyCode.KeyS, max: KeyCode.KeyW },
+            GamepadAxis.JoyLeftY,
+          ],
+        },
+        {
+          name: 'camera:move:z', bindings: [
+            { min: KeyCode.ShiftLeft, max: KeyCode.Space },
+            { min: GamepadButton.L2, max: GamepadButton.R2 },
+          ],
+        },
+      ],
+      buttons: [
+        {
+          // @TODO What if the user has click bound to right click?
+          name: 'mouse:click',
+          bindings: [MouseButton.Left],
+        },
+      ],
+    });
+  }
 
-    /* @NOTE WASD+Shift+Space */
-    camera.keysUp.push(87);
-    camera.keysLeft.push(65);
-    camera.keysRight.push(68);
-    camera.keysDown.push(83);
-    camera.keysUpward.push(32);
-    camera.keysDownward.push(16);
+  private async buildScene(): Promise<void> {
+
+
 
     await this.createScene();
 
-    await this.babylonScene.whenReadyAsync();
-
-    this.babylonScene.onPointerObservable.add((pointerInfo) => {
-      if (pointerInfo.type === PointerEventTypes.POINTERTAP) {
-        if (!pointerInfo.pickInfo?.hit) {
-          this.selectionManager.deselectAll();
-        } else if (pointerInfo.pickInfo && pointerInfo.pickInfo.pickedMesh !== null) {
-          const pickedGameObjectId = this.selectionCache.get(pointerInfo.pickInfo.pickedMesh);
-          if (pickedGameObjectId === undefined) {
-            console.error(`Picked mesh but found no corresponding GameObject ID in cache. Has it been populated or updated? Picked mesh:`, pointerInfo.pickInfo.pickedMesh);
-          } else {
-            this.selectionManager.select(pickedGameObjectId);
-          }
-        }
-      }
-    });
-  }
-
-  public startBabylonView(): () => void {
-    const renderLoop = (): void => {
-      this.babylonScene.render();
-    };
-    this.engine.runRenderLoop(renderLoop);
-
-    const resizeObserver = new ResizeObserver((entries) => {
-      const newSize = entries[0].contentRect;
-      this.engine.setSize(newSize.width * devicePixelRatio, newSize.height * devicePixelRatio, true);
-    });
-    resizeObserver.observe(this.canvas as unknown as Element); // @TODO FUCK YOU REACT!!!!!!
-
-    this.mutationController.setMutatorActive(this.mutatorNew, true);
-
-    /* Teardown - when scene view is unloaded */
-    const onDestroyView = (): void => {
-      resizeObserver.unobserve(this.canvas as unknown as Element); // @TODO FUCK YOU REACT!!!!!!
-      if (!this.engine.isDisposed) {
-        this.engine.stopRenderLoop(renderLoop);
-        this.mutationController.setMutatorActive(this.mutatorNew, false);
-      }
-    };
-    return onDestroyView;
+    // @TODO Raycasting
+    // this.lopolyScene.onPointerObservable.add((pointerInfo) => {
+    //   if (pointerInfo.type === PointerEventTypes.POINTERTAP) {
+    //     if (!pointerInfo.pickInfo?.hit) {
+    //       this.selectionManager.deselectAll();
+    //     } else if (pointerInfo.pickInfo && pointerInfo.pickInfo.pickedMesh !== null) {
+    //       const pickedGameObjectId = this.selectionCache.get(pointerInfo.pickInfo.pickedMesh);
+    //       if (pickedGameObjectId === undefined) {
+    //         console.error(`Picked mesh but found no corresponding GameObject ID in cache. Has it been populated or updated? Picked mesh:`, pointerInfo.pickInfo.pickedMesh);
+    //       } else {
+    //         this.selectionManager.select(pickedGameObjectId);
+    //       }
+    //     }
+    //   }
+    // });
   }
 
   public destroy(): void {
+    this.viewController.destroy();
     this.selectionManager.destroy();
-    this.babylonScene.onPointerObservable.clear();
-    this.babylonScene.dispose();
-    this.engine.dispose();
     this.unlistenToFileSystemEvents();
-    this._canvas.remove();
-    for (const gameObjectInstance of this._gameObjectInstances) {
-      gameObjectInstance.destroy();
-    }
-    void this.projectController.assetCache.disposeSceneInstances(this.babylonScene);
+    this.canvas.remove();
     this.mutatorNew.deregister();
   }
 
   private async createScene(): Promise<void> {
-    /* Scene clear color */
-    this.babylonScene.clearColor = toColor3Babylon(this.scene.config.clearColor).toColor4();
-
-    /* Set up global ambient lighting */
-    const ambientLight = new HemisphericLightBabylon("__ambient", new Vector3Babylon(0, 0, 0), this.babylonScene);
-    ambientLight.intensity = this.scene.config.lighting.ambient.intensity;
-    ambientLight.diffuse = toColor3Babylon(this.scene.config.lighting.ambient.color);
-    ambientLight.groundColor = toColor3Babylon(this.scene.config.lighting.ambient.color);
-    ambientLight.specular = Color3Babylon.Black();
-
     await Promise.all(
-      this.scene.objects.map((sceneObject) =>
+      this.sceneData.objects.map((sceneObject) =>
         this.createGameObject(sceneObject),
       ),
     );
@@ -279,43 +227,39 @@ export class SceneViewController implements ISceneViewController {
 
   /**
    * Wrapper for `createGameObject()` with bindings into this SceneViewController.
-   * Automatically calls `addGameObject()` on the newly created GameObject.
    */
-  public async createGameObject(gameObjectData: GameObjectData, parentTransform?: TransformRuntime): Promise<GameObjectRuntime> {
+  public async createGameObject(gameObjectData: GameObjectData, parentGameObject?: GameObject): Promise<GameObjectRuntime> {
     const gameObject = await createGameObject(
       gameObjectData,
-      parentTransform,
-      this.babylonScene,
-      (gameObject, componentData) => this.createGameObjectComponent(
-        gameObjectData,
-        gameObject,
+      parentGameObject,
+      this.scene,
+      (componentData, gameObject, atIndex) => this.createGameObjectComponent(
         componentData as IComposerComponentData,
+        gameObject,
+        gameObjectData,
+        atIndex,
       ),
     );
 
-    // Flatten tree of game object instances
-    // We have to manually keep a record of these instances anyway
-    const collectGameObjectInstances = (gameObject: GameObjectRuntime): void => {
-      this.addGameObject(gameObject);
-      for (const childTransform of gameObject.transform.children) {
-        collectGameObjectInstances(childTransform.gameObject);
-      }
-    };
-    collectGameObjectInstances(gameObject);
+    this.scene.addGameObject(gameObject);
 
     return gameObject;
   }
 
   /**
    * Wrapper for `createEditorGameObjectComponent()` with bindings into this SceneViewController.
-   * Automatically calls `gameObject.addComponent()` with the newly created GameObjectComponent.
    */
-  public async createGameObjectComponent(gameObjectData: GameObjectData, gameObject: GameObjectRuntime, componentData: IComposerComponentData): Promise<GameObjectComponent | undefined> {
-    const component = await createEditorGameObjectComponent(
-      gameObject,
+  public async createGameObjectComponent(
+    componentData: IComposerComponentData,
+    gameObject: GameObjectRuntime,
+    gameObjectData: GameObjectData,
+    atIndex?: number,
+  ): Promise<void> {
+    await createEditorGameObjectComponent(
       componentData,
-      this.babylonScene,
-      this.projectController.assetCache,
+      gameObject,
+      atIndex,
+      this.assetCache,
       (newComponent) => this.addToSelectionCache(gameObjectData.id, newComponent),
       (newComponent) => this.componentDependencyManager.registerDependency(
         componentData,
@@ -323,29 +267,6 @@ export class SceneViewController implements ISceneViewController {
         newComponent.assetDependencyIds,
       ),
     );
-
-    return component;
-  }
-
-  /**
-   * Adds a GameObject instance to the list of game objects in this scene.
-   */
-  public addGameObject(gameObject: GameObjectRuntime): void {
-    // @NOTE Prevent duplicates
-    if (!this._gameObjectInstances.some((existingGameObject) => existingGameObject.id === gameObject.id)) {
-      this._gameObjectInstances.push(gameObject);
-    }
-  }
-
-  /**
-   * Removes a GameObject instance from the list of game objects in this scene.
-   */
-  public removeGameObject(gameObject: GameObjectRuntime): void {
-    // @NOTE Fail silently
-    const index = this._gameObjectInstances.findIndex((existingGameObject) => existingGameObject.id === gameObject.id);
-    if (index !== -1) {
-      this._gameObjectInstances.splice(index, 1);
-    }
   }
 
   public setCurrentTool(tool: CurrentSelectionTool): void {
@@ -353,106 +274,107 @@ export class SceneViewController implements ISceneViewController {
   }
 
   public focusObject(gameObject: GameObjectRuntime): void {
-    // @TODO Replace this crappy Babylon logic with a REAL engine!!
-    const [boundingBoxMin, boundingBoxMax] = this.getBoundingBoxFor(gameObject);
-    const boundingBoxCenter = boundingBoxMax.add(boundingBoxMin).scaleInPlace(0.5);
-    const viewTarget = this.sceneCamera instanceof ArcRotateCamera ? Vector3Babylon.Zero() : boundingBoxCenter;
-    const boundingBoxRadius = Math.max(
-      boundingBoxMax.subtract(viewTarget).length(),
-      boundingBoxMin.subtract(viewTarget).length(),
-    );
+    console.warn(`[${SceneViewController.name}] (${this.focusObject.name}) Not yet implemented`);
+    // // @TODO Replace this crappy Babylon logic with a REAL engine!!
+    // const [boundingBoxMin, boundingBoxMax] = this.getBoundingBoxFor(gameObject);
+    // const boundingBoxCenter = boundingBoxMax.add(boundingBoxMin).scaleInPlace(0.5);
+    // const viewTarget = this.sceneCamera instanceof ArcRotateCamera ? Vector3.Zero() : boundingBoxCenter;
+    // const boundingBoxRadius = Math.max(
+    //   boundingBoxMax.subtract(viewTarget).length(),
+    //   boundingBoxMin.subtract(viewTarget).length(),
+    // );
 
-    // Use trig to calculate 'adjacent' side of right-angled triangle (i.e. distance) based on bounding box size and camera FOV
-    const cameraDistance = boundingBoxRadius / Math.tan(this.sceneCamera.fov / 2);
+    // // Use trig to calculate 'adjacent' side of right-angled triangle (i.e. distance) based on bounding box size and camera FOV
+    // const cameraDistance = boundingBoxRadius / Math.tan(this.sceneCamera.fov / 2);
 
-    const camera: TargetCamera = this.sceneCamera;
-    if (camera instanceof ArcRotateCamera) {
-      camera.target.copyFrom(viewTarget);
-      camera.radius = cameraDistance; // Set distance
-      // Stop animating
-      camera.inertialRadiusOffset = 0;
-      camera.inertialPanningX = 0;
-      camera.inertialPanningY = 0;
-      camera.inertialAlphaOffset = 0;
-      camera.inertialBetaOffset = 0;
-    } else if (camera instanceof FreeCamera) {
-      // Move camera such that it has the same direction but with the new distance, pointing at the target
-      const cameraDirection = camera.getDirection(Vector3Babylon.Forward());
-      const cameraPosition = boundingBoxCenter.subtract(
-        cameraDirection.normalize().scale(cameraDistance),
-      );
-      camera.position.copyFrom(cameraPosition);
-      camera.cameraDirection.setAll(0); // Stop movement
-      camera.cameraRotation.setAll(0); // Stop rotation
-    }
+    // const camera: TargetCamera = this.sceneCamera;
+    // if (camera instanceof ArcRotateCamera) {
+    //   camera.target.copyFrom(viewTarget);
+    //   camera.radius = cameraDistance; // Set distance
+    //   // Stop animating
+    //   camera.inertialRadiusOffset = 0;
+    //   camera.inertialPanningX = 0;
+    //   camera.inertialPanningY = 0;
+    //   camera.inertialAlphaOffset = 0;
+    //   camera.inertialBetaOffset = 0;
+    // } else if (camera instanceof FreeCamera) {
+    //   // Move camera such that it has the same direction but with the new distance, pointing at the target
+    //   const cameraDirection = camera.getDirection(Vector3.Forward());
+    //   const cameraPosition = boundingBoxCenter.subtract(
+    //     cameraDirection.normalize().scale(cameraDistance),
+    //   );
+    //   camera.position.copyFrom(cameraPosition);
+    //   camera.cameraDirection.setAll(0); // Stop movement
+    //   camera.cameraRotation.setAll(0); // Stop rotation
+    // }
   }
 
-  private combineBoundingBoxes(boundingBoxes: BoundingBox[]): BoundingBox {
-    let minimum: Vector3Babylon | undefined = undefined;
-    let maximum: Vector3Babylon | undefined = undefined;
-    for (const boundingBox of boundingBoxes) {
-      const [boundingBoxMin, boundingBoxMax] = boundingBox;
-      if (minimum === undefined) {
-        minimum = boundingBoxMin.clone();
-      } else {
-        if (boundingBoxMin.x < minimum.x) {
-          minimum.x = boundingBoxMin.x;
-        }
-        if (boundingBoxMin.y < minimum.y) {
-          minimum.y = boundingBoxMin.y;
-        }
-        if (boundingBoxMin.z < minimum.z) {
-          minimum.z = boundingBoxMin.z;
-        }
-      }
-      if (maximum === undefined) {
-        maximum = boundingBoxMax.clone();
-      } else {
-        if (boundingBoxMax.x > maximum.x) {
-          maximum.x = boundingBoxMax.x;
-        }
-        if (boundingBoxMax.y > maximum.y) {
-          maximum.y = boundingBoxMax.y;
-        }
-        if (boundingBoxMax.z > maximum.z) {
-          maximum.z = boundingBoxMax.z;
-        }
-      }
-    }
-    return [minimum ?? Vector3Babylon.Zero(), maximum ?? Vector3Babylon.Zero()];
-  };
+  // private combineBoundingBoxes(boundingBoxes: BoundingBox[]): BoundingBox {
+  //   let minimum: Vector3 | undefined = undefined;
+  //   let maximum: Vector3 | undefined = undefined;
+  //   for (const boundingBox of boundingBoxes) {
+  //     const [boundingBoxMin, boundingBoxMax] = boundingBox;
+  //     if (minimum === undefined) {
+  //       minimum = boundingBoxMin.clone();
+  //     } else {
+  //       if (boundingBoxMin.x < minimum.x) {
+  //         minimum.x = boundingBoxMin.x;
+  //       }
+  //       if (boundingBoxMin.y < minimum.y) {
+  //         minimum.y = boundingBoxMin.y;
+  //       }
+  //       if (boundingBoxMin.z < minimum.z) {
+  //         minimum.z = boundingBoxMin.z;
+  //       }
+  //     }
+  //     if (maximum === undefined) {
+  //       maximum = boundingBoxMax.clone();
+  //     } else {
+  //       if (boundingBoxMax.x > maximum.x) {
+  //         maximum.x = boundingBoxMax.x;
+  //       }
+  //       if (boundingBoxMax.y > maximum.y) {
+  //         maximum.y = boundingBoxMax.y;
+  //       }
+  //       if (boundingBoxMax.z > maximum.z) {
+  //         maximum.z = boundingBoxMax.z;
+  //       }
+  //     }
+  //   }
+  //   return [minimum ?? Vector3.Zero(), maximum ?? Vector3.Zero()];
+  // };
 
-  public getBoundingBoxFor(gameObject: GameObjectRuntime): BoundingBox {
-    const meshComponents = gameObject.components.filter((component) => component instanceof MeshComponent);
-    const meshComponentBoundingBoxes = meshComponents.map((meshComponent) => {
-      const meshPartsBoundingBoxes = meshComponent.allSelectableMeshes.map((mesh) => {
-        const boundingBox = mesh.getBoundingInfo().boundingBox;
-        return [boundingBox.minimumWorld, boundingBox.maximumWorld] as BoundingBox;
-      });
-      return this.combineBoundingBoxes(meshPartsBoundingBoxes);
-    });
-    const childrenBoundingBoxes = gameObject.transform.children.map((child) => this.getBoundingBoxFor(child.gameObject));
+  // private getBoundingBoxFor(gameObject: GameObjectRuntime): BoundingBox {
+  //   const meshComponents = gameObject.components.filter((component) => component instanceof MeshComponent);
+  //   const meshComponentBoundingBoxes = meshComponents.map((meshComponent) => {
+  //     const meshPartsBoundingBoxes = meshComponent.allSelectableMeshes.map((mesh) => {
+  //       const boundingBox = mesh.getBoundingInfo().boundingBox;
+  //       return [boundingBox.minimumWorld, boundingBox.maximumWorld] as BoundingBox;
+  //     });
+  //     return this.combineBoundingBoxes(meshPartsBoundingBoxes);
+  //   });
+  //   const childrenBoundingBoxes = gameObject.transform.children.map((child) => this.getBoundingBoxFor(child.gameObject));
 
-    if (meshComponentBoundingBoxes.length === 0 && childrenBoundingBoxes.length === 0) {
-      // GameObject has no MeshComponents OR children. Just return simple bounding box
-      const DefaultBoundingBoxHalfWidth = 0.5;
-      return [
-        new Vector3Babylon(
-          gameObject.transform.absolutePosition.x - DefaultBoundingBoxHalfWidth,
-          gameObject.transform.absolutePosition.y - DefaultBoundingBoxHalfWidth,
-          gameObject.transform.absolutePosition.z - DefaultBoundingBoxHalfWidth,
-        ),
-        new Vector3Babylon(
-          gameObject.transform.absolutePosition.x + DefaultBoundingBoxHalfWidth,
-          gameObject.transform.absolutePosition.y + DefaultBoundingBoxHalfWidth,
-          gameObject.transform.absolutePosition.z + DefaultBoundingBoxHalfWidth,
-        ),
-      ];
-    } else {
-      // GameObject has at least one MeshComponent or child GameObject
-      return this.combineBoundingBoxes(meshComponentBoundingBoxes.concat(childrenBoundingBoxes));
-    }
-  }
+  //   if (meshComponentBoundingBoxes.length === 0 && childrenBoundingBoxes.length === 0) {
+  //     // GameObject has no MeshComponents OR children. Just return simple bounding box
+  //     const DefaultBoundingBoxHalfWidth = 0.5;
+  //     return [
+  //       new Vector3(
+  //         gameObject.transform.absolutePosition.x - DefaultBoundingBoxHalfWidth,
+  //         gameObject.transform.absolutePosition.y - DefaultBoundingBoxHalfWidth,
+  //         gameObject.transform.absolutePosition.z - DefaultBoundingBoxHalfWidth,
+  //       ),
+  //       new Vector3(
+  //         gameObject.transform.absolutePosition.x + DefaultBoundingBoxHalfWidth,
+  //         gameObject.transform.absolutePosition.y + DefaultBoundingBoxHalfWidth,
+  //         gameObject.transform.absolutePosition.z + DefaultBoundingBoxHalfWidth,
+  //       ),
+  //     ];
+  //   } else {
+  //     // GameObject has at least one MeshComponent or child GameObject
+  //     return this.combineBoundingBoxes(meshComponentBoundingBoxes.concat(childrenBoundingBoxes));
+  //   }
+  // }
 
   public addToSelectionCache(gameObjectId: string, component: ISelectableObject): void {
     this.selectionCache.add(gameObjectId, component.allSelectableMeshes);
@@ -470,8 +392,10 @@ export class SceneViewController implements ISceneViewController {
   public async reinitializeComponentInstance(componentData: IComposerComponentData, gameObjectData: GameObjectData): Promise<void> {
     const gameObjectInstance = this.findGameObjectById(gameObjectData.id);
     if (gameObjectInstance === undefined) throw new Error(`Cannot reinitialize component. No GameObject with id '${gameObjectData.id}' could be found in the scene`);
-    const componentInstance = gameObjectInstance.components.find((component) => component.id === componentData.id);
-    if (componentInstance === undefined) throw new Error(`Cannot reinitialize component. Component with ID '${componentData.id}' is not a component of GameObject with ID '${gameObjectData.id}'`);
+    const componentIndex = gameObjectInstance.components.findIndex((component) => component.id === componentData.id);
+    if (componentIndex === undefined) throw new Error(`Cannot reinitialize component. Component with ID '${componentData.id}' is not a component of GameObject with ID '${gameObjectData.id}'`);
+
+    const componentInstance = gameObjectInstance.components[componentIndex];
 
     // Remove selectable components from selection cache
     if (isSelectableObject(componentInstance)) {
@@ -487,62 +411,43 @@ export class SceneViewController implements ISceneViewController {
     gameObjectInstance.removeComponent(componentInstance.id);
 
     // Re-create component instance
-    const component = await this.createGameObjectComponent(gameObjectData, gameObjectInstance, componentData);
-    if (component !== undefined) {
-      gameObjectInstance.addComponent(component);
-    }
+    await this.createGameObjectComponent(componentData, gameObjectInstance, gameObjectData, componentIndex);
   }
 
+  // @TODO we should maybe just "Resume" the engine rather than tearing it down / up all the time
   public async reloadSceneData(scene: SceneDbRecord): Promise<void> {
     // Clear out the scene
     this.selectionManager.deselectAll();
     this.selectionCache.clear();
     this.componentDependencyManager.clear();
-    this._gameObjectInstances.forEach((instance) => instance.destroy());
-    this._gameObjectInstances = [];
+    this.scene.topLevelGameObjects.forEach((topLevelGameObject) => {
+      this.scene.destroyGameObject(topLevelGameObject);
+    });
 
-    const rootNodes = [...this.babylonScene.rootNodes];
-    for (const sceneObject of rootNodes) {
-      if (sceneObject !== this.sceneCamera) {
-        sceneObject.dispose();
-      }
-    }
-
-    // @TODO Do we need to explicitly iterate through, like, materials and textures and stuff?
-
-    // Update data
-    this._scene = scene.data;
-    this._sceneJson = scene.jsonc;
+    // Update scene data
+    this.viewController.bindScene(scene.data, scene.jsonc);
 
     await this.createScene();
   }
 
   public findGameObjectById(gameObjectId: string): GameObjectRuntime | undefined {
-    return this._gameObjectInstances.find((gameObject) => gameObject.id === gameObjectId);
+    return this.scene.findGameObjectById(gameObjectId);
   }
 
-  public get canvas(): HTMLCanvasElement {
-    return this._canvas;
-  }
+  /* IViewController implementation through encapsulated object */
+  // @TODO Rename
+  public startBabylonView(): () => void { return this.viewController.startBabylonView(); }
+  public get canvas(): HTMLCanvasElement { return this.viewController.canvas; }
+  public get assetCache(): AssetCache { return this.viewController.assetCache; }
+  public get mutator(): SceneViewMutator { return this.viewController.mutator; }
+  public get mutatorNew(): SceneViewMutatorNew { return this.viewController.mutatorNew; }
+  private get engine(): IEngine { return this.viewController.engine; }
+  private get scene(): Scene { return this.viewController.scene; }
+  private get lopolyScene(): LoPolyScene { return this.scene.lopolyScene; }
 
-  public get scene(): SceneData {
-    return this._scene;
-  }
-
-  public get sceneJson(): JsoncContainer<SceneDefinition> {
-    return this._sceneJson;
-  }
-
-  public get sceneDefinition(): SceneDefinition {
-    return this._sceneJson.value;
-  }
-
-  public get mutator(): SceneViewMutator {
-    return this._mutator;
-  }
-  public get mutatorNew(): SceneViewMutatorNew {
-    return this._mutatorNew;
-  }
+  public get sceneData(): SceneData { return this.viewController.sceneData; }
+  public get sceneJson(): JsoncContainer<SceneDefinition> { return this.viewController.sceneJson; }
+  public get sceneDefinition(): SceneDefinition { return this.viewController.sceneJson.value; }
 
   public get selectedObject(): GameObjectRuntime | undefined {
     if (this.selectedObjectId) {
@@ -553,7 +458,7 @@ export class SceneViewController implements ISceneViewController {
   }
   public get selectedObjectData(): GameObjectData | undefined {
     if (this.selectedObjectId) {
-      return this.scene.findGameObject(this.selectedObjectId);
+      return this.sceneData.findGameObject(this.selectedObjectId);
     } else {
       return undefined;
     }
@@ -565,4 +470,6 @@ export class SceneViewController implements ISceneViewController {
   public get selectionManager(): SelectionManager {
     return this._selectionManager;
   }
+
+  public get camera(): ViewCamera { return this.viewController.camera; }
 }

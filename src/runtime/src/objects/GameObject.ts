@@ -1,4 +1,5 @@
 import { IScene, ObjectNode, SceneNode } from '@lopoly/engine/scene';
+import { Matrix4 } from '@lopoly/engine/math';
 import { GameObject as GameObjectCore } from '@polyzone/core/objects/GameObject';
 import { Vector3, Rotation } from '@polyzone/core/math';
 import { Scene } from '@polyzone/runtime/scene';
@@ -38,10 +39,10 @@ export class GameObject extends GameObjectCore {
   public onDestroy(): void {
     this.components.forEach((component) => component.onDestroy());
     // @TODO should this be enabled? It previously wasn't here. But surely we need it?
-    this.sceneNode.forEachChildGameObject((child) => child.destroy());
+    // this.sceneNode.forEachChildGameObject((child) => child.destroy());
   }
 
-  public async registerComponentInstance<TGameObjectComponent extends GameObjectComponent>(fn: (componentParentSceneNode: SceneNode) => TGameObjectComponent | Promise<TGameObjectComponent>): Promise<TGameObjectComponent> {
+  public async registerComponentInstance<TGameObjectComponent extends GameObjectComponent>(fn: (componentParentSceneNode: SceneNode) => TGameObjectComponent | Promise<TGameObjectComponent>, atIndex?: number): Promise<TGameObjectComponent> {
     const componentInstance = await fn(this.sceneNode.componentNodesParent);
     if (this.components.includes(componentInstance)) {
       throw new Error(`Cannot add component to ${GameObject.name}: component already belongs to this ${GameObject.name}`);
@@ -49,7 +50,13 @@ export class GameObject extends GameObjectCore {
     if (!this.sceneNode.componentNodesParent.findChild((child) => child === componentInstance.sceneNode)) {
       throw new Error(`Component did not register the ${GameObject.name}'s scene node as its parent`);
     }
-    this._components.push(componentInstance);
+
+    if (atIndex !== undefined) {
+      this._components.splice(atIndex, 0, componentInstance);
+    } else {
+      this._components.push(componentInstance);
+    }
+
     return componentInstance;
   }
 
@@ -61,20 +68,18 @@ export class GameObject extends GameObjectCore {
   //   this._components.push(componentInstance);
   //   componentInstance.sceneNode.parent = this.sceneNode.componentNodesParent;
   // }
-  // public removeComponent(componentId: string): void {
-  //   const componentInstance = this.componentInstances.find(({ component }) => component.id === componentId);
+  public removeComponent(componentId: string): void {
+    const componentIndex = this.components.findIndex((component) => component.id === componentId);
 
-  //   if (componentInstance === undefined) {
-  //     throw new Error(`Cannot remove component from GameObject. No component exists on GameObject with Id: '${componentId}'`);
-  //   }
+    if (componentIndex === undefined) {
+      throw new Error(`Cannot remove component from GameObject. No component exists on GameObject with Id: '${componentId}'`);
+    }
 
-  //   if (componentInstance.node) {
-  //     // @TODO Delete lol there is no destroy
-  //     throw new Error(`Not implemented: There is no way to remove a component yet`);
-  //     // this.componentNodesParent.removeChild(componentInstance.node);
-  //   }
-  //   componentInstance.component.onDestroy();
-  // }
+    const componentInstance = this._components.splice(componentIndex, 0)[0];
+
+    componentInstance.onDestroy();
+    componentInstance.sceneNode.destroy();
+  }
 
   // @TODO Put into core?
   // /**
@@ -130,6 +135,7 @@ export class GameObject extends GameObjectCore {
   public override get parent(): GameObject | undefined { return this.sceneNode.parent?.gameObject; }
   public override set parent(value: GameObject | undefined) { this.sceneNode.parent = value?.sceneNode; }
   public override get name(): string { return this.sceneNode.name; }
+  public get worldMatrix(): Matrix4 { return this.sceneNode.worldMatrix; }
   public get position(): Vector3 { return this.sceneNode.position; }
   public set position(value: Vector3) { this.sceneNode.position = value; }
   public get rotation(): Rotation { return this.sceneNode.rotation; }
@@ -170,7 +176,7 @@ export class GameObjectNode extends SceneNode {
           childGameObjectNode.forEachChildGameObject(fn, recursive);
         }
       }
-    }, false);
+    }, { includeDisabled: false });
   }
 
   public findChildGameObject(fn: (gameObject: GameObject) => boolean, recursive: boolean = false): GameObject | undefined {
@@ -196,7 +202,7 @@ export class GameObjectNode extends SceneNode {
           }
         }
       }
-    }, false);
+    }, { includeDisabled: false });
 
     return result;
   }

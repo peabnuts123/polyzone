@@ -1,6 +1,6 @@
-import { ComponentDefinitionType, GameObjectDefinition, AssetType } from "@polyzone/runtime/src/cartridge/archive";
-import { isDefined, toColor3Core, toVector3Core } from "@polyzone/runtime/src/util";
-import { LoadObjectDefinitionFn } from "@polyzone/runtime/src/cartridge";
+import { ComponentDefinitionType, GameObjectDefinition, AssetType } from "@polyzone/runtime/cartridge/archive";
+import { LoadObjectDefinitionFn } from "@polyzone/runtime/cartridge";
+import { Color3, Vector3 } from "@polyzone/core/math";
 
 import { AssetDb, type IEditorAssetDb } from "@lib/project/data/AssetDb";
 import { MeshAssetData, ScriptAssetData } from "@lib/project/data/assets";
@@ -27,7 +27,7 @@ export function loadObjectDefinition(objectDefinition: GameObjectDefinition, ass
     switch (componentDefinition.type) {
       case ComponentDefinitionType.Mesh: {
         let meshAsset: MeshAssetData | undefined = undefined;
-        if (isDefined(componentDefinition.meshFileId)) {
+        if (componentDefinition.meshFileId !== null) {
           meshAsset = assetDb.getById(componentDefinition.meshFileId, AssetType.Mesh);
         }
         components.push(new MeshComponentData(componentDefinition.id, meshAsset));
@@ -35,7 +35,7 @@ export function loadObjectDefinition(objectDefinition: GameObjectDefinition, ass
       }
       case ComponentDefinitionType.Script: {
         let scriptAsset: ScriptAssetData | undefined = undefined;
-        if (isDefined(componentDefinition.scriptFileId)) {
+        if (componentDefinition.scriptFileId !== null) {
           // @TODO Nah dog… these Ids my be invalid lol
           scriptAsset = assetDb.getById(componentDefinition.scriptFileId, AssetType.Script);
         }
@@ -47,12 +47,12 @@ export function loadObjectDefinition(objectDefinition: GameObjectDefinition, ass
         break;
       }
       case ComponentDefinitionType.DirectionalLight: {
-        const color = toColor3Core(componentDefinition.color);
+        const color = new Color3(componentDefinition.color);
         components.push(new DirectionalLightComponentData(componentDefinition.id, componentDefinition.intensity, color));
         break;
       }
       case ComponentDefinitionType.PointLight: {
-        const color = toColor3Core(componentDefinition.color);
+        const color = new Color3(componentDefinition.color);
         components.push(new PointLightComponentData(componentDefinition.id, componentDefinition.intensity, color));
         break;
       }
@@ -72,9 +72,9 @@ export function loadObjectDefinition(objectDefinition: GameObjectDefinition, ass
     objectDefinition.id,
     objectDefinition.name,
     new TransformData(
-      toVector3Core(objectDefinition.transform.position),
-      toVector3Core(objectDefinition.transform.rotation),
-      toVector3Core(objectDefinition.transform.scale),
+      new Vector3(objectDefinition.transform.position),
+      new Vector3(objectDefinition.transform.rotation),
+      new Vector3(objectDefinition.transform.scale),
     ),
     components,
     children,

@@ -1,17 +1,15 @@
 import { makeAutoObservable } from "mobx";
 
-import { ClassReference } from "@polyzone/core/src/util";
-
 import type { IComposerComponentData } from "./components";
 import type { TransformData } from "./TransformData";
-import { IGameObjectData, GameObjectData as GameObjectDataRuntime, GameObjectDefinition } from "@polyzone/runtime/src/cartridge";
-import { toVector3Definition } from "@polyzone/runtime/src/util";
+import { IGameObjectData, GameObjectData as GameObjectDataRuntime, GameObjectDefinition } from "@polyzone/runtime/cartridge";
+import { ClassReference } from "@lopoly/engine/util/types";
 
 export class GameObjectData implements IGameObjectData {
   private _gameObjectData: GameObjectDataRuntime;
 
   public constructor(id: string, name: string, transform: TransformData, components: IComposerComponentData[], children: GameObjectData[]) {
-    this._gameObjectData = new GameObjectDataRuntime(id,name, transform, components, children);
+    this._gameObjectData = new GameObjectDataRuntime(id, name, transform, components, children);
 
     makeAutoObservable(this);
     makeAutoObservable(this._gameObjectData);
@@ -114,9 +112,9 @@ export class GameObjectData implements IGameObjectData {
       id: this.id,
       name: this.name,
       transform: {
-        position: toVector3Definition(this.transform.position),
-        rotation: toVector3Definition(this.transform.rotation),
-        scale: toVector3Definition(this.transform.scale),
+        position: this.transform.position.clone(),
+        rotation: this.transform.rotation.clone(),
+        scale: this.transform.scale.clone(),
       },
       components: this.components.map((component) => component.toComponentDefinition()),
       children: this.children.map((child) => child.toDefinition()),

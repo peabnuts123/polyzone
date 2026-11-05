@@ -3,6 +3,8 @@ import { Color4 } from "./Color4";
 
 export type { Color3Like } from '@lopoly/engine/math/Color3';
 
+// @TODO What value is being offered by this abstraction? Is it just budget consumption?
+
 export class Color3 extends LoPolyColor3 {
   public constructor(color: Color3Like);
   public constructor(r: number, g: number, b: number);

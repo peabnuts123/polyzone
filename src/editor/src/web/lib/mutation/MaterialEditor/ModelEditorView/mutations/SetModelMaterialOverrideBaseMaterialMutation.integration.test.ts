@@ -27,7 +27,7 @@ describe(SetModelMaterialOverrideBaseMaterialMutation.name, () => {
 
       const mockMaterial = createMockMaterial({
         reflection: {
-          type: '3x2',
+          type: 'box-net',
           strength: 1.0,
           textureAssetId: mockTextureAssetDefinition.id,
         },
@@ -122,7 +122,7 @@ describe(SetModelMaterialOverrideBaseMaterialMutation.name, () => {
       // Create first base material
       const mockFirstMaterial = createMockMaterial({
         reflection: {
-          type: '3x2',
+          type: 'box-net',
           strength: 1.0,
           textureAssetId: mockFirstTextureAssetDefinition.id,
         },
@@ -132,7 +132,7 @@ describe(SetModelMaterialOverrideBaseMaterialMutation.name, () => {
       // Create second base material
       const mockSecondMaterial = createMockMaterial({
         reflection: {
-          type: '6x1',
+          type: 'box-net',
           strength: 0.8,
           textureAssetId: mockSecondTextureAssetDefinition.id,
         },
@@ -227,7 +227,7 @@ describe(SetModelMaterialOverrideBaseMaterialMutation.name, () => {
 
       const mockMaterial = createMockMaterial({
         reflection: {
-          type: '3x2',
+          type: 'box-net',
           strength: 1.0,
           textureAssetId: mockTextureAssetDefinition.id,
         },

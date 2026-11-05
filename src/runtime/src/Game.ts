@@ -6,6 +6,7 @@ import { AssetType } from "./cartridge/archive/assets";
 import { SceneData } from "./cartridge/data/scenes";
 import { Scene } from "./scene";
 import { OnUpdateCallback } from "./Runtime";
+import { createGameObject, createGameObjectComponent } from "./objects/createGameObject";
 
 export class Game {
   // References
@@ -60,9 +61,22 @@ export class Game {
 
     // Create game objects
     await Promise.all(
-      cartridgeScene.objects.map((sceneObjectData) =>
-        scene.createGameObject(sceneObjectData),
-      ),
+      cartridgeScene.objects.map(async (sceneObjectData) => {
+        const gameObject = await createGameObject(
+          sceneObjectData,
+          undefined,
+          scene,
+          (componentData, gameObject) =>
+            createGameObjectComponent(
+              componentData,
+              gameObject,
+              undefined,
+              this.assetCache,
+              this.scriptLoader,
+            ),
+        );
+        scene.addGameObject(gameObject);
+      }),
     );
 
     // Initialise game objects

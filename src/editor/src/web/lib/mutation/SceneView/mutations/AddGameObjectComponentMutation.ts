@@ -18,16 +18,13 @@ export class AddGameObjectComponentMutation extends BaseSceneMutation<MutationAr
 
   public override async apply({ SceneViewController }: SceneViewMutationArguments, { newComponent }: MutationArgs): Promise<void> {
     // 1. Update data
-    const gameObjectData = SceneViewController.scene.getGameObject(this.gameObjectId);
+    const gameObjectData = SceneViewController.sceneData.getGameObject(this.gameObjectId);
     gameObjectData.components.push(newComponent);
 
     // 2. Update scene
     const gameObject = SceneViewController.findGameObjectById(this.gameObjectId);
     if (gameObject === undefined) throw new Error(`Cannot apply mutation - no game object exists in the scene with id '${this.gameObjectId}'`);
-    const component = await SceneViewController.createGameObjectComponent(gameObjectData, gameObject, newComponent);
-    if (component !== undefined) {
-      gameObject.addComponent(component);
-    }
+    await SceneViewController.createGameObjectComponent(newComponent, gameObject, gameObjectData);
 
     // 3. Update JSONC
     const newComponentDefinition = newComponent.toComponentDefinition();
@@ -41,7 +38,7 @@ export class AddGameObjectComponentMutation extends BaseSceneMutation<MutationAr
 
   protected override customUndo({ SceneViewController }: SceneViewMutationArguments, { newComponent }: MutationArgs): Promise<void> {
     // 1. Update data
-    const gameObjectData = SceneViewController.scene.getGameObject(this.gameObjectId);
+    const gameObjectData = SceneViewController.sceneData.getGameObject(this.gameObjectId);
     const componentToRemoveDataIndex = gameObjectData.components.findIndex((component) => component.id === newComponent.id);
     gameObjectData.components.splice(componentToRemoveDataIndex, 1);
 

@@ -1,15 +1,14 @@
 import { makeAutoObservable } from "mobx";
 import { v4 as uuid } from 'uuid';
 
-import { Color3 } from '@polyzone/core/src/util';
+import { Color3 } from '@polyzone/core/math';
 import {
   type ComponentDefinition,
   ComponentDefinitionType,
   type IPointLightComponentData,
   type PointLightComponentDefinition,
   PointLightComponentData as PointLightComponentDataRuntime,
-} from "@polyzone/runtime/src/cartridge";
-import { toColor3Definition } from "@polyzone/runtime/src/util";
+} from "@polyzone/runtime/cartridge";
 
 import type { IComposerComponentData } from "./IComposerComponentData";
 
@@ -26,7 +25,7 @@ export class PointLightComponentData implements IComposerComponentData, IPointLi
     return {
       id: this.id,
       type: ComponentDefinitionType.PointLight,
-      color: toColor3Definition(this.color),
+      color: this.color.clone(),
       intensity: this.intensity,
     } satisfies PointLightComponentDefinition as PointLightComponentDefinition;
   }

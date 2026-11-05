@@ -1,12 +1,11 @@
-import { IFileSystem, VirtualFile } from "@polyzone/runtime/src/filesystem";
+import { IFileSystem, VirtualFile } from "@lopoly/engine/filesystem";
 
 export const DebugFileSystemRoot: string = `/project`;
 
-export class DebugFileSystem extends IFileSystem {
+export class DebugFileSystem implements IFileSystem {
   private fileSystemRoot: string;
 
   public constructor() {
-    super(`debugfs`);
     this.fileSystemRoot = DebugFileSystemRoot;
   }
 

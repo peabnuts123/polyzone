@@ -1,6 +1,7 @@
-import { ClassReference } from "@polyzone/core/src/util";
-import { GameObjectComponent } from "@polyzone/core/src/world";
-import { DirectionalLightComponent, PointLightComponent } from "@polyzone/runtime/src/world";
+import { ClassReference } from "@lopoly/engine/util";
+
+import { GameObjectComponent } from "@polyzone/core/objects";
+import { DirectionalLightComponent, PointLightComponent } from "@polyzone/runtime/objects/components";
 import { DirectionalLightComponentDefinition, PointLightComponentDefinition } from "@polyzone/runtime/src/cartridge";
 
 import { DirectionalLightComponentData, GameObjectData, IComposerComponentData, PointLightComponentData } from "@lib/project/data";
@@ -34,7 +35,7 @@ export class SetGameObjectLightComponentIntensityMutation extends BaseContinuous
   }
 
   public override update({ SceneViewController }: SceneViewMutationArguments, { intensity }: SetGameObjectLightComponentIntensityMutationUpdateArgs): Promise<void> {
-    const gameObjectData = SceneViewController.scene.getGameObject(this.gameObjectId);
+    const gameObjectData = SceneViewController.sceneData.getGameObject(this.gameObjectId);
     const componentData = gameObjectData.getComponent(this.componentId, LightComponentDataTypes);
     const gameObject = SceneViewController.findGameObjectById(this.gameObjectId);
     if (gameObject === undefined) throw new Error(`Cannot apply mutation - no game object exists in the scene with id '${this.gameObjectId}'`);
@@ -49,7 +50,7 @@ export class SetGameObjectLightComponentIntensityMutation extends BaseContinuous
   }
 
   public override apply({ SceneViewController }: SceneViewMutationArguments): Promise<void> {
-    const gameObjectData = SceneViewController.scene.getGameObject(this.gameObjectId);
+    const gameObjectData = SceneViewController.sceneData.getGameObject(this.gameObjectId);
     const componentData = gameObjectData.getComponent(this.componentId, LightComponentDataTypes);
     const componentIndex = gameObjectData.components.findIndex((component) => component.id === this.componentId);
 
@@ -65,7 +66,7 @@ export class SetGameObjectLightComponentIntensityMutation extends BaseContinuous
   }
 
   protected override getUndoArgs({ SceneViewController }: SceneViewMutationArguments): SetGameObjectLightComponentIntensityMutationUpdateArgs {
-    const gameObjectData = SceneViewController.scene.getGameObject(this.gameObjectId);
+    const gameObjectData = SceneViewController.sceneData.getGameObject(this.gameObjectId);
     const componentData = gameObjectData.getComponent(this.componentId, LightComponentDataTypes);
 
     return {

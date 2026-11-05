@@ -65,7 +65,7 @@ const ComposerPage: FunctionComponent<Props> = observer(({ }) => {
 
   const debug_playProject = async (): Promise<void> => {
     const currentlyFocusedTab = ComposerController.currentlyOpenTabs.find((tab) => tab.id === TabState.currentTabPageId);
-    const bytes = await ComposerController.debug_buildCartridge(currentlyFocusedTab?.sceneViewController?.scene.id);
+    const bytes = await ComposerController.debug_buildCartridge(currentlyFocusedTab?.sceneViewController?.sceneData.id);
     setTempCartridge(bytes);
   };
 
@@ -156,7 +156,7 @@ const Editor: FunctionComponent = observer(() => {
 
   const openSceneInAppropriateTab = (scene: SceneData, allowReplace: boolean = false): void => {
     // If scene is already open - switch to tab
-    const existingTabForScene = ComposerController.currentlyOpenTabs.find((tab) => tab.sceneViewController?.scene.id === scene.id);
+    const existingTabForScene = ComposerController.currentlyOpenTabs.find((tab) => tab.sceneViewController?.sceneData.id === scene.id);
     if (existingTabForScene !== undefined) {
       TabState.setCurrentTabPageId(existingTabForScene.id);
       return;
@@ -184,7 +184,7 @@ const Editor: FunctionComponent = observer(() => {
           tabId: tab.id,
           innerContent: (
             <>
-              <span className="mr-2">{tab.sceneViewController?.scene.path || "No scene loaded"}</span>
+              <span className="mr-2">{tab.sceneViewController?.sceneData.path || "No scene loaded"}</span>
 
               <div
                 role="button"

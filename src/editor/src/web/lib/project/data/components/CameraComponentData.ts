@@ -7,7 +7,7 @@ import {
   ComponentDefinitionType,
   CameraComponentData as CameraComponentDataRuntime,
   type ICameraComponentData,
-} from "@polyzone/runtime/src/cartridge";
+} from "@polyzone/runtime/cartridge";
 
 import type { IComposerComponentData } from "./IComposerComponentData";
 

@@ -1,10 +1,10 @@
-import { IFileSystem } from "@polyzone/runtime/src/filesystem";
+import { IFileSystem } from '@lopoly/engine/filesystem';
 
-export abstract class IWritableFileSystem extends IFileSystem {
-  public abstract writeFile(path: string, data: Uint8Array): Promise<void>;
-  public abstract deleteFile(path: string): Promise<void>;
-  public abstract moveFile(oldPath: string, newPath: string): Promise<void>;
-  public abstract get writingState(): WritingState;
+export interface IWritableFileSystem extends IFileSystem {
+  writeFile(path: string, data: Uint8Array): Promise<void>;
+  deleteFile(path: string): Promise<void>;
+  moveFile(oldPath: string, newPath: string): Promise<void>;
+  get writingState(): WritingState;
 }
 
 export enum WritingState {

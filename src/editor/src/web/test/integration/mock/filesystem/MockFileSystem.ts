@@ -1,5 +1,5 @@
-import { VirtualFile } from '@polyzone/runtime/src/filesystem';
-import Resolver from '@polyzone/runtime/src/Resolver';
+import { VirtualFile } from '@polyzone/runtime/filesystem';
+import Resolver from '@polyzone/runtime/Resolver';
 
 import { IWritableFileSystem, WritingState } from '@lib/filesystem/IWritableFileSystem';
 

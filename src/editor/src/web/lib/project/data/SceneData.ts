@@ -1,6 +1,6 @@
 import { makeAutoObservable } from "mobx";
 
-import { ISceneData, SceneDataConfiguration, SceneData as SceneDataRuntime } from "@polyzone/runtime/src/cartridge";
+import { ISceneData, SceneDataConfiguration, SceneData as SceneDataRuntime } from "@polyzone/runtime/cartridge";
 
 import { SceneDefinition, SceneManifest } from "../definition";
 import { __loadObjectDefinitionForRuntime } from "./loadObjectDefinition";

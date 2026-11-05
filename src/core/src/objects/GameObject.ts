@@ -7,16 +7,16 @@ import { Scene } from "../scene/Scene";
  * Components are used to build up behaviours, whereas a GameObject by itself does nothing.
  */
 export abstract class GameObject {
-  // @TODO addComponent(gameObjectData: GameObjectData) // Not necessarily data but just some kind of definition.
+  // @TODO createComponent(gameObjectData: GameObjectData) // Not necessarily data but just some kind of definition.
   // /**
   //  * Add a component to this GameObject
   //  */
   // public abstract addComponent(component: GameObjectComponent): void;
-  // /**
-  //  * Remove a component from this GameObject.
-  //  * @param componentId The ID of the component to remove.
-  //  */
-  // public abstract removeComponent(componentId: string): void;
+  /**
+   * Remove a component from this GameObject.
+   * @param componentId The ID of the component to remove.
+   */
+  public abstract removeComponent(componentId: string): void;
 
   /**
    * Called once, after the game object is added to the world.

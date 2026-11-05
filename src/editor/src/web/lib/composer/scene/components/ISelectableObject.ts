@@ -1,7 +1,8 @@
-import type { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
+import { ModelNode } from "@lopoly/engine/scene/nodes";
 
 export interface ISelectableObject {
-  get allSelectableMeshes(): AbstractMesh[];
+  // @TODO Probably doesn't need to be an array any more.
+  get allSelectableMeshes(): ModelNode[];
 }
 
 export function isSelectableObject(object: object | undefined): object is ISelectableObject {

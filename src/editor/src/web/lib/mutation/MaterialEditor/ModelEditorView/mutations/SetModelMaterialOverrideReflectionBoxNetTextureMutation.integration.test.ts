@@ -320,7 +320,7 @@ describe(SetModelMaterialOverrideReflectionBoxNetTextureMutation.name, () => {
           materialOverrides: {
             [mockMaterialName]: {
               reflection: {
-                type: '3x2', // @NOTE Different reflection type
+                type: 'box-net', // @NOTE Different reflection type
                 strength: 1.0,
               },
             },

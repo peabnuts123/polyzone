@@ -2,9 +2,6 @@ import { makeAutoObservable, runInAction } from "mobx";
 import * as path from "@tauri-apps/api/path";
 import { exists } from "@tauri-apps/plugin-fs";
 
-import Resolver from '@polyzone/runtime/src/Resolver';
-import { AssetCache } from "@polyzone/runtime/src/world";
-
 import { IWritableFileSystem } from "@lib/filesystem/IWritableFileSystem";
 import { TauriFileSystem } from '@lib/filesystem/TauriFileSystem';
 import { JsoncContainer } from "@lib/util/JsoncContainer";
@@ -16,11 +13,14 @@ import { ProjectFilesWatcher } from "./watcher/ProjectFilesWatcher";
 import { ProblemScanner } from "./problems/ProblemScanner";
 import { ProjectData } from "./data/ProjectData";
 import { MutationController } from "@lib/mutation/MutationController";
+import { AnyViewController, ViewController } from "@lib/common/view";
 
 export interface IProjectController {
   loadProject(projectPath: string): Promise<void>;
   reloadProjectFileFromFs(): Promise<ProjectData>;
   onDestroy(): void;
+  registerViewController(viewController: AnyViewController): void;
+  unregisterViewController(viewController: AnyViewController): void;
 
   get isLoadingProject(): boolean;
   get hasLoadedProject(): boolean;
@@ -30,7 +30,7 @@ export interface IProjectController {
   get mutator(): ProjectMutator;
   get fileSystem(): IWritableFileSystem;
   get filesWatcher(): ProjectFilesWatcher;
-  get assetCache(): AssetCache;
+  get viewControllers(): readonly AnyViewController[];
 }
 
 export class ProjectController implements IProjectController {
@@ -43,7 +43,7 @@ export class ProjectController implements IProjectController {
   private _fileSystem: IWritableFileSystem | undefined = undefined;
   private _filesWatcher: ProjectFilesWatcher | undefined = undefined;
   private problemScanner: ProblemScanner | undefined = undefined;
-  private _assetCache: AssetCache | undefined;
+  private readonly _viewControllers: AnyViewController[] = [];
 
   public constructor(applicationDataController: ApplicationDataController, mutationController: MutationController) {
     this._mutator = new ProjectMutator(this);
@@ -72,9 +72,6 @@ export class ProjectController implements IProjectController {
       this._fileSystem = fileSystem;
     });
 
-    // Bind file system to babylon resolver
-    Resolver.registerFileSystem(fileSystem);
-
     // Notify backend that project is loaded
     await invoke('load_project', { projectFilePath: projectPath });
 
@@ -89,7 +86,7 @@ export class ProjectController implements IProjectController {
       fileSystem,
     });
 
-    this._assetCache = new AssetCache(project.assets);
+    // this._assetCache = new AssetCache(new Engine(undefined!, fileSystem), project.assets);
 
     // Update app data
     await this.applicationDataController.mutateAppData((appData) => {
@@ -159,6 +156,21 @@ export class ProjectController implements IProjectController {
     this.problemScanner?.onDestroy();
   }
 
+  public registerViewController(viewController: AnyViewController): void {
+    if (this._viewControllers.includes(viewController)) {
+      throw new Error(`Attempted to register ${ViewController.name} instance twice: ${viewController.constructor.name}`);
+    }
+    this._viewControllers.push(viewController);
+  }
+
+  public unregisterViewController(viewController: AnyViewController): void {
+    const index = this._viewControllers.indexOf(viewController);
+    if (index === -1) {
+      throw new Error(`Attempted to unregister not-registered ${ViewController.name}: ${viewController.constructor.name}`);
+    }
+    this._viewControllers.splice(index, 1);
+  }
+
   public get isLoadingProject(): boolean {
     return this._isLoadingProject;
   }
@@ -201,11 +213,8 @@ export class ProjectController implements IProjectController {
     return this._filesWatcher;
   }
 
-  public get assetCache(): AssetCache {
-    if (this._assetCache === undefined) {
-      throw new Error(`AssetCache has not been initialised yet - no project is loaded`);
-    }
-    return this._assetCache;
+  public get viewControllers(): readonly AnyViewController[] {
+    return this._viewControllers;
   }
 }
 

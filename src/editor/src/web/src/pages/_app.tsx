@@ -5,7 +5,7 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import * as Mobx from 'mobx';
 
-import { DebugModule } from '@polyzone/runtime/src/util/DebugModule';
+// import { DebugModule } from '@polyzone/runtime/util/DebugModule';
 
 import '@app/styles/index.css';
 import { createLibrary, LibraryContext } from '@lib/index';
@@ -18,7 +18,7 @@ __hackNextJsServerSideRenderingForTauri();
 
 // Global debug utilities accessible from devtools console
 __storeMobxGlobalsForDebugging();
-__registerDebugModule();
+// __registerDebugModule();
 
 /* Mock Tauri IPC if not running in Tauri */
 if (typeof window !== "undefined") {
@@ -166,18 +166,18 @@ function __storeMobxGlobalsForDebugging(): void {
   /* eslint-enable @typescript-eslint/no-unsafe-member-access */
 }
 
-function __registerDebugModule(): void {
-  if (isRunningInTauri()) {
-    /* Use Tauri for downloading files */
-    async function saveOverride(data: Blob, filename: string): Promise<void> {
-      const bytes = await data.bytes();
-      return showSavePrompt(bytes, {
-        defaultPath: filename,
-      });
-    }
-    DebugModule.register(saveOverride);
-  } else {
-    /* Use native browser functionality for downloading */
-    DebugModule.register();
-  }
-}
+// function __registerDebugModule(): void {
+//   if (isRunningInTauri()) {
+//     /* Use Tauri for downloading files */
+//     async function saveOverride(data: Blob, filename: string): Promise<void> {
+//       const bytes = await data.bytes();
+//       return showSavePrompt(bytes, {
+//         defaultPath: filename,
+//       });
+//     }
+//     DebugModule.register(saveOverride);
+//   } else {
+//     /* Use native browser functionality for downloading */
+//     DebugModule.register();
+//   }
+// }

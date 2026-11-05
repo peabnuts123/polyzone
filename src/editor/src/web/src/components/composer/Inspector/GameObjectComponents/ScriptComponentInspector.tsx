@@ -1,6 +1,6 @@
 import { observer } from 'mobx-react-lite';
 
-import { AssetType } from '@polyzone/runtime/src/cartridge';
+import { AssetType } from '@polyzone/runtime/cartridge';
 
 import type { ScriptComponentData } from "@lib/project/data";
 import { SetGameObjectScriptComponentAssetMutation } from '@lib/mutation/SceneView/mutations';

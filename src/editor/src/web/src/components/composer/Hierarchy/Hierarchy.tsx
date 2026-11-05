@@ -5,7 +5,7 @@ import { PlusIcon } from '@heroicons/react/24/outline';
 import { observer } from "mobx-react-lite";
 import { v4 as uuid } from 'uuid';
 
-import { GameObjectDefinition } from "@polyzone/runtime/src/cartridge";
+import { GameObjectDefinition } from "@polyzone/runtime/cartridge";
 
 import { CreateGameObjectFromDefinitionMutation, CreateGameObjectType, DeleteGameObjectMutation } from "@lib/mutation/SceneView/mutations";
 import { GameObjectData } from "@lib/project/data";
@@ -75,7 +75,7 @@ export const Hierarchy: FunctionComponent<Props> = observer(({ controller }) => 
     <div className="h-full flex flex-col" data-name="Hierarchy">
       {/* Heading */}
       <div className="p-2 bg-gradient-to-b from-[blue] to-teal-500 text-white text-retro-shadow">
-        <h2 className="text-lg">{controller.scene.path}</h2>
+        <h2 className="text-lg">{controller.sceneData.path}</h2>
       </div>
       {/* Elements */}
       <div className="bg-slate-300 grow flex flex-col min-h-0" onContextMenu={showContextMenu}>
@@ -83,15 +83,15 @@ export const Hierarchy: FunctionComponent<Props> = observer(({ controller }) => 
           <button className="button w-full" onClick={() => createNewObject()}><PlusIcon className="icon mr-1" /> New object</button>
         </div>
         <div className="px-3 flex flex-col grow overflow-y-scroll" onClick={onClickBackground} data-blank-space={true}>
-          {controller.scene.objects.map((gameObject, index) => (
+          {controller.sceneData.objects.map((gameObject, index) => (
             <HierarchyObject
               key={gameObject.id}
               controller={controller}
               gameObject={gameObject}
               parentGameObject={undefined} // Top-level objects have no parent
               contextActions={{ createNewObject, deleteObject }}
-              previousSiblingId={gameObjectAt(controller.scene.objects, index - 1)}
-              nextSiblingId={gameObjectAt(controller.scene.objects, index + 1)}
+              previousSiblingId={gameObjectAt(controller.sceneData.objects, index - 1)}
+              nextSiblingId={gameObjectAt(controller.sceneData.objects, index + 1)}
             />
           ))}
         </div>

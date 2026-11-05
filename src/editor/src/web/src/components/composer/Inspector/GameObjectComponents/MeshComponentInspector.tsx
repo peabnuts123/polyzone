@@ -1,5 +1,5 @@
 
-import { AssetType } from "@polyzone/runtime/src/cartridge";
+import { AssetType } from "@polyzone/runtime/cartridge";
 import { observer } from "mobx-react-lite";
 
 import type { MeshComponentData } from "@lib/project/data";

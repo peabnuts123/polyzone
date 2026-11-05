@@ -4,7 +4,7 @@ import { Color3Like } from '@lopoly/engine/math/Color3';
 export type { Color4Like } from '@lopoly/engine/math/Color4';
 
 export class Color4 extends LoPolyColor4 {
-  public constructor(color: Color4);
+  public constructor(color: Color4Like);
   public constructor(color: Color3Like, a?: number);
   public constructor(r: number, g: number, b: number, a?: number);
   public constructor(redOrColor: number | Color3Like | Color4Like, greenOrAlpha?: number, maybeBlue?: number, maybeAlpha?: number) {

@@ -1,4 +1,4 @@
-import { AssetType, IScriptAssetData, ScriptAssetData as ScriptAssetDataRuntime } from "@polyzone/runtime/src/cartridge";
+import { AssetType, IScriptAssetData, ScriptAssetData as ScriptAssetDataRuntime } from "@polyzone/runtime/cartridge";
 import { BaseAssetData, CommonAssetDataArgs } from "../BaseAssetData";
 import { ScriptAssetDefinition } from "@lib/project/definition";
 

@@ -4,7 +4,7 @@ import { PlusIcon } from '@heroicons/react/24/outline';
 import { observer } from "mobx-react-lite";
 import cn from 'classnames';
 
-import { baseName, toPathList } from "@polyzone/runtime/src/util";
+import { baseName, toPathList } from "@polyzone/runtime/util/path";
 
 import { useLibrary } from "@lib/index";
 import { CreateNewSceneMutation, MoveSceneMutation } from "@lib/mutation/Project/mutations";

@@ -1,7 +1,8 @@
-import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
+import { ModelNode, ObjectNode } from "@lopoly/engine/scene/nodes";
 
-import { MeshComponent as MeshComponentRuntime } from "@polyzone/runtime/src/world/components";
-import type { GameObject, MeshAsset } from "@polyzone/runtime/src/world";
+import { MeshComponent as MeshComponentRuntime } from "@polyzone/runtime/objects/components";
+import type { GameObject } from "@polyzone/runtime/objects";
+import type { AssetCache } from "@polyzone/runtime/assets";
 
 import { MeshComponentData } from "@lib/project/data/components";
 import type { ISelectableObject } from "./ISelectableObject";
@@ -9,42 +10,44 @@ import type { IAssetDependentComponent } from "./IAssetDependentComponent";
 
 export class MeshComponent extends MeshComponentRuntime implements ISelectableObject, IAssetDependentComponent {
   /** Meshes populated into the selection cache */
-  private readonly _selectionCacheData: AbstractMesh[];
+  public readonly allSelectableMeshes: ModelNode[];
   /** IDs of assets this component is dependent on */
-  private readonly _assetDependencyIds: string[];
+  public readonly assetDependencyIds: string[];
 
   /**
    * @param data Data needed to construct a GameObjectComponent.
    * @param asset Model assets loaded by Babylon
    */
-  public constructor(data: MeshComponentData, gameObject: GameObject, asset: MeshAsset | undefined) {
-    super(data.id, gameObject, asset);
+  protected constructor(data: MeshComponentData, gameObject: GameObject, modelNode: ModelNode | ObjectNode) {
+    super(data.id, gameObject, modelNode);
 
     // Build asset dependency cache
     if (data.meshAsset === undefined) {
-      this._assetDependencyIds = [];
+      this.assetDependencyIds = [];
     } else {
-      this._assetDependencyIds = [data.meshAsset.id];
+      this.assetDependencyIds = [data.meshAsset.id];
     }
 
     // Build selection cache data
-    this._selectionCacheData = [];
-    this.sceneInstances?.rootNodes.forEach((node) => {
-      // Add self
-      if (node instanceof AbstractMesh) {
-        this._selectionCacheData.push(node);
+    this.allSelectableMeshes = [];
+    if (modelNode instanceof ModelNode) {
+      this.allSelectableMeshes.push(modelNode);
+    }
+  }
+
+  // @TODO Any way to share this with base class?
+  public static override async instantiateFromData(data: MeshComponentData, gameObject: GameObject, atIndex: number | undefined, assetCache: AssetCache): Promise<MeshComponent> {
+    return gameObject.registerComponentInstance(async (componentParentSceneNode) => {
+      let modelNode: ModelNode | ObjectNode;
+      if (data.meshAsset) {
+        const meshAsset = await assetCache.loadAsset(data.meshAsset);
+        modelNode = new ModelNode(gameObject.scene.lopolyScene, `Mesh:${data.id}`, meshAsset.model, componentParentSceneNode);
+      } else {
+        // @TODO This is hacking around nullable model
+        modelNode = new ObjectNode(gameObject.scene.lopolyScene, `Mesh:${data.id}`, componentParentSceneNode);
       }
-      // Add children
-      node.getChildMeshes(false)
-        .forEach((child) => this._selectionCacheData.push(child));
-    });
-  }
-
-  public get allSelectableMeshes(): AbstractMesh[] {
-    return this._selectionCacheData;
-  }
-
-  public get assetDependencyIds(): string[] {
-    return this._assetDependencyIds;
+      const meshComponent = new MeshComponent(data, gameObject, modelNode);
+      return meshComponent;
+    }, atIndex);
   }
 }

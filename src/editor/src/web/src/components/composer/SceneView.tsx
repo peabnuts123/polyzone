@@ -10,7 +10,7 @@ import { CurrentSelectionTool } from "@lib/composer/scene/SelectionManager";
 
 import { Inspector } from "./Inspector";
 import { Hierarchy } from './Hierarchy';
-import { GameObjectDefinition } from "@polyzone/runtime/src/cartridge";
+import { GameObjectDefinition } from "@polyzone/runtime/cartridge";
 import { CreateGameObjectFromDefinitionMutation, CreateGameObjectType, DeleteGameObjectMutation } from "@lib/mutation/SceneView/mutations";
 
 
@@ -153,7 +153,7 @@ function handleKeyPress(controller: ISceneViewController, e: KeyboardEvent): voi
     e.preventDefault();
     const selectedObjectDefinition = controller.selectedObjectData.toDefinition();
     selectedObjectDefinition.name = `${selectedObjectDefinition.name} copy`;
-    const parentObjectData = controller.scene.getGameObjectParent(controller.selectedObjectData.id);
+    const parentObjectData = controller.sceneData.getGameObjectParent(controller.selectedObjectData.id);
     void controller.mutatorNew.apply(
       new CreateGameObjectFromDefinitionMutation({
         definition: selectedObjectDefinition,

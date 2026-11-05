@@ -1,7 +1,10 @@
-import { ClassReference, Color3 } from "@polyzone/core/src/util";
-import { GameObjectComponent } from "@polyzone/core/src/world";
-import { DirectionalLightComponent, PointLightComponent } from "@polyzone/runtime/src/world";
-import { ColorDefinition, DirectionalLightComponentDefinition, PointLightComponentDefinition } from "@polyzone/runtime/src/cartridge";
+import { ClassReference } from "@lopoly/engine/util";
+
+// import { ClassReference, Color3 } from "@polyzone/core/src/util";
+import { GameObjectComponent } from "@polyzone/core/objects";
+import { DirectionalLightComponent, PointLightComponent } from "@polyzone/runtime/objects/components";
+import { Color3Definition, DirectionalLightComponentDefinition, PointLightComponentDefinition } from "@polyzone/runtime/src/cartridge";
+import { Color3 } from "@polyzone/core/math";
 
 import { DirectionalLightComponentData, GameObjectData, IComposerComponentData, PointLightComponentData } from "@lib/project/data";
 import { resolvePathForSceneObjectMutation } from "@lib/mutation/util";
@@ -34,7 +37,7 @@ export class SetGameObjectLightComponentColorMutation extends BaseContinuousScen
   }
 
   public override update({ SceneViewController }: SceneViewMutationArguments, { color }: SetGameObjectLightComponentColorMutationUpdateArgs): Promise<void> {
-    const gameObjectData = SceneViewController.scene.getGameObject(this.gameObjectId);
+    const gameObjectData = SceneViewController.sceneData.getGameObject(this.gameObjectId);
     const componentData = gameObjectData.getComponent(this.componentId, LightComponentDataTypes);
     const gameObject = SceneViewController.findGameObjectById(this.gameObjectId);
     if (gameObject === undefined) throw new Error(`Cannot apply mutation - no game object exists in the scene with id '${this.gameObjectId}'`);
@@ -49,13 +52,13 @@ export class SetGameObjectLightComponentColorMutation extends BaseContinuousScen
   }
 
   public override apply({ SceneViewController }: SceneViewMutationArguments): Promise<void> {
-    const gameObjectData = SceneViewController.scene.getGameObject(this.gameObjectId);
+    const gameObjectData = SceneViewController.sceneData.getGameObject(this.gameObjectId);
     const componentData = gameObjectData.getComponent(this.componentId, LightComponentDataTypes);
 
     const componentIndex = gameObjectData.components.findIndex((component) => component.id === this.componentId);
 
     // - 3. JSONC
-    const updatedValue: ColorDefinition = { r: componentData.color.r, g: componentData.color.g, b: componentData.color.b };
+    const updatedValue: Color3Definition = { r: componentData.color.r, g: componentData.color.g, b: componentData.color.b };
     const mutationPath = resolvePathForSceneObjectMutation(
       this.gameObjectId,
       SceneViewController.sceneDefinition,
@@ -67,7 +70,7 @@ export class SetGameObjectLightComponentColorMutation extends BaseContinuousScen
   }
 
   protected override getUndoArgs({ SceneViewController }: SceneViewMutationArguments): SetGameObjectLightComponentColorMutationUpdateArgs {
-    const gameObjectData = SceneViewController.scene.getGameObject(this.gameObjectId);
+    const gameObjectData = SceneViewController.sceneData.getGameObject(this.gameObjectId);
     const componentData = gameObjectData.getComponent(this.componentId, LightComponentDataTypes);
 
     return {

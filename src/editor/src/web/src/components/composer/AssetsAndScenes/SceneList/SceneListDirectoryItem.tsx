@@ -3,7 +3,7 @@ import { FolderIcon } from '@heroicons/react/24/outline';
 import cn from 'classnames';
 import { observer } from "mobx-react-lite";
 
-import { baseName } from "@polyzone/runtime/src/util";
+import { baseName } from "@polyzone/runtime/util/path";
 
 import { MoveSceneMutation } from "@lib/mutation/Project/mutations";
 import { useLibrary } from "@lib/index";

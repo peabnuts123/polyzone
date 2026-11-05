@@ -1,24 +1,24 @@
 import type { IEditorAssetDb } from "@lib/project/data/AssetDb";
-import { Color3 } from "@polyzone/core/src";
-import { ITextureAssetData, MeshAssetMaterialOverrideReflectionData } from "@polyzone/runtime/src/cartridge";
-import { IMaterialData, MaterialData as MaterialDataRuntime, MaterialDefinition } from "@polyzone/runtime/src/world/assets/MaterialAsset";
+import { ITextureAssetData, MeshAssetMaterialOverrideReflectionData } from "@polyzone/runtime/cartridge";
+import { IMaterialData, MaterialData as MaterialDataRuntime, MaterialDefinition } from "@polyzone/runtime/assets/MaterialAsset";
 import { makeAutoObservable } from "mobx";
+import { Color3 } from "@polyzone/core/math";
 
 export class MaterialData implements IMaterialData {
-  private _materialData: MaterialDataRuntime;
+  private readonly _materialData: MaterialDataRuntime;
 
   public diffuseColorEnabled: boolean;
   public diffuseTextureEnabled: boolean;
-  public emissionColorEnabled: boolean;
   public reflectionEnabled: boolean;
+  public lightingEnabled: boolean;
 
   private constructor(materialData: MaterialDataRuntime) {
     this._materialData = materialData;
 
     this.diffuseColorEnabled = this._materialData.diffuseColor !== undefined;
     this.diffuseTextureEnabled = this._materialData.diffuseTexture !== undefined;
-    this.emissionColorEnabled = this._materialData.emissionColor !== undefined;
     this.reflectionEnabled = this._materialData.reflection !== undefined;
+    this.lightingEnabled = this._materialData.lightingEnabled !== undefined;
 
     makeAutoObservable(this);
     makeAutoObservable(this._materialData);
@@ -43,13 +43,6 @@ export class MaterialData implements IMaterialData {
     else return undefined;
   }
   public set diffuseTexture(value: ITextureAssetData | undefined) { this._materialData.diffuseTexture = value; }
-
-  public get emissionColorRawValue(): Color3 | undefined { return this._materialData.emissionColor; }
-  public get emissionColor(): Color3 | undefined {
-    if (this.emissionColorEnabled) return this._materialData.emissionColor;
-    else return undefined;
-  }
-  public set emissionColor(value: Color3 | undefined) { this._materialData.emissionColor = value; }
 
   public get reflectionRawValue(): MeshAssetMaterialOverrideReflectionData | undefined { return this._materialData.reflection; }
   public get reflection(): MeshAssetMaterialOverrideReflectionData | undefined {

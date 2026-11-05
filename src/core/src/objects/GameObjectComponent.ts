@@ -14,23 +14,23 @@ export abstract class GameObjectComponent {
    * Called once, after the game object is added to the world.
    * When a scene is loaded, all objects are loaded before this is called.
    */
-  public init(): void { }
+  // public init(): void { }
 
   /**
    * Called once per frame
    * @param deltaTime Time (in seconds) since the previous frame
    * @param time Continuously increasing time value (in seconds)
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public onUpdate(deltaTime: number, time: number): void { }
+  // // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  // public onUpdate(deltaTime: number, time: number): void { }
   /**
    * Called right before the GameObject this component is attached to
    * is destroyed.
    */
-  public onDestroy(): void { } // @TODO is it needed?
+  // public onDestroy(): void { } // @TODO is it needed?
 
   /** Unique identifier for this GameObjectComponent */
   public abstract get id(): string;
-  public abstract get scene(): Scene;
   public abstract get gameObject(): GameObject;
+  public get scene(): Scene { return this.gameObject.scene; }
 }

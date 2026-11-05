@@ -4,8 +4,6 @@ export * from './SetMaterialDiffuseTextureEnabledMutation';
 export * from './SetMaterialDiffuseTextureMutation';
 export * from './SetMaterialEmissionColorEnabledMutation';
 export * from './SetMaterialEmissionColorMutation';
-export * from './SetMaterialReflection3x2TextureMutation';
-export * from './SetMaterialReflection6x1TextureMutation';
 export * from './SetMaterialReflectionBoxNetTextureMutation';
 export * from './SetMaterialReflectionEnabledMutation';
 export * from './SetMaterialReflectionSeparateTextureMutation';

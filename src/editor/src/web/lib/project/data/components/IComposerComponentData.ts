@@ -1,5 +1,5 @@
-import { IComponentData } from "@polyzone/runtime/src/cartridge";
-import { ComponentDefinition } from "@polyzone/runtime/src/cartridge/archive";
+import { IComponentData } from "@polyzone/runtime/cartridge";
+import { ComponentDefinition } from "@polyzone/runtime/cartridge/archive";
 
 /**
  * Component data that is specific to the composer.

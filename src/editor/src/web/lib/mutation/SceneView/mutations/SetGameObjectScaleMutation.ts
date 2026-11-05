@@ -1,5 +1,5 @@
 import { Vector3Definition as ArchiveVector3 } from "@polyzone/runtime/src/cartridge/archive/util";
-import { Vector3 } from "@polyzone/core/src/util";
+import { Vector3 } from "@polyzone/core/math";
 
 import { resolvePathForSceneObjectMutation } from "@lib/mutation/util";
 import { SceneViewMutationArguments } from "../SceneViewMutationArguments";
@@ -26,7 +26,7 @@ export class SetGameObjectScaleMutation extends BaseContinuousSceneMutation<SetG
   }
 
   public override update({ SceneViewController }: SceneViewMutationArguments, updateArgs: SetGameObjectScaleMutationUpdateArgs): void {
-    const gameObjectData = SceneViewController.scene.getGameObject(this.gameObjectId);
+    const gameObjectData = SceneViewController.sceneData.getGameObject(this.gameObjectId);
     const gameObject = SceneViewController.findGameObjectById(this.gameObjectId);
     if (gameObject === undefined) throw new Error(`Cannot update mutation - no game object exists in the scene with id '${this.gameObjectId}'`);
 
@@ -50,7 +50,7 @@ export class SetGameObjectScaleMutation extends BaseContinuousSceneMutation<SetG
   }
 
   public override apply({ SceneViewController }: SceneViewMutationArguments): void {
-    const gameObjectData = SceneViewController.scene.getGameObject(this.gameObjectId);
+    const gameObjectData = SceneViewController.sceneData.getGameObject(this.gameObjectId);
 
     // - 3. Update JSONC
     const updatedValue: ArchiveVector3 = {
@@ -71,7 +71,7 @@ export class SetGameObjectScaleMutation extends BaseContinuousSceneMutation<SetG
   }
 
   protected override getUndoArgs({ SceneViewController }: SceneViewMutationArguments): SetGameObjectScaleMutationUpdateArgs {
-    const gameObjectData = SceneViewController.scene.getGameObject(this.gameObjectId);
+    const gameObjectData = SceneViewController.sceneData.getGameObject(this.gameObjectId);
 
     return {
       scale: gameObjectData.transform.scale.clone(),

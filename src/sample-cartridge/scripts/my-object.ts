@@ -1,6 +1,7 @@
 import { CameraComponent, CustomScript } from '@polyzone/core/objects';
 import { InputButton } from '@polyzone/core/input';
 import { Vector2, Vector3 } from '@polyzone/core/math';
+import { cos, sin } from '@polyzone/core/math/util';
 
 const MOVE_SPEED_PER_SECOND = 3.0;
 const GRAVITY_PER_SECOND = 0.15;
@@ -17,7 +18,11 @@ export default class MyObject extends CustomScript {
     this.camera = this.scene.query(({ path }) => path("Main Camera").component(CameraComponent));
   }
 
-  public override onUpdate(deltaTime: number): void {
+  public override onUpdate(deltaTime: number, time: number): void {
+    this.scene_sampleCartridge(deltaTime, time);
+  }
+
+  private scene_sampleCartridge(deltaTime: number, time: number): void {
     const moveDelta = new Vector2(0, 0);
 
     /* MOVEMENT */
@@ -60,6 +65,15 @@ export default class MyObject extends CustomScript {
       cameraDelta.scaleSelf(CAMERA_SPEED),
     );
     this.camera.pointAt(this.cameraPoint);
+  }
+
+  private scene_rotateOrb(deltaTime: number, time: number): void {
+    const debug_TargetHeight = 2;
+    // this.camera.gameObject.rotation.z += deltaTime * 25;
+    this.camera.gameObject.position.x = sin(time, 8, -2, 2);
+    this.camera.gameObject.position.y = cos(time, 8, -2, 2);
+    this.camera.gameObject.position.z = sin(time, 2.5, debug_TargetHeight - 0.5, debug_TargetHeight + 0.5);
+    this.camera.pointAt(new Vector3(0, 0, debug_TargetHeight));
   }
 
   private requestJump(): void {

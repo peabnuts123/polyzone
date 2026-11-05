@@ -1,14 +1,12 @@
 import { useRef, type FunctionComponent } from "react";
 import { observer } from "mobx-react-lite";
 
-import { RetroMaterial } from "@polyzone/runtime/src/materials/RetroMaterial";
-import { toColor3Core } from "@polyzone/runtime/src/util";
-
 import type { IModelEditorViewController } from "@lib/material-editor/model/ModelEditorViewController";
 import { MaterialAssetData, MeshAssetMaterialOverrideData, TextureAssetData } from "@lib/project/data";
-import { ReflectionSeparateTexture, SetModelMaterialOverrideBaseMaterialEnabledMutation, SetModelMaterialOverrideBaseMaterialMutation, SetModelMaterialOverrideDiffuseColorEnabledMutation, SetModelMaterialOverrideDiffuseColorMutation, SetModelMaterialOverrideDiffuseTextureEnabledMutation, SetModelMaterialOverrideDiffuseTextureMutation, SetModelMaterialOverrideEmissionColorEnabledMutation, SetModelMaterialOverrideEmissionColorMutation, SetModelMaterialOverrideReflection3x2TextureMutation, SetModelMaterialOverrideReflection6x1TextureMutation, SetModelMaterialOverrideReflectionBoxNetTextureMutation, SetModelMaterialOverrideReflectionEnabledMutation, SetModelMaterialOverrideReflectionSeparateTextureMutation, SetModelMaterialOverrideReflectionStrengthMutation, SetModelMaterialOverrideReflectionTypeMutation } from "@lib/mutation/MaterialEditor/ModelEditorView/mutations";
+import { ReflectionSeparateTexture, SetModelMaterialOverrideBaseMaterialEnabledMutation, SetModelMaterialOverrideBaseMaterialMutation, SetModelMaterialOverrideDiffuseColorEnabledMutation, SetModelMaterialOverrideDiffuseColorMutation, SetModelMaterialOverrideDiffuseTextureEnabledMutation, SetModelMaterialOverrideDiffuseTextureMutation, SetModelMaterialOverrideReflectionBoxNetTextureMutation, SetModelMaterialOverrideReflectionEnabledMutation, SetModelMaterialOverrideReflectionSeparateTextureMutation, SetModelMaterialOverrideReflectionStrengthMutation, SetModelMaterialOverrideReflectionTypeMutation } from "@lib/mutation/MaterialEditor/ModelEditorView/mutations";
 import { ColorInput, createAssetReferenceComponentOfType, NumberInput } from "../../common/inputs";
-import { AssetType, MeshAssetMaterialOverrideReflectionType } from "@polyzone/runtime/src/cartridge/archive";
+import { AssetType, MeshAssetMaterialOverrideReflectionType } from "@polyzone/runtime/cartridge/archive";
+import { MaterialDefaults } from "../MaterialView/Inspector";
 
 const TextureAssetReference = createAssetReferenceComponentOfType<AssetType.Texture>();
 const MaterialAssetReference = createAssetReferenceComponentOfType<AssetType.Material>();
@@ -36,11 +34,9 @@ export const Inspector: FunctionComponent<Props> = observer(({ modelEditorViewCo
   const currentBaseMaterialEnabled = overrideData?.materialEnabled || false;
   const currentBaseMaterial = overrideData?.material as MaterialAssetData | undefined;
   const currentDiffuseColorEnabled = overrideData?.diffuseColorEnabled || false;
-  const currentDiffuseColor = toColor3Core(overrideData?.diffuseColorRawValue || RetroMaterial.Defaults.diffuseColor);
+  const currentDiffuseColor = overrideData?.diffuseColorRawValue || MaterialDefaults.diffuseColor;
   const currentDiffuseTextureEnabled = overrideData?.diffuseTextureEnabled || false;
   const currentDiffuseTexture = overrideData?.diffuseTextureRawValue as TextureAssetData | undefined;
-  const currentEmissionColorEnabled = overrideData?.emissionColorEnabled || false;
-  const currentEmissionColor = toColor3Core(overrideData?.emissionColorRawValue || RetroMaterial.Defaults.emissiveColor);
 
 
   return (
@@ -111,7 +107,7 @@ export const Inspector: FunctionComponent<Props> = observer(({ modelEditorViewCo
                 }}
               />
 
-              {/* Emission color */}
+              {/* Emission color
               <ColorInput togglable
                 label="Emission"
                 className="mb-3"
@@ -127,7 +123,7 @@ export const Inspector: FunctionComponent<Props> = observer(({ modelEditorViewCo
                   () => new SetModelMaterialOverrideEmissionColorMutation(controller.model.id, selectedMaterialName),
                   () => ({ emissionColor: newValue }),
                 )}
-              />
+              /> */}
 
               {/* Reflection (nested config) */}
               <ReflectionInput
@@ -168,7 +164,7 @@ export const ReflectionInput: FunctionComponent<ReflectionInputProps> = observer
   };
 
   const ReflectionStrength = observer(() => {
-    const currentReflectionStrength = currentReflection?.strength ?? RetroMaterial.Defaults.reflectionStrength;
+    const currentReflectionStrength = currentReflection?.strength ?? MaterialDefaults.reflectionStrength;
 
     return (
       <div className="mb-3">
@@ -246,8 +242,6 @@ export const ReflectionInput: FunctionComponent<ReflectionInputProps> = observer
             <option value="">-- Select type --</option>
           )}
           <option value={'box-net' satisfies MeshAssetMaterialOverrideReflectionType}>Box-Net</option>
-          <option value={'3x2' satisfies MeshAssetMaterialOverrideReflectionType}>3x2</option>
-          <option value={'6x1' satisfies MeshAssetMaterialOverrideReflectionType}>6x1</option>
           <option value={'separate' satisfies MeshAssetMaterialOverrideReflectionType}>Separate</option>
         </select>
 
@@ -263,38 +257,6 @@ export const ReflectionInput: FunctionComponent<ReflectionInputProps> = observer
                 assetType={AssetType.Texture}
                 onAssetChange={(newValue) => {
                   void controller.mutator.apply(new SetModelMaterialOverrideReflectionBoxNetTextureMutation(controller.model.id, selectedMaterialName, newValue?.id));
-                }}
-              />
-              {/* Reflection strength */}
-              <ReflectionStrength />
-            </>
-          ) : currentReflection?.type === '6x1' ? (
-            <>
-              {/* 6x1 reflection texture */}
-              <TextureAssetReference
-                label="Texture"
-                className="mb-2"
-                enabled={currentReflectionEnabled}
-                asset={currentReflection.texture as TextureAssetData}
-                assetType={AssetType.Texture}
-                onAssetChange={(newValue) => {
-                  void controller.mutator.apply(new SetModelMaterialOverrideReflection6x1TextureMutation(controller.model.id, selectedMaterialName, newValue?.id));
-                }}
-              />
-              {/* Reflection strength */}
-              <ReflectionStrength />
-            </>
-          ) : currentReflection?.type === '3x2' ? (
-            <>
-              {/* 3x2 reflection texture */}
-              <TextureAssetReference
-                label="Texture"
-                className="mb-2"
-                enabled={currentReflectionEnabled}
-                asset={currentReflection.texture as TextureAssetData}
-                assetType={AssetType.Texture}
-                onAssetChange={(newValue) => {
-                  void controller.mutator.apply(new SetModelMaterialOverrideReflection3x2TextureMutation(controller.model.id, selectedMaterialName, newValue?.id));
                 }}
               />
               {/* Reflection strength */}

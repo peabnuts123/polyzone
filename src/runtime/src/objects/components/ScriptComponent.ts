@@ -4,42 +4,39 @@ import { IGameObjectComponent } from './IGameObjectComponent';
 import { ScriptComponentData } from '@polyzone/runtime/cartridge';
 import { CustomScript } from '@polyzone/core/objects/CustomScript';
 import { ScriptLoader } from '@polyzone/runtime/ScriptLoader';
-import { Scene } from '@polyzone/runtime/scene';
 import { GameObject } from '@polyzone/runtime/objects/GameObject';
 import { Input } from '@polyzone/runtime/input';
 
 
 export class ScriptComponent extends ScriptComponentCore implements IGameObjectComponent {
   public readonly id: string;
-  public readonly scene: Scene;
   public readonly gameObject: GameObject;
   public readonly sceneNode: ObjectNode;
   // @TODO Mutable
   public readonly script: CustomScript | undefined;
 
-  public constructor(id: string, scene: Scene, gameObject: GameObject, sceneNode: ObjectNode, script: CustomScript | undefined) {
+  public constructor(id: string, gameObject: GameObject, sceneNode: ObjectNode, script: CustomScript | undefined) {
     super();
     this.id = id;
-    this.scene = scene;
     this.gameObject = gameObject;
     this.sceneNode = sceneNode;
     this.script = script;
   }
 
-  public override init(): void {
+  public init(): void {
     this.script?.init();
   }
 
-  public override onUpdate(deltaTime: number, time: number): void {
+  public onUpdate(deltaTime: number, time: number): void {
     this.script?.onUpdate(deltaTime, time);
   }
 
-  public override onDestroy(): void {
+  public onDestroy(): void {
     this.script?.onDestroy();
   }
 
 
-  public static instantiateFromData(data: ScriptComponentData, scene: Scene, gameObject: GameObject, scriptLoader: ScriptLoader): Promise<ScriptComponent> {
+  public static instantiateFromData(data: ScriptComponentData, gameObject: GameObject, atIndex: number | undefined, scriptLoader: ScriptLoader): Promise<ScriptComponent> {
     return gameObject.registerComponentInstance((componentParentSceneNode) => {
       let scriptInstance: CustomScript | undefined = undefined;
       if (data.scriptAsset) {
@@ -68,13 +65,12 @@ export class ScriptComponent extends ScriptComponentCore implements IGameObjectC
         scriptInstance = new CustomScriptInstance({
           id: data.id,
           gameObject,
-          scene,
-          input: new Input(scene.lopolyScene.engine.inputSystem),
+          input: new Input(gameObject.scene.lopolyScene.engine.inputSystem),
         });
       }
-      const sceneNode = new ObjectNode(scene.lopolyScene, `Script:${data.id}`, componentParentSceneNode);
-      const scriptComponent = new ScriptComponent(data.id, scene, gameObject, sceneNode, scriptInstance);
+      const sceneNode = new ObjectNode(gameObject.scene.lopolyScene, `Script:${data.id}`, componentParentSceneNode);
+      const scriptComponent = new ScriptComponent(data.id, gameObject, sceneNode, scriptInstance);
       return Promise.resolve(scriptComponent);
-    });
+    }, atIndex);
   }
 }

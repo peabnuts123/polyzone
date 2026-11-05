@@ -1,6 +1,6 @@
 import { describe, test, expect } from 'vitest';
 
-import { AssetType, MeshAssetMaterialOverrideReflection3x2Data, MeshAssetMaterialOverrideReflectionBoxNetData, MeshAssetMaterialOverrideReflectionSeparateData } from '@polyzone/runtime/src/cartridge';
+import { AssetType, MeshAssetMaterialOverrideReflectionBoxNetData, MeshAssetMaterialOverrideReflectionSeparateData } from '@polyzone/runtime/src/cartridge';
 
 import { MaterialAssetDefinition, TextureAssetDefinition } from '@lib/project/definition';
 import { MockProject } from '@test/integration/mock/project/MockProject';
@@ -48,14 +48,14 @@ describe(SetMaterialReflectionTypeMutation.name, () => {
     const initialJsonValue = mockMaterialEditorViewController.materialJson.value.reflection;
     const initialCachedAsset = await mockProjectController.assetCache.loadAsset(mockMaterialEditorViewController.materialAssetData, mockMaterialEditorViewController.scene);
 
-    const reflectionType = '3x2';
+    const reflectionType = 'box-net';
     const mutation = new SetMaterialReflectionTypeMutation(reflectionType);
 
     // Test
     await mockMaterialEditorViewController.mutator.apply(mutation);
 
     /* Capture updated state */
-    const updatedDataValue = mockMaterialEditorViewController.materialData.reflection as MeshAssetMaterialOverrideReflection3x2Data;
+    const updatedDataValue = mockMaterialEditorViewController.materialData.reflection as MeshAssetMaterialOverrideReflectionBoxNetData;
     const updatedBabylonValue = mockMaterialEditorViewController.materialInstance.reflectionTexture;
     const updatedJsonValue = mockMaterialEditorViewController.materialJson.value.reflection;
     const updatedCachedAsset = await mockProjectController.assetCache.loadAsset(mockMaterialEditorViewController.materialAssetData, mockMaterialEditorViewController.scene);
@@ -74,78 +74,6 @@ describe(SetMaterialReflectionTypeMutation.name, () => {
     expect(updatedBabylonValue, "Babylon material should not have reflection texture defined after mutation").toBeUndefined();
     expect(updatedJsonValue?.type, "Material asset should have the correct reflection type after mutation").toBe(reflectionType);
     expect(updatedCachedAsset.reflectionTexture, "Cached material should not have reflection texture defined after mutation").toBeUndefined();
-  });
-
-  test("Changing reflection type between single-texture types preserves texture and strength", async () => {
-    // Setup
-    let mockTextureAssetDefinition!: TextureAssetDefinition;
-    let mockMaterialAssetDefinition!: MaterialAssetDefinition;
-    let mockMaterial!: MockMaterial;
-    const initialReflectionType = '6x1';
-    const newReflectionType = '3x2';
-    const initialStrength = 0.7;
-    const mock = new MockProject(({ manifest, asset, scene }) => {
-      mockTextureAssetDefinition = asset(AssetType.Texture, 'textures/skybox.png', MockAssets.textures.stonesPng);
-      mockMaterial = createMockMaterial({
-        reflection: {
-          type: initialReflectionType,
-          strength: initialStrength,
-          textureAssetId: mockTextureAssetDefinition.id,
-        },
-      });
-
-      return {
-        manifest: manifest(),
-        assets: [
-          mockTextureAssetDefinition,
-          mockMaterialAssetDefinition = asset(AssetType.Material, 'materials/mock.pzmat', mockMaterial.data),
-        ],
-        scenes: [
-          scene('sample'),
-        ],
-      };
-    });
-
-    const mockProjectController = await MockProjectController.create(mock);
-    const mockMaterialEditorViewController = await MockMaterialEditorViewController.create(
-      mockProjectController,
-      mockMaterialAssetDefinition,
-      mockMaterial.definition,
-    );
-
-    /* Capture initial state */
-    const initialDataValue = mockMaterialEditorViewController.materialData.reflection as MeshAssetMaterialOverrideReflection3x2Data;
-    const initialBabylonValue = mockMaterialEditorViewController.materialInstance.reflectionTexture;
-    const initialJsonValue = mockMaterialEditorViewController.materialJson.value.reflection;
-    const initialCachedAsset = await mockProjectController.assetCache.loadAsset(mockMaterialEditorViewController.materialAssetData, mockMaterialEditorViewController.scene);
-
-    const mutation = new SetMaterialReflectionTypeMutation(newReflectionType);
-
-    // Test
-    await mockMaterialEditorViewController.mutator.apply(mutation);
-
-    /* Capture updated state */
-    const updatedDataValue = mockMaterialEditorViewController.materialData.reflection as MeshAssetMaterialOverrideReflection3x2Data;
-    const updatedBabylonValue = mockMaterialEditorViewController.materialInstance.reflectionTexture;
-    const updatedJsonValue = mockMaterialEditorViewController.materialJson.value.reflection;
-    const updatedCachedAsset = await mockProjectController.assetCache.loadAsset(mockMaterialEditorViewController.materialAssetData, mockMaterialEditorViewController.scene);
-
-    // Assert
-    /* Initial state */
-    expect(initialDataValue.type, "Material data should have the initial reflection type").toBe(initialReflectionType);
-    expect(initialDataValue.texture?.id, "Material data should have the initial texture").toBe(mockTextureAssetDefinition.id);
-    expect(initialDataValue.strength, "Material data should have the initial strength").toBe(initialStrength);
-    expect(initialBabylonValue, "Babylon material should have reflection texture defined initially").toBeDefined();
-    expect(initialJsonValue?.type, "Material asset should have the initial reflection type").toBe(initialReflectionType);
-    expect(initialCachedAsset.reflectionTexture, "Cached material should have reflection texture defined initially").toBeDefined();
-
-    /* After mutation */
-    expect(updatedDataValue.type, "Material data should have the updated reflection type after mutation").toBe(newReflectionType);
-    expect(updatedDataValue.texture?.id, "Material data should preserve the texture after mutation").toBe(mockTextureAssetDefinition.id);
-    expect(updatedDataValue.strength, "Material data should preserve the strength after mutation").toBe(initialStrength);
-    expect(updatedBabylonValue, "Babylon material should have reflection texture defined after mutation").toBeDefined();
-    expect(updatedJsonValue?.type, "Material asset should have the updated reflection type after mutation").toBe(newReflectionType);
-    expect(updatedCachedAsset.reflectionTexture, "Cached material should have reflection texture defined after mutation").toBeDefined();
   });
 
   test("Changing from single-texture type to separate type preserves first texture", async () => {
@@ -226,7 +154,7 @@ describe(SetMaterialReflectionTypeMutation.name, () => {
     let mockMaterialAssetDefinition!: MaterialAssetDefinition;
     let mockMaterial!: MockMaterial;
     const initialReflectionType = 'separate';
-    const newReflectionType = '3x2';
+    const newReflectionType = 'box-net';
     const initialStrength = 0.6;
     const mock = new MockProject(({ manifest, asset, scene }) => {
       // @NOTE Use the same texture asset for all 6 separate texture references
@@ -275,7 +203,7 @@ describe(SetMaterialReflectionTypeMutation.name, () => {
     await mockMaterialEditorViewController.mutator.apply(mutation);
 
     /* Capture updated state */
-    const updatedDataValue = mockMaterialEditorViewController.materialData.reflection as MeshAssetMaterialOverrideReflection3x2Data;
+    const updatedDataValue = mockMaterialEditorViewController.materialData.reflection as MeshAssetMaterialOverrideReflectionBoxNetData;
     const updatedBabylonValue = mockMaterialEditorViewController.materialInstance.reflectionTexture;
     const updatedJsonValue = mockMaterialEditorViewController.materialJson.value.reflection;
     const updatedCachedAsset = await mockProjectController.assetCache.loadAsset(mockMaterialEditorViewController.materialAssetData, mockMaterialEditorViewController.scene);
@@ -304,7 +232,7 @@ describe(SetMaterialReflectionTypeMutation.name, () => {
     let mockTextureAssetDefinition!: TextureAssetDefinition;
     let mockMaterialAssetDefinition!: MaterialAssetDefinition;
     let mockMaterial!: MockMaterial;
-    const initialReflectionType = '3x2';
+    const initialReflectionType = 'box-net';
     const initialStrength = 0.9;
     const mock = new MockProject(({ manifest, asset, scene }) => {
       mockTextureAssetDefinition = asset(AssetType.Texture, 'textures/skybox.png', MockAssets.textures.stonesPng);
@@ -336,7 +264,7 @@ describe(SetMaterialReflectionTypeMutation.name, () => {
     );
 
     /* Capture initial state */
-    const initialDataValue = mockMaterialEditorViewController.materialData.reflection as MeshAssetMaterialOverrideReflection3x2Data;
+    const initialDataValue = mockMaterialEditorViewController.materialData.reflection as MeshAssetMaterialOverrideReflectionBoxNetData;
     const initialBabylonValue = mockMaterialEditorViewController.materialInstance.reflectionTexture;
     const initialJsonValue = mockMaterialEditorViewController.materialJson.value.reflection;
     const initialCachedAsset = await mockProjectController.assetCache.loadAsset(mockMaterialEditorViewController.materialAssetData, mockMaterialEditorViewController.scene);

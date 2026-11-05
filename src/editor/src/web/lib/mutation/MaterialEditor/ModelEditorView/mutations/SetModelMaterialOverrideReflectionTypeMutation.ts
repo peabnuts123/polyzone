@@ -67,12 +67,6 @@ export class SetModelMaterialOverrideReflectionTypeMutation extends BaseModelEdi
               case "box-net":
                 firstTexture = overrides.reflection.texture;
                 break;
-              case "3x2":
-                firstTexture = overrides.reflection.texture;
-                break;
-              case "6x1":
-                firstTexture = overrides.reflection.texture;
-                break;
               case "separate":
                 firstTexture = overrides.reflection.pxTexture;
                 break;
@@ -80,20 +74,6 @@ export class SetModelMaterialOverrideReflectionTypeMutation extends BaseModelEdi
 
             switch (reflectionType) {
               case "box-net":
-                overrides.reflection = {
-                  type: reflectionType,
-                  strength,
-                  texture: firstTexture,
-                };
-                break;
-              case "3x2":
-                overrides.reflection = {
-                  type: reflectionType,
-                  strength,
-                  texture: firstTexture,
-                };
-                break;
-              case "6x1":
                 overrides.reflection = {
                   type: reflectionType,
                   strength,

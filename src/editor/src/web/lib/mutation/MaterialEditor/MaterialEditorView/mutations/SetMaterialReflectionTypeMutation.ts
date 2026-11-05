@@ -42,12 +42,6 @@ export class SetMaterialReflectionTypeMutation implements IMaterialEditorViewMut
             case "box-net":
               firstTexture = materialData.reflection.texture;
               break;
-            case "3x2":
-              firstTexture = materialData.reflection.texture;
-              break;
-            case "6x1":
-              firstTexture = materialData.reflection.texture;
-              break;
             case "separate":
               firstTexture = materialData.reflection.pxTexture;
               break;
@@ -55,20 +49,6 @@ export class SetMaterialReflectionTypeMutation implements IMaterialEditorViewMut
 
           switch (this.reflectionType) {
             case "box-net":
-              materialData.reflection = {
-                type: this.reflectionType,
-                strength,
-                texture: firstTexture,
-              };
-              break;
-            case "3x2":
-              materialData.reflection = {
-                type: this.reflectionType,
-                strength,
-                texture: firstTexture,
-              };
-              break;
-            case "6x1":
               materialData.reflection = {
                 type: this.reflectionType,
                 strength,

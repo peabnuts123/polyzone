@@ -1,6 +1,6 @@
 import { makeObservable } from "mobx";
 
-import { AssetType, CommonAssetDataArgs as CommonAssetDataArgsRuntime, IBaseAssetData } from "@polyzone/runtime/src/cartridge";
+import { AssetType, CommonAssetDataArgs as CommonAssetDataArgsRuntime, IBaseAssetData } from "@polyzone/runtime/cartridge";
 
 import { AssetDefinitionOfType } from "../definition";
 import type { IEditorAssetDb } from "./AssetDb";
@@ -27,7 +27,6 @@ export abstract class BaseAssetData<TAssetType extends AssetType> implements IBa
       path: true,
       toString: true,
       fileExtension: true,
-      babylonFetchUrl: true,
       pathList: true,
       baseName: true,
       loadDefinition: true,
@@ -39,7 +38,6 @@ export abstract class BaseAssetData<TAssetType extends AssetType> implements IBa
       path: true,
       toString: true,
       fileExtension: true,
-      babylonFetchUrl: true,
       pathList: true,
       baseName: true,
       loadDefinition: true,
@@ -66,12 +64,6 @@ export abstract class BaseAssetData<TAssetType extends AssetType> implements IBa
    * Returns empty string if file has no extension.
    */
   public get fileExtension(): string { return this._baseAssetData.fileExtension; }
-
-  /**
-   * The URL from which this asset can be fetched by Babylon.
-   * @NOTE different from {@link path}.
-   */
-  public get babylonFetchUrl(): string { return this._baseAssetData.babylonFetchUrl; }
 
   /**
    * The asset's virtual path as a list of string path segments,

@@ -1,4 +1,4 @@
-import { MaterialDefinition } from "@polyzone/runtime/src/world";
+import { MaterialDefinition } from "@polyzone/runtime/assets";
 
 export interface MockMaterial {
   definition: MaterialDefinition;

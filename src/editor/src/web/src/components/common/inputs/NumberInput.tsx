@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { ArrowUpIcon, ArrowDownIcon } from '@heroicons/react/24/outline';
 import cn from 'classnames';
 
-import { Vector2 } from "@polyzone/core/src/util";
+import { Vector2 } from "@polyzone/core/math";
 
 export interface NumberInputProps {
   value: number;
@@ -53,7 +53,7 @@ export const NumberInput: FunctionComponent<NumberInputProps> = ({ label, value,
     const onMouseMove = (e: MouseEvent): void => {
       if (isDragging && originalPreDragValue !== undefined) {
         const mousePosition = new Vector2(e.clientX, e.clientY);
-        const delta = mousePosition.subtract(dragStartPosition).multiplySelf(DragSensitivity / 100);
+        const delta = mousePosition.subtract(dragStartPosition).scaleSelf(DragSensitivity / 100);
         // @TODO can we build a UX that lets you drag up OR right?
         const size = delta.x;
         const newValue = sanitizeNewValue(originalPreDragValue + size);

@@ -7,7 +7,7 @@ import {
   MeshComponentData as MeshComponentDataRuntime,
   type MeshComponentDefinition,
   type ComponentDefinition,
-} from "@polyzone/runtime/src/cartridge";
+} from "@polyzone/runtime/cartridge";
 
 import type { MeshComponent } from "@lib/composer/scene/components";
 import type { MeshAssetData } from "@lib/project/data/assets";

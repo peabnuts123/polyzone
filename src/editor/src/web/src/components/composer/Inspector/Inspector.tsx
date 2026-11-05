@@ -1,8 +1,7 @@
 import { useRef, type FunctionComponent } from "react";
 import { observer } from "mobx-react-lite";
 
-import { ComponentDefinitionType } from "@polyzone/runtime/src/cartridge";
-import { Quaternion } from "@polyzone/core/src/util/Quaternion";
+import { ComponentDefinitionType } from "@polyzone/runtime/cartridge";
 
 import {
   SetGameObjectPositionMutation,
@@ -15,6 +14,7 @@ import type { ISceneViewController } from "@lib/composer/scene";
 import { VectorInput, TextInput } from "@app/components/common/inputs";
 import { getInspectorFor } from "./GameObjectComponents";
 import { CameraComponentData, DirectionalLightComponentData, IComposerComponentData, MeshComponentData, PointLightComponentData, ScriptComponentData } from "@lib/project/data";
+import { Quaternion } from "@lopoly/engine/math";
 
 
 interface Props {

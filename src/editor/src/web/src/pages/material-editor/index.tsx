@@ -1,5 +1,5 @@
 import type { FunctionComponent } from "react";
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import { observer } from "mobx-react-lite";
 import Link from "next/link";
 import { ArrowLeftEndOnRectangleIcon, PlusIcon, XMarkIcon } from '@heroicons/react/24/solid';
@@ -13,7 +13,7 @@ import { TabBar, TabButtonProps, TabPage, TabProvider, useTabState } from "@app/
 import { StatusBar } from "@app/components/composer/StatusBar";
 import { useAssetDrop } from "@app/interactions";
 import type { TabData } from "@lib/material-editor/MaterialEditorController";
-import { AssetType } from "@polyzone/runtime/src/cartridge";
+import { AssetType } from "@polyzone/runtime/cartridge";
 import { ModelView } from "@app/components/material-editor/ModelView";
 import { MaterialView } from "@app/components/material-editor/MaterialView";
 

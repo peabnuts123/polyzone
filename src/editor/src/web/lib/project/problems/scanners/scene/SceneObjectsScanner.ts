@@ -1,4 +1,4 @@
-import { GameObjectDefinition } from "@polyzone/runtime/src/cartridge";
+import { GameObjectDefinition } from "@polyzone/runtime/cartridge";
 import { ReportProblemFn, ScannerContext } from "../../ProblemScanner";
 import { ObjectScanners } from "../object";
 import { ISceneScanner } from "./ISceneScanner";

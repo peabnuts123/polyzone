@@ -2,7 +2,8 @@ import type { FunctionComponent } from "react";
 import { useState } from "react";
 import { observer } from "mobx-react-lite";
 
-import { toPathList } from "@polyzone/runtime/src/util";
+import { toPathList } from "@polyzone/runtime/util/path";
+import { AssetType } from "@polyzone/runtime/cartridge";
 
 import { useLibrary } from "@lib/index";
 import { createDirView } from "@lib/util/path";
@@ -11,7 +12,6 @@ import { ListItem } from '@app/components/common/ListItem';
 import { ModelListFileItem, ModelListVirtualFile } from './ModelListFileItem';
 import { ModelListDirectoryItem, ModelListVirtualDirectory } from './ModelListDirectoryItem';
 
-import { AssetType } from "@polyzone/runtime/src/cartridge";
 
 interface Props {
   openModel: (scene: MeshAssetData) => void;

@@ -1,4 +1,4 @@
-import { GameObjectComponent } from "@polyzone/core/src/world";
+import { GameObjectComponent } from "@polyzone/core/objects";
 import { CameraComponentData, GameObjectData, IComposerComponentData, MeshComponentData, ScriptComponentData } from "@lib/project/data";
 import { isSelectableObject } from "@lib/composer/scene/components";
 import { resolvePathForSceneObjectMutation } from "@lib/mutation/util";
@@ -30,7 +30,7 @@ export class RemoveGameObjectComponentMutation extends BaseSceneMutation<Mutatio
 
   public override apply({ SceneViewController }: SceneViewMutationArguments, { componentToRemove }: MutationArgs): void {
     // 1. Update data
-    const gameObjectData = SceneViewController.scene.getGameObject(this.gameObjectId);
+    const gameObjectData = SceneViewController.sceneData.getGameObject(this.gameObjectId);
     const componentToRemoveDataIndex = this.removedComponentIndex = gameObjectData.components.findIndex((component) => component.id === componentToRemove.id);
     gameObjectData.components.splice(
       componentToRemoveDataIndex,
@@ -69,16 +69,13 @@ export class RemoveGameObjectComponentMutation extends BaseSceneMutation<Mutatio
     }
 
     // 1. Update data
-    const gameObjectData = SceneViewController.scene.getGameObject(this.gameObjectId);
+    const gameObjectData = SceneViewController.sceneData.getGameObject(this.gameObjectId);
     gameObjectData.components.splice(this.removedComponentIndex, 0, removedComponentData);
 
     // 2. Update scene
     const gameObject = SceneViewController.findGameObjectById(this.gameObjectId);
     if (gameObject === undefined) throw new Error(`Cannot apply mutation - no game object exists in the scene with id '${this.gameObjectId}'`);
-    const removedComponent = await SceneViewController.createGameObjectComponent(gameObjectData, gameObject, removedComponentData);
-    if (removedComponent !== undefined) {
-      gameObject.components.splice(this.removedComponentIndex, 0, removedComponent);
-    }
+    await SceneViewController.createGameObjectComponent(removedComponentData, gameObject, gameObjectData, this.removedComponentIndex);
 
     // 3. Update JSONC
     const newComponentDefinition = removedComponentData.toComponentDefinition();

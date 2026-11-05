@@ -1,5 +1,4 @@
-import { Vector3 } from "@polyzone/core/src/util";
-import { toVector3Definition } from "@polyzone/runtime/src/util";
+import { Vector3 } from "@polyzone/core/math";
 
 import { resolvePathForSceneObjectMutation } from "@lib/mutation/util";
 import { SceneViewMutationArguments } from "../SceneViewMutationArguments";
@@ -20,7 +19,7 @@ export class SetGameObjectPositionMutation extends BaseContinuousSceneMutation<S
   }
 
   public override update({ SceneViewController }: SceneViewMutationArguments, { position, resetGizmo }: SetGameObjectPositionMutationUpdateArgs): void {
-    const gameObjectData = SceneViewController.scene.getGameObject(this.gameObjectId);
+    const gameObjectData = SceneViewController.sceneData.getGameObject(this.gameObjectId);
     const gameObject = SceneViewController.findGameObjectById(this.gameObjectId);
     if (gameObject === undefined) throw new Error(`Cannot apply mutation - no game object exists in the scene with id '${this.gameObjectId}'`);
 
@@ -28,17 +27,17 @@ export class SetGameObjectPositionMutation extends BaseContinuousSceneMutation<S
     gameObjectData.transform.position = position;
 
     // - 2. Update scene
-    gameObject.transform.localPosition.setValue(position);
+    gameObject.position.setValue(position);
     if (resetGizmo) {
       SceneViewController.selectionManager.updateGizmos();
     }
   }
 
   public override apply({ SceneViewController }: SceneViewMutationArguments): void {
-    const gameObjectData = SceneViewController.scene.getGameObject(this.gameObjectId);
+    const gameObjectData = SceneViewController.sceneData.getGameObject(this.gameObjectId);
 
     // - 3. Update JSONC
-    const updatedValue = toVector3Definition(gameObjectData.transform.position);
+    const updatedValue = { x: gameObjectData.transform.position.x, y: gameObjectData.transform.position.y, z: gameObjectData.transform.position.z };
     const mutationPath = resolvePathForSceneObjectMutation(gameObjectData.id, SceneViewController.sceneDefinition, (gameObject) => gameObject.transform.position);
     SceneViewController.sceneJson.mutate(mutationPath, updatedValue);
   }
@@ -52,7 +51,7 @@ export class SetGameObjectPositionMutation extends BaseContinuousSceneMutation<S
   }
 
   protected override getUndoArgs({ SceneViewController }: SceneViewMutationArguments): SetGameObjectPositionMutationUpdateArgs {
-    const gameObjectData = SceneViewController.scene.getGameObject(this.gameObjectId);
+    const gameObjectData = SceneViewController.sceneData.getGameObject(this.gameObjectId);
 
     return {
       position: gameObjectData.transform.position,

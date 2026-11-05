@@ -1,9 +1,7 @@
 import { useRef, type FunctionComponent } from "react";
 import { observer } from "mobx-react-lite";
 
-import { RetroMaterial } from "@polyzone/runtime/src/materials/RetroMaterial";
-import { toColor3Core } from "@polyzone/runtime/src/util";
-import { AssetType, MeshAssetMaterialOverrideReflectionType } from "@polyzone/runtime/src/cartridge/archive";
+import { AssetType, MeshAssetMaterialOverrideReflectionType } from "@polyzone/runtime/cartridge/archive";
 
 import { TextureAssetData } from "@lib/project/data";
 import { ReflectionSeparateTexture } from "@lib/mutation/MaterialEditor/ModelEditorView/mutations";
@@ -12,10 +10,6 @@ import {
   SetMaterialDiffuseColorMutation,
   SetMaterialDiffuseTextureEnabledMutation,
   SetMaterialDiffuseTextureMutation,
-  SetMaterialEmissionColorEnabledMutation,
-  SetMaterialEmissionColorMutation,
-  SetMaterialReflection3x2TextureMutation,
-  SetMaterialReflection6x1TextureMutation,
   SetMaterialReflectionBoxNetTextureMutation,
   SetMaterialReflectionEnabledMutation,
   SetMaterialReflectionSeparateTextureMutation,
@@ -25,6 +19,13 @@ import {
 import { IMaterialEditorViewController } from "@lib/material-editor/material/MaterialEditorViewController";
 import { ColorInput, createAssetReferenceComponentOfType, NumberInput } from "@app/components/common/inputs";
 import Spinner from "@app/components/spinner";
+import { Color3 } from "@polyzone/core/math";
+
+// @TODO MOVE
+export const MaterialDefaults = {
+  diffuseColor: Color3.white(),
+  reflectionStrength: 0.5,
+} as const;
 
 const TextureAssetReference = createAssetReferenceComponentOfType<AssetType.Texture>();
 
@@ -45,11 +46,9 @@ export const Inspector: FunctionComponent<Props> = observer(({ materialEditorVie
 
   // Computed state
   const currentDiffuseColorEnabled = controller.materialData.diffuseColorEnabled || false;
-  const currentDiffuseColor = toColor3Core(controller.materialData.diffuseColorRawValue || RetroMaterial.Defaults.diffuseColor);
+  const currentDiffuseColor = controller.materialData.diffuseColorRawValue || MaterialDefaults.diffuseColor;
   const currentDiffuseTextureEnabled = controller.materialData.diffuseTextureEnabled || false;
   const currentDiffuseTexture = controller.materialData.diffuseTextureRawValue as TextureAssetData | undefined;
-  const currentEmissionColorEnabled = controller.materialData.emissionColorEnabled || false;
-  const currentEmissionColor = toColor3Core(controller.materialData.emissionColorRawValue || RetroMaterial.Defaults.emissiveColor);
 
   return (
     <>
@@ -92,7 +91,7 @@ export const Inspector: FunctionComponent<Props> = observer(({ materialEditorVie
             }}
           />
 
-          {/* Emission color */}
+          {/* Emission color
           <ColorInput togglable
             label="Emission"
             className="mb-3"
@@ -108,7 +107,7 @@ export const Inspector: FunctionComponent<Props> = observer(({ materialEditorVie
               () => new SetMaterialEmissionColorMutation(),
               () => ({ emissionColor: newValue }),
             )}
-          />
+          /> */}
 
           {/* Reflection (nested config) */}
           <ReflectionInput
@@ -145,7 +144,7 @@ export const ReflectionInput: FunctionComponent<ReflectionInputProps> = observer
   };
 
   const ReflectionStrength = observer(() => {
-    const currentReflectionStrength = currentReflection?.strength ?? RetroMaterial.Defaults.reflectionStrength;
+    const currentReflectionStrength = currentReflection?.strength ?? MaterialDefaults.reflectionStrength;
 
     return (
       <div className="mb-3">
@@ -223,8 +222,6 @@ export const ReflectionInput: FunctionComponent<ReflectionInputProps> = observer
             <option value="">-- Select type --</option>
           )}
           <option value={'box-net' satisfies MeshAssetMaterialOverrideReflectionType}>Box-Net</option>
-          <option value={'3x2' satisfies MeshAssetMaterialOverrideReflectionType}>3x2</option>
-          <option value={'6x1' satisfies MeshAssetMaterialOverrideReflectionType}>6x1</option>
           <option value={'separate' satisfies MeshAssetMaterialOverrideReflectionType}>Separate</option>
         </select>
 
@@ -240,38 +237,6 @@ export const ReflectionInput: FunctionComponent<ReflectionInputProps> = observer
                 assetType={AssetType.Texture}
                 onAssetChange={(newValue) => {
                   void controller.mutator.apply(new SetMaterialReflectionBoxNetTextureMutation(newValue?.id));
-                }}
-              />
-              {/* Reflection strength */}
-              <ReflectionStrength />
-            </>
-          ) : currentReflection?.type === '6x1' ? (
-            <>
-              {/* 6x1 reflection texture */}
-              <TextureAssetReference
-                label="Texture"
-                className="mb-2"
-                enabled={currentReflectionEnabled}
-                asset={currentReflection.texture as TextureAssetData}
-                assetType={AssetType.Texture}
-                onAssetChange={(newValue) => {
-                  void controller.mutator.apply(new SetMaterialReflection6x1TextureMutation(newValue?.id));
-                }}
-              />
-              {/* Reflection strength */}
-              <ReflectionStrength />
-            </>
-          ) : currentReflection?.type === '3x2' ? (
-            <>
-              {/* 3x2 reflection texture */}
-              <TextureAssetReference
-                label="Texture"
-                className="mb-2"
-                enabled={currentReflectionEnabled}
-                asset={currentReflection.texture as TextureAssetData}
-                assetType={AssetType.Texture}
-                onAssetChange={(newValue) => {
-                  void controller.mutator.apply(new SetMaterialReflection3x2TextureMutation(newValue?.id));
                 }}
               />
               {/* Reflection strength */}

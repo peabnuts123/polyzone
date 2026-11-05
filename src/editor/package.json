@@ -6,7 +6,7 @@
   "scripts": {
     "start": "tauri dev",
     "start:web": "cd src/web && next dev --turbopack",
-    "simulate-ci": "npm run typecheck && npm run lint && npm run test && npm run build && echo 'Build succeeded'",
+    "checkall": "npm run typecheck && npm run lint && npm run test && npm run build && echo 'Build succeeded'",
     "test": "cd src/web && vitest run",
     "test:watch": "npm run test -- --watch",
     "test:coverage": "npm run test -- --coverage && cd src/web && http-server coverage -p 8080",
@@ -17,10 +17,8 @@
     "tauri": "tauri"
   },
   "dependencies": {
-    "@babylonjs/core": "^8.2.0",
-    "@babylonjs/loaders": "^8.2.0",
-    "@babylonjs/materials": "^8.2.0",
     "@heroicons/react": "^2.2.0",
+    "@lopoly/engine": "^0.1.1",
     "@tauri-apps/api": "^2.5.0",
     "@tauri-apps/plugin-dialog": "^2.2.1",
     "@tauri-apps/plugin-fs": "^2.2.1",

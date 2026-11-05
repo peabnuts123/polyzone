@@ -1,4 +1,4 @@
-import type { AssetType } from "@polyzone/runtime/src/cartridge";
+import type { AssetType } from "@polyzone/runtime/cartridge";
 import type { AssetData, AssetDataOfType } from "@lib/project/data/AssetData";
 import { useDrag, useDrop } from "@lib/util/drag-and-drop";
 

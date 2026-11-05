@@ -1,10 +1,13 @@
-import { makeObservable } from "mobx";
-import { AnyVector, Vector3 } from "@polyzone/core/src/util";
+import { createAtom } from "mobx";
+import { AnyVector } from "@lopoly/engine/math";
+import { Vector3 } from "@polyzone/core/math";
 
 /**
- * Thin wrapper for Vector3 that marks its properties as observable properties for mobx
+ * Bridges LoPoly vector notifications into MobX dependency tracking.
  */
 export class ObservableVector3 extends Vector3 {
+  private readonly mobxAtom = createAtom("ObservableVector3");
+
   constructor(x: number, y: number, z: number);
   constructor(source: Vector3);
   constructor(sourceOrX: Vector3 | number, y?: number, z?: number) {
@@ -13,14 +16,38 @@ export class ObservableVector3 extends Vector3 {
     } else {
       super(sourceOrX, y!, z!);
     }
+  }
 
-    // @NOTE List of private property names, so that MobX can reference them
-    type PrivateProperties = '_x' | '_y' | '_z'; // @TODO Do I need to annotate all the functions? `override` or something?
-    makeObservable<ObservableVector3, PrivateProperties>(this, {
-      _x: true,
-      _y: true,
-      _z: true,
-    });
+  protected override notifyOnChange(): void {
+    super.notifyOnChange();
+    this.mobxAtom.reportChanged();
+  }
+
+  public override get x(): number {
+    this.mobxAtom.reportObserved();
+    return super.x;
+  }
+
+  public override set x(value: number) {
+    super.x = value;
+  }
+
+  public override get y(): number {
+    this.mobxAtom.reportObserved();
+    return super.y;
+  }
+
+  public override set y(value: number) {
+    super.y = value;
+  }
+
+  public override get z(): number {
+    this.mobxAtom.reportObserved();
+    return super.z;
+  }
+
+  public override set z(value: number) {
+    super.z = value;
   }
 
   public override add(value: AnyVector): ObservableVector3 {
@@ -31,23 +58,13 @@ export class ObservableVector3 extends Vector3 {
     return new ObservableVector3(super.subtract(value));
   }
 
-  public override multiply(factor: number): ObservableVector3;
-  public override multiply(other: Vector3): ObservableVector3;
-  public override multiply(operand: number | Vector3): ObservableVector3 {
+  public override scale(factor: number): ObservableVector3;
+  public override scale(other: Vector3): ObservableVector3;
+  public override scale(operand: number | Vector3): ObservableVector3 {
     if (operand instanceof Vector3) {
-      return new ObservableVector3(super.multiply(operand));
+      return new ObservableVector3(super.scale(operand));
     } else {
-      return new ObservableVector3(super.multiply(operand));
-    }
-  }
-
-  public override divide(factor: number): ObservableVector3;
-  public override divide(other: Vector3): ObservableVector3;
-  public override divide(operand: number | Vector3): ObservableVector3 {
-    if (operand instanceof Vector3) {
-      return new ObservableVector3(super.divide(operand));
-    } else {
-      return new ObservableVector3(super.divide(operand));
+      return new ObservableVector3(super.scale(operand));
     }
   }
 

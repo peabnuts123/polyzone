@@ -12,7 +12,7 @@ import { createMockMaterial, MockMaterial } from '@test/integration/mock/materia
 import { SetMaterialReflectionStrengthMutation } from './SetMaterialReflectionStrengthMutation';
 
 describe(SetMaterialReflectionStrengthMutation.name, () => {
-  test("Setting reflection strength on material with 3x2 reflection type updates state correctly", async () => {
+  test("Setting reflection strength on material with box-net reflection type updates state correctly", async () => {
     // Setup
     let mockTextureAssetDefinition!: TextureAssetDefinition;
     let mockMaterialAssetDefinition!: MaterialAssetDefinition;
@@ -23,7 +23,7 @@ describe(SetMaterialReflectionStrengthMutation.name, () => {
       mockTextureAssetDefinition = asset(AssetType.Texture, 'textures/skybox.png', MockAssets.textures.stonesPng);
       mockMaterial = createMockMaterial({
         reflection: {
-          type: '3x2',
+          type: 'box-net',
           strength: initialStrength,
           textureAssetId: mockTextureAssetDefinition.id,
         },

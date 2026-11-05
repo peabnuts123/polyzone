@@ -12,7 +12,7 @@ import { MockProjectController } from '@test/integration/mock/project/MockProjec
 import { SetModelMaterialOverrideReflectionStrengthMutation } from './SetModelMaterialOverrideReflectionStrengthMutation';
 
 describe(SetModelMaterialOverrideReflectionStrengthMutation.name, () => {
-  test("Setting reflection strength override on material with 3x2 reflection type updates state correctly", async () => {
+  test("Setting reflection strength override on material with box-net reflection type updates state correctly", async () => {
     // Setup
     const mockMaterialName = 'Main'; // @NOTE Must match `sphere.mtl` - referenced in mock project definition
     let mockMeshAssetDefinition!: MeshAssetDefinition;
@@ -27,7 +27,7 @@ describe(SetModelMaterialOverrideReflectionStrengthMutation.name, () => {
           materialOverrides: {
             [mockMaterialName]: {
               reflection: {
-                type: '3x2',
+                type: 'box-net',
                 strength: initialStrength,
                 textureAssetId: mockTextureAssetDefinition.id,
               },

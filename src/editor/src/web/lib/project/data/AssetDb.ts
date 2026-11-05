@@ -1,13 +1,13 @@
 import { makeAutoObservable } from 'mobx';
 
-import type { IFileSystem, VirtualFile } from '@polyzone/runtime/src/filesystem';
+import { IFileSystem, VirtualFile } from '@lopoly/engine/filesystem';
 import {
   AssetType,
   AssetDb as AssetDbRuntime,
   IAssetDb,
   CreateAssetDataFn,
   AssetDefinitionOfType as AssetDefinitionOfTypeRuntime,
-} from '@polyzone/runtime/src/cartridge';
+} from '@polyzone/runtime/cartridge';
 
 import { AssetDefinition, AssetDefinitionOfType } from '../definition';
 import { AssetData, AssetDataOfType } from './AssetData';
@@ -92,7 +92,7 @@ export class AssetDb implements IEditorAssetDb {
 /**
  * Copy of @see {@link createAssetData} with types adhering to `@polyzone/runtime`
  */
-export const __createAssetDataForRuntime: CreateAssetDataFn = <TAssetType extends AssetType>(assetDefinition: AssetDefinitionOfTypeRuntime<TAssetType>, fileSystem: IFileSystem) => {
+export const __createAssetDataForRuntime: CreateAssetDataFn = <TAssetType extends AssetType>(assetDefinition: AssetDefinitionOfTypeRuntime<TAssetType>) => {
   function isEditorAssetDefinition(assetDefinition: AssetDefinitionOfTypeRuntime<TAssetType>): assetDefinition is AssetDefinitionOfType<TAssetType> {
     return 'hash' in assetDefinition;
   }
@@ -101,15 +101,14 @@ export const __createAssetDataForRuntime: CreateAssetDataFn = <TAssetType extend
     throw new Error(`Expected editor asset definition but received runtime asset definition`);
   }
 
-  return createAssetData(assetDefinition, fileSystem);
+  return createAssetData(assetDefinition);
 };
 
-export function createAssetData<TAssetType extends AssetType>(assetDefinition: AssetDefinitionOfType<TAssetType>, fileSystem: IFileSystem): AssetDataOfType<TAssetType> {
+export function createAssetData<TAssetType extends AssetType>(assetDefinition: AssetDefinitionOfType<TAssetType>): AssetDataOfType<TAssetType> {
   const args: CommonAssetDataArgs = {
     id: assetDefinition.id,
     path: assetDefinition.path,
     hash: assetDefinition.hash,
-    resolverProtocol: fileSystem.resolverProtocol,
   };
 
   // @TODO Why does TypeScript want everything to be type laundered here?

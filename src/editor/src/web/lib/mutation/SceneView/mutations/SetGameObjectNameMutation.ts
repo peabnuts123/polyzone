@@ -16,7 +16,7 @@ export class SetGameObjectNameMutation extends BaseContinuousSceneMutation<SetGa
   }
 
   public override update({ SceneViewController }: SceneViewMutationArguments, { name }: SetGameObjectNameMutationUpdateArgs): Promise<void> {
-    const gameObjectData = SceneViewController.scene.getGameObject(this.gameObjectId);
+    const gameObjectData = SceneViewController.sceneData.getGameObject(this.gameObjectId);
     const gameObject = SceneViewController.findGameObjectById(this.gameObjectId);
     if (gameObject === undefined) throw new Error(`Cannot update mutation - no game object exists in the scene with id '${this.gameObjectId}'`);
 
@@ -29,7 +29,7 @@ export class SetGameObjectNameMutation extends BaseContinuousSceneMutation<SetGa
   }
 
   public override apply({ SceneViewController }: SceneViewMutationArguments): Promise<void> {
-    const gameObjectData = SceneViewController.scene.getGameObject(this.gameObjectId);
+    const gameObjectData = SceneViewController.sceneData.getGameObject(this.gameObjectId);
 
     // - 3. JSONC
     const mutationPath = resolvePathForSceneObjectMutation(this.gameObjectId, SceneViewController.sceneDefinition, (gameObject) => gameObject.name);
@@ -39,7 +39,7 @@ export class SetGameObjectNameMutation extends BaseContinuousSceneMutation<SetGa
   }
 
   protected override getUndoArgs({ SceneViewController }: SceneViewMutationArguments): SetGameObjectNameMutationUpdateArgs {
-    const gameObjectData = SceneViewController.scene.getGameObject(this.gameObjectId);
+    const gameObjectData = SceneViewController.sceneData.getGameObject(this.gameObjectId);
 
     return {
       name: gameObjectData.name,

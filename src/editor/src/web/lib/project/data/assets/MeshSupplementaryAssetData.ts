@@ -1,4 +1,4 @@
-import { AssetType, IMeshSupplementaryAssetData, MeshSupplementaryAssetData as MeshSupplementaryAssetDataRuntime } from "@polyzone/runtime/src/cartridge";
+import { AssetType, IMeshSupplementaryAssetData, MeshSupplementaryAssetData as MeshSupplementaryAssetDataRuntime } from "@polyzone/runtime/cartridge";
 import { BaseAssetData, CommonAssetDataArgs } from "../BaseAssetData";
 import { MeshSupplementaryAssetDefinition } from "@lib/project/definition";
 

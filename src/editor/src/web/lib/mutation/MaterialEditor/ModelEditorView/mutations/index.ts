@@ -6,8 +6,6 @@ export * from './SetModelMaterialOverrideDiffuseTextureEnabledMutation';
 export * from './SetModelMaterialOverrideDiffuseTextureMutation';
 export * from './SetModelMaterialOverrideEmissionColorEnabledMutation';
 export * from './SetModelMaterialOverrideEmissionColorMutation';
-export * from './SetModelMaterialOverrideReflection3x2TextureMutation';
-export * from './SetModelMaterialOverrideReflection6x1TextureMutation';
 export * from './SetModelMaterialOverrideReflectionBoxNetTextureMutation';
 export * from './SetModelMaterialOverrideReflectionEnabledMutation';
 export * from './SetModelMaterialOverrideReflectionSeparateTextureMutation';

@@ -7,7 +7,7 @@ import {
   type ScriptComponentDefinition,
   ScriptComponentData as ScriptComponentDataRuntime,
   type IScriptComponentData,
-} from "@polyzone/runtime/src/cartridge";
+} from "@polyzone/runtime/cartridge";
 
 import type { ScriptAssetData } from "@lib/project/data/assets";
 import { IComposerComponentData } from "./IComposerComponentData";

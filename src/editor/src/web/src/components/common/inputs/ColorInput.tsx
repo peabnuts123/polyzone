@@ -4,7 +4,7 @@ import { ColorResult, getContrastingColor, rgbaToHex } from '@uiw/color-convert'
 import Sketch from '@uiw/react-color-sketch';
 import cn from 'classnames';
 
-import { Color3 } from "@polyzone/core/src/util";
+import { Color3 } from "@polyzone/core/math";
 
 interface CommonProps {
   label: string;

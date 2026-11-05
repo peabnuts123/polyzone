@@ -18,7 +18,7 @@ export class Scene extends SceneCore {
   private readonly scriptLoader: ScriptLoader;
 
   // State
-  private _topLevelGameObjects: GameObject[];
+  private readonly _topLevelGameObjects: GameObject[];
 
   public constructor(data: SceneData, engine: IEngine, assetCache: AssetCache, scriptLoader: ScriptLoader) {
     super();
@@ -32,6 +32,7 @@ export class Scene extends SceneCore {
     // Lighting
     // @TODO This is just a hack for old cart compat
     this.lopolyScene.lighting.ambientColor = data.config.lighting.ambient.color.scaleSelf(data.config.lighting.ambient.intensity);
+    this.lopolyScene.clearColour = data.config.clearColor;
   }
 
   public init(): void {
@@ -65,6 +66,14 @@ export class Scene extends SceneCore {
   }
 
   public destroyGameObject(gameObject: GameObject): void {
+    // Destroy children
+    const childrenToDelete: GameObject[] = [];
+    gameObject.forEachChild((child) => childrenToDelete.push(child));
+    for (const child of childrenToDelete) {
+      this.destroyGameObject(child);
+    }
+
+    // Destroy self
     if (gameObject.parent !== undefined) {
       // Remove object from parent's children
       gameObject.parent = undefined;
@@ -80,22 +89,41 @@ export class Scene extends SceneCore {
     gameObject.onDestroy();
   }
 
-  public async createGameObject(gameObjectData: GameObjectData, parentGameObject: GameObject | undefined = undefined): Promise<GameObject> {
-    const gameObject = await createGameObject(
-      gameObjectData,
-      parentGameObject,
-      this,
-      (componentData, gameObject) =>
-        createGameObjectComponent(
-          componentData,
-          gameObject,
-          this,
-          this.assetCache,
-          this.scriptLoader,
-        ),
-    );
+
+
+  // public async createGameObject(gameObjectData: GameObjectData, parentGameObject: GameObject | undefined = undefined): Promise<GameObject> {
+  //   const gameObject = await createGameObject(
+  //     gameObjectData,
+  //     parentGameObject,
+  //     this,
+  //     (componentData, gameObject) =>
+  //       createGameObjectComponent(
+  //         componentData,
+  //         gameObject,
+  //         undefined,
+  //         this.assetCache,
+  //         this.scriptLoader,
+  //       ),
+  //   );
+  //   this._topLevelGameObjects.push(gameObject);
+  //   return gameObject;
+  // }
+  public addGameObject(gameObject: GameObject): void {
     this._topLevelGameObjects.push(gameObject);
-    return gameObject;
+  }
+
+  public findGameObjectById(gameObjectId: string): GameObject | undefined {
+    for (const topLevelGameObject of this.topLevelGameObjects) {
+      if (topLevelGameObject.id === gameObjectId) {
+        return topLevelGameObject;
+      }
+      const result = topLevelGameObject.findChild((child) => child.id === gameObjectId, true);
+      if (result !== undefined) {
+        return result;
+      }
+    }
+
+    return undefined;
   }
 
   public get topLevelGameObjects(): readonly GameObject[] { return this._topLevelGameObjects; }

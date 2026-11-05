@@ -1,7 +1,7 @@
 import { makeAutoObservable } from "mobx";
 
-import { SceneDefinition as RuntimeSceneDefinition } from "@polyzone/runtime/src/cartridge";
-import { IFileSystem } from "@polyzone/runtime/src/filesystem";
+import { SceneDefinition as RuntimeSceneDefinition } from "@polyzone/runtime/cartridge";
+import { IFileSystem } from "@lopoly/engine/filesystem";
 
 import { JsoncContainer } from "@lib/util/JsoncContainer";
 import { SceneDefinition, SceneManifest, toRuntimeSceneDefinition } from "../definition";

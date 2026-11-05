@@ -30,7 +30,7 @@
   "author": "peabnuts123",
   "license": "UNLICENSED",
   "dependencies": {
-    "@lopoly/engine": "^0.1.0",
+    "@lopoly/engine": "^0.1.1",
     "fflate": "^0.8.2",
     "jsonc-parser": "^3.3.1"
   }
