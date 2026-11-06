@@ -1,5 +1,5 @@
 import { Vector3Definition as ArchiveVector3 } from "@polyzone/runtime/src/cartridge/archive/util";
-import { Quaternion } from "@polyzone/core/math";
+import { Quaternion, Vector3 } from "@polyzone/core/math";
 
 import { resolvePathForSceneObjectMutation } from "@lib/mutation/util";
 import { SceneViewMutationArguments } from "../SceneViewMutationArguments";
@@ -25,9 +25,9 @@ export class SetGameObjectRotationMutation extends BaseContinuousSceneMutation<S
     if (gameObject === undefined) throw new Error(`Cannot update mutation - no game object exists in the scene with id '${this.gameObjectId}'`);
 
     // - 1. Update Data
-    gameObjectData.transform.rotation = rotation.toEuler();
+    gameObjectData.transform.rotation = new Vector3(rotation.toEuler()); // @TODO do not cast to Vector3
     // - 2. Update Scene
-    gameObject.transform.localRotation.setValue(rotation);
+    gameObject.rotation.setValue(rotation);
     if (resetGizmo) {
       SceneViewController.selectionManager.updateGizmos();
     }

@@ -30,7 +30,7 @@ export const NumberInput: FunctionComponent<NumberInputProps> = ({ label, value,
   className ??= '';
 
   // Constants
-  const DragSensitivity = 1;
+  const DragSensitivity = incrementInterval;
 
   // State
   const [dragStartPosition, setDragStartPosition] = useState<Vector2>();

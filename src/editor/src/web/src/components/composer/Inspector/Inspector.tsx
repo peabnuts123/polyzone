@@ -112,7 +112,7 @@ export const Inspector: FunctionComponent<Props> = observer(({ sceneViewControll
               <VectorInput
                 label="Rotation"
                 vector={selectedObjectData.transform.rotation}
-                incrementInterval={Math.PI / 8}
+                incrementInterval={90 / 4}
                 // @TODO Parse value and limit to rotational values
                 onChange={(newValue) => void sceneViewController.mutatorNew.debounceContinuous(
                   SetGameObjectRotationMutation,
