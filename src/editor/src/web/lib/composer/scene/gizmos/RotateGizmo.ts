@@ -67,7 +67,7 @@ export class RotateGizmoNode extends GizmoNodeBase<RotateGizmoHandleType, Rotate
   }
 
   /**
-   * Fired once, when the user clicks on a handle collider.
+   * Fired once, when the user clicks on a handle.
    * @param pointer Pointer state.
    * @param type Which type of handle was clicked.
    */
@@ -97,7 +97,7 @@ export class RotateGizmoNode extends GizmoNodeBase<RotateGizmoHandleType, Rotate
       return;
     }
 
-    // Initialise move state
+    // Initialise state
     this.activeState = {
       controlType: type,
       initialObjectRotation: this.attachedGameObject.rotation.q.clone(),
@@ -110,7 +110,7 @@ export class RotateGizmoNode extends GizmoNodeBase<RotateGizmoHandleType, Rotate
   }
 
   /**
-   * Fired every frame a move operation is active.
+   * Fired every frame an interaction is active.
    * @param pointer Pointer state.
    */
   protected override onInteractUpdate(pointer: PointerState): void {
@@ -132,7 +132,7 @@ export class RotateGizmoNode extends GizmoNodeBase<RotateGizmoHandleType, Rotate
         break;
       }
       default:
-        throw new Error(`Unimplemented move state control type: '${this.activeState.controlType}'`);
+        throw new Error(`Unimplemented ${RotateGizmoNode.name} state control type: '${this.activeState.controlType}'`);
     }
 
     // Calculate pointer intersection with rotation plane
@@ -165,7 +165,8 @@ export class RotateGizmoNode extends GizmoNodeBase<RotateGizmoHandleType, Rotate
   }
 
   /**
-   * Fired when a movement interaction ends e.g. the user releases the mouse pointer
+   * Fired when an interaction ends e.g. the user releases the mouse pointer.
+   * @param pointer Pointer state.
    */
   protected override onInteractEnd(_pointer: PointerState): void {
     if (this.activeState === undefined) return;

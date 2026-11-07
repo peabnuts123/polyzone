@@ -115,7 +115,7 @@ export class MoveGizmoNode extends GizmoNodeBase<MoveGizmoHandleType, MoveGizmoA
       return;
     }
 
-    // Initialise move state
+    // Initialise state
     this.activeState = {
       controlType: type,
       initialObjectPosition: this.attachedGameObject.position.clone(),
@@ -198,7 +198,7 @@ export class MoveGizmoNode extends GizmoNodeBase<MoveGizmoHandleType, MoveGizmoA
         break;
       }
       default:
-        throw new Error(`Unimplemented move state control type: '${this.activeState.controlType}'`);
+        throw new Error(`Unimplemented ${MoveGizmoNode.name} state control type: '${this.activeState.controlType}'`);
     }
 
     if (newPosition === undefined) {

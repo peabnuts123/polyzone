@@ -33,15 +33,15 @@ export class SetGameObjectScaleMutation extends BaseContinuousSceneMutation<SetG
     if ('scaleDelta' in updateArgs) {
       const { scaleDelta } = updateArgs;
       // - 1. Update Data
-      gameObjectData.transform.scale.multiplySelf(scaleDelta);
+      gameObjectData.transform.scale.scaleSelf(scaleDelta);
       // - 2. Update Scene
-      gameObject.transform.localScale.multiplySelf(scaleDelta);
+      gameObject.scale.scaleSelf(scaleDelta);
     } else {
       const { scale } = updateArgs;
       // - 1. Update Data
       gameObjectData.transform.scale = scale;
       // - 2. Update Scene
-      gameObject.transform.localScale.setValue(scale);
+      gameObject.scale.setValue(scale);
     }
 
     if (updateArgs.resetGizmo) {

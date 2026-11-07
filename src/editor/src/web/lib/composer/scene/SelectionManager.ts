@@ -5,8 +5,11 @@ import { PointerState } from "@lopoly/engine/input";
 
 import type { ISceneViewController } from "./SceneViewController";
 import { ClaimedPointerCallbacks } from "@lib/common/view";
-import { MoveGizmoNode, MoveGizmoNodeResources } from "./gizmos";
-import { RotateGizmoNode, RotateGizmoNodeResources } from "./gizmos/RotateGizmo";
+import {
+  MoveGizmoNode, MoveGizmoNodeResources,
+  RotateGizmoNode, RotateGizmoNodeResources,
+  ScaleGizmoNode, ScaleGizmoNodeResources,
+} from "./gizmos";
 
 export const CurrentSelectionTool = {
   Move: 'move',
@@ -18,6 +21,7 @@ export type CurrentSelectionTool = Enum<typeof CurrentSelectionTool>;
 export interface SelectionManagerResources {
   moveGizmo: MoveGizmoNodeResources;
   rotateGizmo: RotateGizmoNodeResources;
+  scaleGizmo: ScaleGizmoNodeResources;
 }
 
 export class SelectionManager {
@@ -27,6 +31,7 @@ export class SelectionManager {
   private gizmoParent: ObjectNode;
   private moveGizmo: MoveGizmoNode | undefined;
   private rotateGizmo: RotateGizmoNode | undefined;
+  private scaleGizmo: ScaleGizmoNode | undefined;
   // private static MoveGizmoModel: Promise<Model>;
 
   // private readonly gizmoManager: GizmoManager;
@@ -69,54 +74,15 @@ export class SelectionManager {
       console.log(`Loaded ${RotateGizmoNode.name} in ${rotateGizmoLoadStop - rotateGizmoLoadStart}ms`);
       this.rotateGizmo = rotateGizmo;
     });
-
-    // // Rotate
-    // this.rotateGizmo = new RotationGizmo(utilityLayer, 32, true, 6, this.gizmoManager);
-    // this.rotateGizmo.onDragStartObservable.add(() => {
-    //   this.currentRotateMutation = new SetGameObjectRotationMutation(this.selectedObjectId!);
-    //   void sceneViewController.mutatorNew.beginContinuous(this.currentRotateMutation);
-    // });
-    // this.rotateGizmo.onDragObservable.add((_eventData) => {
-    //   if (this.selectedObjectId !== undefined) {
-    //     // Sometimes the rotation comes down as a quaternion, and sometimes not.
-    //     // At this stage, I don't really know why ¯\_(ツ)_/¯
-    //     const rotation = this.fakeTransformTarget!.rotationQuaternion!;
-    //     if (this.fakeTransformTarget!.rotationQuaternion === null) {
-    //       throw new Error(`Rotation quaternion is undefined somehow`);
-    //     }
-
-    //     void sceneViewController.mutatorNew.updateContinuous(this.currentRotateMutation!, {
-    //       rotation: toQuaternionCore(rotation),
-    //     });
-    //   }
-    // });
-    // this.rotateGizmo.onDragEndObservable.add((_eventData) => {
-    //   void sceneViewController.mutatorNew.apply(this.currentRotateMutation!);
-    //   this.currentRotateMutation = undefined;
-    // });
-
-    // // Scale
-    // this.scaleGizmo = new ScaleGizmo(utilityLayer, 2, this.gizmoManager);
-    // this.scaleGizmo.onDragStartObservable.add(() => {
-    //   this.currentScaleMutation = new SetGameObjectScaleMutation(this.selectedObjectId!);
-    //   void sceneViewController.mutatorNew.beginContinuous(this.currentScaleMutation);
-    // });
-    // this.scaleGizmo.onDragObservable.add((_eventData) => {
-    //   if (this.selectedObjectId !== undefined) {
-    //     // Scaling is handled as a percentage to accommodate rotation
-    //     void sceneViewController.mutatorNew.updateContinuous(this.currentScaleMutation!, {
-    //       scaleDelta: toVector3Core(this.fakeTransformTarget!.scaling),
-    //     });
-    //     // @NOTE Reset scaling to uniform scale, because rotation doesn't work with non-uniform scaling
-    //     this.fakeTransformTarget!.scaling = Vector3Babylon.One();
-    //   }
-    // });
-    // this.scaleGizmo.onDragEndObservable.add(() => {
-    //   void sceneViewController.mutatorNew.apply(this.currentScaleMutation!);
-    //   this.currentScaleMutation = undefined;
-    // });
+    const scaleGizmoLoadStart = performance.now();
+    void ScaleGizmoNode.create(lopolyScene, sceneViewController, this.gizmoParent, resources.scaleGizmo).then((scaleGizmo) => {
+      const scaleGizmoLoadStop = performance.now();
+      console.log(`Loaded ${ScaleGizmoNode.name} in ${scaleGizmoLoadStop - scaleGizmoLoadStart}ms`);
+      this.scaleGizmo = scaleGizmo;
+    });
 
     // // Bounding box
+    // @TODO
     // this.boundingBoxGizmo = new BoundingBoxGizmo(Color3.Yellow(), utilityLayer);
     // this.boundingBoxGizmo.setEnabledScaling(false);
     // this.boundingBoxGizmo.setEnabledRotationAxis("");
@@ -136,6 +102,7 @@ export class SelectionManager {
     return {
       moveGizmo: await MoveGizmoNode.loadResources(),
       rotateGizmo: await RotateGizmoNode.loadResources(),
+      scaleGizmo: await ScaleGizmoNode.loadResources(),
     };
   }
 
@@ -152,12 +119,14 @@ export class SelectionManager {
     // @NOTE If gizmos haven't loaded, no-op (shouldn't really ever happen)
     if (
       this.moveGizmo === undefined ||
-      this.rotateGizmo === undefined
+      this.rotateGizmo === undefined ||
+      this.scaleGizmo === undefined
     ) return;
 
     // Clear all gizmos
     this.moveGizmo.detach();
     this.rotateGizmo.detach();
+    this.scaleGizmo.detach();
     // this.moveGizmo.enabled = false;
     // this.moveGizmo.attachedNode = null;
     // this.rotateGizmo.attachedNode = null;
@@ -263,7 +232,7 @@ export class SelectionManager {
     this.updateGizmos();
   }
 
-  public get currentGizmo(): MoveGizmoNode | RotateGizmoNode | undefined {
+  public get currentGizmo(): MoveGizmoNode | RotateGizmoNode | ScaleGizmoNode | undefined {
     if (this.selectedObjectId !== undefined) {
       switch (this.currentTool) {
         case CurrentSelectionTool.Move:
@@ -271,7 +240,7 @@ export class SelectionManager {
         case CurrentSelectionTool.Rotate:
           return this.rotateGizmo;
         case CurrentSelectionTool.Scale:
-          return undefined; // @TODO
+          return this.scaleGizmo;
         default:
           console.error(`[${SelectionManager.name}] (currentGizmo) Unimplemented tool type: ${this.currentTool}`);
       }
