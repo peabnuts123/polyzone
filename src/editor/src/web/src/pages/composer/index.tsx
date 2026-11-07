@@ -2,6 +2,7 @@ import type { FunctionComponent } from "react";
 import { useEffect, useRef, useState } from "react";
 import { observer } from "mobx-react-lite";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import { PlayIcon, StopIcon, ArrowLeftEndOnRectangleIcon, CubeIcon, PlusIcon, XMarkIcon } from '@heroicons/react/24/solid';
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 
@@ -105,7 +106,8 @@ const ComposerPage: FunctionComponent<Props> = observer(({ }) => {
 
 const Editor: FunctionComponent = observer(() => {
   // Hooks
-  const { ComposerController } = useLibrary();
+  const { ComposerController, ProjectController } = useLibrary();
+  const Router = useRouter();
   const TabState = useTabState();
 
   // Store tab state in ref to avoid capturing it in a closure
@@ -119,6 +121,19 @@ const Editor: FunctionComponent = observer(() => {
       openSceneInAppropriateTab(sceneData, true);
     },
   );
+
+  // Automatically load the first scene if debug query param was provided
+  useEffect(() => {
+    if (Router.query['autoOpenFirstScene'] !== 'true') return;
+
+    const firstScene = ProjectController.project.scenes.getAll()[0];
+    if (firstScene !== undefined) {
+      openSceneInAppropriateTab(firstScene.data);
+    }
+
+    // Strip param so that returning from Play does not reopen the scene
+    void Router.replace('/composer', undefined, { shallow: true });
+  }, [Router.isReady]);
 
   // Functions
   const createNewTab = (): TabData => {

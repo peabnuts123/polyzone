@@ -1,11 +1,13 @@
 import { useEffect, useState, type FunctionComponent, useRef } from "react";
+import { observer } from "mobx-react-lite";
+import { useRouter } from "next/router";
 import { open } from '@tauri-apps/plugin-dialog';
 import { ArrowUpTrayIcon, DocumentIcon } from '@heroicons/react/24/outline';
 
 import { useLibrary } from "@lib/index";
 import { ApplicationData } from "@lib/application";
+
 import { RecentProjectTile } from "./RecentProjectTile";
-import { observer } from "mobx-react-lite";
 
 
 interface RecentProjectListProps {
@@ -15,12 +17,15 @@ interface RecentProjectListProps {
 
 export const RecentProjectList: FunctionComponent<RecentProjectListProps> = observer(({ showCreateProjectScreen, showErrorMessage }) => {
   const { ProjectController, ApplicationDataController } = useLibrary();
+  const Router = useRouter();
 
   // State
   const [appData, setAppData] = useState<ApplicationData | undefined>(undefined);
 
   // Computed state
   const isAppDataLoaded = appData !== undefined;
+  const isDebug = process.env.DEVELOPMENT_BUILD === 'true';
+  const showDebugSceneButton = isDebug && isAppDataLoaded && appData.recentProjects.length > 0;
 
   // Effects
   useEffect(() => {
@@ -43,8 +48,28 @@ export const RecentProjectList: FunctionComponent<RecentProjectListProps> = obse
     await ProjectController.loadProject(selected);
   };
 
+  const openFirstProjectScene = async (): Promise<void> => {
+    try {
+      // Load first project
+      const targetProject = appData!.recentProjects[0];
+      await ProjectController.loadProject(targetProject.path);
+      // Navigate to composer with `?autoOpenFirstScene=true`
+      await Router.push({ pathname: '/composer', query: { autoOpenFirstScene: true } });
+    } catch (error) {
+      showErrorMessage(`Failed to open first project: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  };
+
   return (
     <>
+      {/* Debug button for jumping straight to the first scene from the first project */}
+      {showDebugSceneButton && (
+        <div className="flex mb-4">
+          <button onClick={openFirstProjectScene} className="button" disabled={!isAppDataLoaded}>
+            [DEBUG] Auto load first scene
+          </button>
+        </div>
+      )}
       <div className="flex flex-row justify-between mb-2">
         <h2 className="text-h2 text-retro-shadow font-serif">Recent projects</h2>
 

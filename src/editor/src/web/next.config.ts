@@ -17,6 +17,9 @@ const nextConfig: NextConfig = {
     '@polyzone/core',
   ],
   devIndicators: false,
+  env: {
+    DEVELOPMENT_BUILD: String(process.env.NODE_ENV === 'development'),
+  },
 
   // @NOTE Ridiculous check to find where `next` is installed (causes havoc in monorepos)
   outputFileTracingRoot: path.join(cwd(), '../../../..'),
