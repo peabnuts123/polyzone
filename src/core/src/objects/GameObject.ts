@@ -2,6 +2,8 @@
 import { type Vector3, Rotation } from "@polyzone/core/math";
 import { Scene } from "../scene/Scene";
 
+export type GameObjectId = string;
+
 /**
  * An object that lives within the game world.
  * Components are used to build up behaviours, whereas a GameObject by itself does nothing.
@@ -52,7 +54,7 @@ export abstract class GameObject {
   // public abstract getComponents(): GameObjectComponent[];
 
   /** Unique identifier for this GameObject */
-  public abstract get id(): string;
+  public abstract get id(): GameObjectId;
   /** Human-friendly name for this object */
   public abstract get name(): string;
 

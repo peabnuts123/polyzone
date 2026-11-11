@@ -6,6 +6,7 @@ import { PointerState } from "@lopoly/engine/input";
 import type { ISceneViewController } from "./SceneViewController";
 import { ClaimedPointerCallbacks } from "@lib/common/view";
 import {
+  BoundingBoxGizmoNode,
   MoveGizmoNode, MoveGizmoNodeResources,
   RotateGizmoNode, RotateGizmoNodeResources,
   ScaleGizmoNode, ScaleGizmoNodeResources,
@@ -32,7 +33,7 @@ export class SelectionManager {
   private moveGizmo: MoveGizmoNode | undefined;
   private rotateGizmo: RotateGizmoNode | undefined;
   private scaleGizmo: ScaleGizmoNode | undefined;
-  // private static MoveGizmoModel: Promise<Model>;
+  private boundingBoxGizmo: BoundingBoxGizmoNode;
 
   // private readonly gizmoManager: GizmoManager;
   // private readonly moveGizmo: PositionGizmo;
@@ -57,6 +58,8 @@ export class SelectionManager {
     this.sceneViewController = sceneViewController;
 
     this.gizmoParent = new ObjectNode(lopolyScene, 'gizmo:parent');
+    this.boundingBoxGizmo = new BoundingBoxGizmoNode(lopolyScene, this.gizmoParent);
+
     // @NOTE Load gizmos asynchronously. They have just a little bit of model loading
     // to perform. We can't do this up front because it depends on LoPoly IEngine which
     // is captured in ViewController and only instantiated AFTER SceneViewController is created.
@@ -81,12 +84,6 @@ export class SelectionManager {
       this.scaleGizmo = scaleGizmo;
     });
 
-    // // Bounding box
-    // @TODO
-    // this.boundingBoxGizmo = new BoundingBoxGizmo(Color3.Yellow(), utilityLayer);
-    // this.boundingBoxGizmo.setEnabledScaling(false);
-    // this.boundingBoxGizmo.setEnabledRotationAxis("");
-
     this.updateGizmos();
 
     makeAutoObservable(this);
@@ -105,7 +102,6 @@ export class SelectionManager {
       scaleGizmo: await ScaleGizmoNode.loadResources(),
     };
   }
-
 
   public select(gameObjectId: string): void {
     this.selectedObjectId = gameObjectId;
@@ -127,6 +123,7 @@ export class SelectionManager {
     this.moveGizmo.detach();
     this.rotateGizmo.detach();
     this.scaleGizmo.detach();
+    this.boundingBoxGizmo.detach();
     // this.moveGizmo.enabled = false;
     // this.moveGizmo.attachedNode = null;
     // this.rotateGizmo.attachedNode = null;
@@ -184,6 +181,7 @@ export class SelectionManager {
       // Enable only the current tool
       // this.currentGizmo!.enabled = true;
       this.currentGizmo?.attachToGameObject(selectedObjectInstance);
+      this.boundingBoxGizmo.attachToGameObject(selectedObjectInstance);
       // switch (this.currentTool) {
       //   case CurrentSelectionTool.Move:
       //     // this.moveGizmo.attachedNode = this.fakeTransformTarget;

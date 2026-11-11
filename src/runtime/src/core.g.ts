@@ -26,6 +26,7 @@ import * as ObjectsComponentsScriptComponent from '@polyzone/core/objects/compon
 import * as ObjectsComponents from '@polyzone/core/objects/components';
 import * as MathColor3 from '@polyzone/core/math/Color3';
 import * as MathColor4 from '@polyzone/core/math/Color4';
+import * as MathQuaternion from '@polyzone/core/math/Quaternion';
 import * as MathRotation from '@polyzone/core/math/Rotation';
 import * as MathVector2 from '@polyzone/core/math/Vector2';
 import * as MathVector3 from '@polyzone/core/math/Vector3';
@@ -117,6 +118,10 @@ export const CoreModules: CoreModuleDefinition[] = [
   {
     name: '@polyzone/core/math/Color4',
     module: MathColor4,
+  },
+  {
+    name: '@polyzone/core/math/Quaternion',
+    module: MathQuaternion,
   },
   {
     name: '@polyzone/core/math/Rotation',

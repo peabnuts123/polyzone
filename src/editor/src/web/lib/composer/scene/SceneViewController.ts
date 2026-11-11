@@ -1,34 +1,37 @@
 import { makeAutoObservable } from 'mobx';
-import { CameraNode, IScene } from '@lopoly/engine/scene';
+import { GamepadAxis, KeyCode, GamepadButton, MouseButton, PointerState } from '@lopoly/engine/input';
+import { IEngine } from '@lopoly/engine/Engine';
+import { Scene as LoPolyScene } from '@lopoly/engine/scene';
+import { RayCast, RayCastMode } from '@lopoly/engine/collision';
 
 import {
   GameObject as GameObjectRuntime,
-  createGameObject,
   GameObject,
+  GameObjectComponent,
+  DirectionalLightComponent as DirectionalLightComponentRuntime,
+  PointLightComponent as PointLightComponentRuntime,
 } from '@polyzone/runtime/objects';
-import { Scene as LoPolyScene } from '@lopoly/engine/scene';
+import { Scene } from '@polyzone/runtime/scene';
+import { AssetCache } from '@polyzone/runtime/assets';
 
 import { JsoncContainer } from '@lib/util/JsoncContainer';
 import type { IProjectController } from '@lib/project/ProjectController';
 import { SceneViewMutator, SceneViewMutatorNew } from '@lib/mutation/SceneView';
 import { SceneDefinition } from '@lib/project/definition';
-import { IComposerComponentData } from '@lib/project/data/components';
 import { SceneData, GameObjectData } from '@lib/project/data';
 import { ProjectSceneEventType } from '@lib/project/watcher/scenes';
 import { ProjectFileEventType } from '@lib/project/watcher/project';
 import { SceneDbRecord } from '@lib/project/data/SceneDb';
 import { ProjectAssetEventType } from '@lib/project/watcher/assets';
 import { ComponentDependencyManager } from '@lib/common/ComponentDependencyManager';
-import { createEditorGameObjectComponent } from '@lib/common/GameObjects';
 import { MutationController } from '@lib/mutation/MutationController';
-import { SceneViewSelectionCache } from './SceneViewSelectionCache';
-import { isAssetDependentComponent, ISelectableObject, isSelectableObject } from './components';
-import { CurrentSelectionTool, SelectionManager, SelectionManagerResources } from './SelectionManager';
-import { Vector3 } from '@polyzone/core/math';
-import { clamp, GamepadAxis, GamepadButton, IEngine, IInputSystem, KeyCode, MouseButton } from '@lopoly/engine';
-import { Scene } from '@polyzone/runtime/scene';
 import { IViewController, ViewCamera, ViewController } from '@lib/common/view';
-import { AssetCache } from '@polyzone/runtime/assets';
+import { CameraComponentData, DirectionalLightComponentData, IComposerComponentData, MeshComponentData, PointLightComponentData, ScriptComponentData } from '@lib/project/data/components';
+
+import { SceneViewSelectionCache } from './SceneViewSelectionCache';
+import { isAssetDependentComponent, ISelectableObject, isSelectableObject, MeshComponent } from './components';
+import { CurrentSelectionTool, SelectionManager, SelectionManagerResources } from './SelectionManager';
+
 
 export interface ISceneViewController extends IViewController<SceneViewMutator, SceneViewMutatorNew> {
   setCurrentTool(tool: CurrentSelectionTool): void;
@@ -79,7 +82,8 @@ export class SceneViewController implements ISceneViewController {
 
     this.configureInput(this.engine);
     this._selectionManager = new SelectionManager(this.lopolyScene, this, selectionManagerResources);
-    this.camera.onClickPress = (pointer) => this._selectionManager.onClickPress(pointer);
+    this.camera.onClickPress = (pointer) => this.selectionManager.onClickPress(pointer);
+    this.camera.onClickSelect = (pointer) => this.onClickSelect(pointer);
 
     const stopListeningToProjectFileEvents = projectController.filesWatcher.onProjectFileChanged((event) => {
       if (event.type === ProjectFileEventType.Modify) {
@@ -187,9 +191,6 @@ export class SceneViewController implements ISceneViewController {
   }
 
   private async buildScene(): Promise<void> {
-
-
-
     await this.createScene();
 
     // @TODO Raycasting
@@ -207,6 +208,25 @@ export class SceneViewController implements ISceneViewController {
     //     }
     //   }
     // });
+  }
+
+  private onClickSelect(pointer: PointerState): void {
+    if (pointer.x !== undefined && pointer.y !== undefined) {
+      this.camera.rayCastFromCamera(pointer.x, pointer.y, (rayOrigin, rayDirection) => {
+        const result = RayCast.scene(rayOrigin, rayDirection, this.lopolyScene, RayCastMode.Infinite);
+        const pickedModel = result?.target;
+        if (pickedModel !== undefined) {
+          const pickedGameObjectId = this.selectionCache.get(pickedModel);
+          if (pickedGameObjectId === undefined) {
+            console.error(`Picked mesh but found no corresponding GameObject ID in cache. Has it been populated or updated? Picked mesh: '${pickedModel.name}'`);
+          } else {
+            this.selectionManager.select(pickedGameObjectId);
+          }
+        } else {
+          this.selectionManager.deselectAll();
+        }
+      });
+    }
   }
 
   public destroy(): void {
@@ -229,19 +249,38 @@ export class SceneViewController implements ISceneViewController {
    * Wrapper for `createGameObject()` with bindings into this SceneViewController.
    */
   public async createGameObject(gameObjectData: GameObjectData, parentGameObject?: GameObject): Promise<GameObjectRuntime> {
-    const gameObject = await createGameObject(
-      gameObjectData,
-      parentGameObject,
+    // Construct blank GameObject
+    const gameObject = new GameObject(
+      gameObjectData.id,
+      gameObjectData.name,
       this.scene,
-      (componentData, gameObject, atIndex) => this.createGameObjectComponent(
-        componentData as IComposerComponentData,
+      parentGameObject,
+    );
+    gameObject.position = gameObjectData.transform.position;
+    gameObject.rotation.euler = gameObjectData.transform.rotation;
+    gameObject.scale = gameObjectData.transform.scale;
+
+    // Construct child objects recursively
+    await Promise.all(gameObjectData.children.map((childObjectData) =>
+      this.createGameObject(
+        childObjectData,
         gameObject,
-        gameObjectData,
-        atIndex,
-      ),
+      )),
     );
 
-    this.scene.addGameObject(gameObject);
+    // Load game object components
+    await Promise.all(gameObjectData.components.map(async (componentData) =>
+      this.createGameObjectComponent(
+        componentData,
+        gameObject,
+        gameObjectData,
+      ),
+    ));
+
+    // Add top-level objects to scene
+    if (parentGameObject === undefined) {
+      this.scene.addGameObject(gameObject);
+    }
 
     return gameObject;
   }
@@ -255,18 +294,46 @@ export class SceneViewController implements ISceneViewController {
     gameObjectData: GameObjectData,
     atIndex?: number,
   ): Promise<void> {
-    await createEditorGameObjectComponent(
-      componentData,
-      gameObject,
-      atIndex,
-      this.assetCache,
-      (newComponent) => this.addToSelectionCache(gameObjectData.id, newComponent),
-      (newComponent) => this.componentDependencyManager.registerDependency(
+    let newComponent: GameObjectComponent | undefined = undefined;
+
+    if (componentData instanceof MeshComponentData) {
+      /* Mesh component */
+      // @TODO Just use runtime component IMO, refactor selection stuff below
+      newComponent = await MeshComponent.instantiateFromData(componentData, gameObject, atIndex, this.assetCache);
+    } else if (componentData instanceof ScriptComponentData) {
+      /* Custom component script */
+      /* @NOTE Script has no effect in the Composer */
+    } else if (componentData instanceof CameraComponentData) {
+      /* Camera component */
+      /* @NOTE Camera has no effect in the Composer */
+    } else if (componentData instanceof DirectionalLightComponentData) {
+      /* Directional Light component */
+      // @TODO
+      newComponent = await DirectionalLightComponentRuntime.instantiateFromData(componentData, gameObject, atIndex);
+    } else if (componentData instanceof PointLightComponentData) {
+      /* Point Light component */
+      newComponent = await PointLightComponentRuntime.instantiateFromData(componentData, gameObject, atIndex);
+    } else {
+      throw new Error(`Unimplemented component data type: ${componentData.constructor.name}`);
+    }
+
+    // Only continue processing if a component was actually made
+    if (newComponent === undefined) return;
+
+    // Store selectable objects in cache (for efficient lookup of model => game object on click)
+    // @TODO move selectable object stuff to here outside of MeshComponent
+    if (isSelectableObject(newComponent)) {
+      this.addToSelectionCache(gameObjectData.id, newComponent);
+    }
+
+    // Store asset dependencies in a cache (for reloading components when assets change)
+    if (isAssetDependentComponent(newComponent)) {
+      this.componentDependencyManager.registerDependency(
         componentData,
         gameObjectData,
         newComponent.assetDependencyIds,
-      ),
-    );
+      );
+    }
   }
 
   public setCurrentTool(tool: CurrentSelectionTool): void {

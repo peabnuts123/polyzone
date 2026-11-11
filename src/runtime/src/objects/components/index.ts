@@ -6,6 +6,7 @@ export * from './DirectionalLightComponent';
 export * from './IGameObjectComponent';
 export * from './MeshComponent';
 export * from './PointLightComponent';
+export * from './ScriptComponent';
 
 /**
  * Runtime-specific GameObjectComponent type.

@@ -1,11 +1,28 @@
 import { IEngine, Scene as LoPolyScene } from "@lopoly/engine";
+
 import { IQueryResult, Scene as SceneCore } from '@polyzone/core/scene';
 import { QueryFn } from "@polyzone/core/scene";
-import { GameObjectData, SceneData } from "@polyzone/runtime/cartridge/data";
-import { createGameObject, createGameObjectComponent } from "@polyzone/runtime/objects/createGameObject";
+import {
+  SceneData,
+  MeshComponentData,
+  ScriptComponentData,
+  CameraComponentData,
+  PointLightComponentData,
+  DirectionalLightComponentData,
+  IComponentData,
+  IGameObjectData,
+} from "@polyzone/runtime/cartridge/data";
+import {
+  MeshComponent,
+  CameraComponent,
+  DirectionalLightComponent,
+  PointLightComponent,
+  ScriptComponent,
+} from '@polyzone/runtime/objects/components';
 import { GameObject } from "@polyzone/runtime/objects/GameObject";
 import { AssetCache } from "@polyzone/runtime/assets";
 import { ScriptLoader } from "@polyzone/runtime/ScriptLoader";
+
 import { GameObjectQuery, SceneQuery } from "./SceneQuery";
 
 export class Scene extends SceneCore {
@@ -89,25 +106,71 @@ export class Scene extends SceneCore {
     gameObject.onDestroy();
   }
 
+  public async createGameObject(
+    gameObjectData: IGameObjectData,
+    parent: GameObject | undefined,
+    // scene: Scene,
+  ): Promise<GameObject> {
+    // Construct blank GameObject
+    const gameObject = new GameObject(
+      gameObjectData.id,
+      gameObjectData.name,
+      this,
+      parent,
+    );
+    gameObject.position = gameObjectData.transform.position;
+    gameObject.rotation.euler = gameObjectData.transform.rotation;
+    gameObject.scale = gameObjectData.transform.scale;
 
+    // Construct child objects recursively
+    await Promise.all(gameObjectData.children.map((childObjectData) =>
+      this.createGameObject(
+        childObjectData,
+        gameObject,
+      )),
+    );
 
-  // public async createGameObject(gameObjectData: GameObjectData, parentGameObject: GameObject | undefined = undefined): Promise<GameObject> {
-  //   const gameObject = await createGameObject(
-  //     gameObjectData,
-  //     parentGameObject,
-  //     this,
-  //     (componentData, gameObject) =>
-  //       createGameObjectComponent(
-  //         componentData,
-  //         gameObject,
-  //         undefined,
-  //         this.assetCache,
-  //         this.scriptLoader,
-  //       ),
-  //   );
-  //   this._topLevelGameObjects.push(gameObject);
-  //   return gameObject;
-  // }
+    // Load game object components
+    await Promise.all(gameObjectData.components.map(async (componentData) =>
+      this.createGameObjectComponent(
+        componentData,
+        gameObject,
+      ),
+    ));
+
+    // Add top-level objects to scene
+    if (parent === undefined) {
+      this.addGameObject(gameObject);
+    }
+
+    return gameObject;
+  }
+
+  private async createGameObjectComponent(
+    componentData: IComponentData,
+    gameObject: GameObject,
+    atIndex?: number,
+  ): Promise<void> {
+    if (componentData instanceof MeshComponentData) {
+      /* Mesh component */
+      await MeshComponent.instantiateFromData(componentData, gameObject, atIndex, this.assetCache);
+    } else if (componentData instanceof ScriptComponentData) {
+      /* Custom component script */
+      await ScriptComponent.instantiateFromData(componentData, gameObject, atIndex, this.scriptLoader);
+    } else if (componentData instanceof CameraComponentData) {
+      /* Camera component */
+      await CameraComponent.instantiateFromData(componentData, gameObject, atIndex);
+    } else if (componentData instanceof DirectionalLightComponentData) {
+      /* Directional Light component */
+      await DirectionalLightComponent.instantiateFromData(componentData, gameObject, atIndex);
+    } else if (componentData instanceof PointLightComponentData) {
+      /* Point Light component */
+      await PointLightComponent.instantiateFromData(componentData, gameObject, atIndex);
+    } else {
+      throw new Error(`Unimplemented component data type: ${componentData.constructor.name}`);
+    }
+  }
+
   public addGameObject(gameObject: GameObject): void {
     this._topLevelGameObjects.push(gameObject);
   }
