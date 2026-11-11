@@ -107,24 +107,19 @@ export class ViewCamera extends CameraNode {
     super.onUpdate(dt, time);
   }
 
-  private tmp_RayCastFromCameraDirection = Vector3.zero();
-  private tmp_RayCastFromCameraInverseViewProjectionMatrix = new Matrix4();
+  private readonly tmp_rayCastFromCamera_direction = Vector3.zero();
+  private readonly tmp_rayCastFromCamera_inverseViewProjectionMatrix = new Matrix4();
   public rayCastFromCamera<T>(screenX: number, screenY: number, callbackFn: (rayOrigin: Vector3, rayDirection: Vector3) => T): T {
     /** Normalised X coordinate between 0 (inclusive) and 1 (exclusive) */
     const x: NumberZeroToOne = screenX / this.scene.engine.canvas.width;
     /** Normalised Y coordinate between 0 (inclusive) and 1 (exclusive) */
     const y: NumberZeroToOne = screenY / this.scene.engine.canvas.height;
 
-    // if (x > 1 || x < 0 || y > 1 || y < 0) {
-    //   // @NOTE No-op this can legitimately happen when panning
-    //   return undefined;
-    // }
-
-    const rayDirection = this.tmp_RayCastFromCameraInverseViewProjectionMatrix
+    const rayDirection = this.tmp_rayCastFromCamera_inverseViewProjectionMatrix
       .setValue(this.viewProjectionMatrix)
       .invertSelf()
       .transformPointInPlace(
-        this.tmp_RayCastFromCameraDirection.setValue(
+        this.tmp_rayCastFromCamera_direction.setValue(
           x * 2 - 1,
           1 - y * 2, // @NOTE Invert Y because on screens top=0
           1, // @NOTE Near plane in NDC
@@ -134,6 +129,23 @@ export class ViewCamera extends CameraNode {
       .normalizeSelf();
 
     return callbackFn(this.absolutePosition, rayDirection);
+  }
+
+  private readonly tmp_getViewingDirection_direction = Vector3.zero();
+  private readonly tmp_getViewingDirection_inverseViewProjectionMatrix = new Matrix4();
+  public getViewingDirection(): Vector3 {
+    // @NOTE Very similar to `rayCastFromCamera` but with a hard-coded assumption that the ray
+    // intersects the middle of the near plane / viewing frustum
+    return this.tmp_getViewingDirection_inverseViewProjectionMatrix
+      .setValue(this.viewProjectionMatrix)
+      .invertSelf()
+      .transformPointInPlace(this.tmp_getViewingDirection_direction.setValue(
+        0,
+        0,
+        1, // @NOTE Near plane in NDC
+      ))
+      .subtractSelf(this.absolutePosition)
+      .normalizeSelf();
   }
 
   private get input(): IInputSystem { return this.scene.engine.inputSystem; }

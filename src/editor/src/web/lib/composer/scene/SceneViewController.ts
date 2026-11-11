@@ -13,6 +13,7 @@ import {
 } from '@polyzone/runtime/objects';
 import { Scene } from '@polyzone/runtime/scene';
 import { AssetCache } from '@polyzone/runtime/assets';
+import { tanDegrees } from '@polyzone/core/math/util';
 
 import { JsoncContainer } from '@lib/util/JsoncContainer';
 import type { IProjectController } from '@lib/project/ProjectController';
@@ -35,7 +36,7 @@ import { CurrentSelectionTool, SelectionManager, SelectionManagerResources } fro
 
 export interface ISceneViewController extends IViewController<SceneViewMutator, SceneViewMutatorNew> {
   setCurrentTool(tool: CurrentSelectionTool): void;
-  focusObject(gameObject: GameObjectRuntime): void;
+  focusSelected(): void;
   addToSelectionCache(gameObjectId: string, component: ISelectableObject): void;
   removeFromSelectionCache(component: ISelectableObject): void;
   createGameObject(gameObjectData: GameObjectData, parentGameObject?: GameObject): Promise<GameObjectRuntime>;
@@ -340,108 +341,31 @@ export class SceneViewController implements ISceneViewController {
     this.selectionManager.currentTool = tool;
   }
 
-  public focusObject(gameObject: GameObjectRuntime): void {
-    console.warn(`[${SceneViewController.name}] (${this.focusObject.name}) Not yet implemented`);
-    // // @TODO Replace this crappy Babylon logic with a REAL engine!!
-    // const [boundingBoxMin, boundingBoxMax] = this.getBoundingBoxFor(gameObject);
-    // const boundingBoxCenter = boundingBoxMax.add(boundingBoxMin).scaleInPlace(0.5);
-    // const viewTarget = this.sceneCamera instanceof ArcRotateCamera ? Vector3.Zero() : boundingBoxCenter;
-    // const boundingBoxRadius = Math.max(
-    //   boundingBoxMax.subtract(viewTarget).length(),
-    //   boundingBoxMin.subtract(viewTarget).length(),
-    // );
+  public focusSelected(): void {
+    if (this.selectionManager.selectedObjectId !== undefined) {
+      // Get the bounding box of the currently selected object
+      const selectionBoundingBox = this.selectionManager.selectedObjectBoundingBox!;
+      const boundingBoxCenter = selectionBoundingBox.absolutePosition;
 
-    // // Use trig to calculate 'adjacent' side of right-angled triangle (i.e. distance) based on bounding box size and camera FOV
-    // const cameraDistance = boundingBoxRadius / Math.tan(this.sceneCamera.fov / 2);
+      // Calculate the radius of a sphere that all points of the bounding box lay on.
+      // @NOTE Every vertex of a cuboid is the same distance from the center of the cuboid
+      // so... we only need one vertex. Which kind of hurts to think about.
+      // Convert vertex into coordinates relative to the bounding box center
+      const boundingBoxVertex = selectionBoundingBox.getVerticesWorldSpace()[0].subtract(boundingBoxCenter);
+      // Scale factor for sphere - increase to "zoom out" more
+      const PaddingScalar = 1.2;
+      const boundingBoxRadius = boundingBoxVertex.length() * PaddingScalar;
 
-    // const camera: TargetCamera = this.sceneCamera;
-    // if (camera instanceof ArcRotateCamera) {
-    //   camera.target.copyFrom(viewTarget);
-    //   camera.radius = cameraDistance; // Set distance
-    //   // Stop animating
-    //   camera.inertialRadiusOffset = 0;
-    //   camera.inertialPanningX = 0;
-    //   camera.inertialPanningY = 0;
-    //   camera.inertialAlphaOffset = 0;
-    //   camera.inertialBetaOffset = 0;
-    // } else if (camera instanceof FreeCamera) {
-    //   // Move camera such that it has the same direction but with the new distance, pointing at the target
-    //   const cameraDirection = camera.getDirection(Vector3.Forward());
-    //   const cameraPosition = boundingBoxCenter.subtract(
-    //     cameraDirection.normalize().scale(cameraDistance),
-    //   );
-    //   camera.position.copyFrom(cameraPosition);
-    //   camera.cameraDirection.setAll(0); // Stop movement
-    //   camera.cameraRotation.setAll(0); // Stop rotation
-    // }
+      // Use trig to calculate 'adjacent' side of right-angled triangle (i.e. distance) based on bounding box size and camera FOV
+      const cameraDistance = boundingBoxRadius / tanDegrees(this.camera.fov / 2);
+
+      // Compute camera new position based on current viewing direction and desired distance
+      const cameraVector = this.camera.getViewingDirection();
+      this.camera.absolutePosition = boundingBoxCenter.subtract(
+        cameraVector.normalizeSelf().scaleSelf(cameraDistance),
+      );
+    }
   }
-
-  // private combineBoundingBoxes(boundingBoxes: BoundingBox[]): BoundingBox {
-  //   let minimum: Vector3 | undefined = undefined;
-  //   let maximum: Vector3 | undefined = undefined;
-  //   for (const boundingBox of boundingBoxes) {
-  //     const [boundingBoxMin, boundingBoxMax] = boundingBox;
-  //     if (minimum === undefined) {
-  //       minimum = boundingBoxMin.clone();
-  //     } else {
-  //       if (boundingBoxMin.x < minimum.x) {
-  //         minimum.x = boundingBoxMin.x;
-  //       }
-  //       if (boundingBoxMin.y < minimum.y) {
-  //         minimum.y = boundingBoxMin.y;
-  //       }
-  //       if (boundingBoxMin.z < minimum.z) {
-  //         minimum.z = boundingBoxMin.z;
-  //       }
-  //     }
-  //     if (maximum === undefined) {
-  //       maximum = boundingBoxMax.clone();
-  //     } else {
-  //       if (boundingBoxMax.x > maximum.x) {
-  //         maximum.x = boundingBoxMax.x;
-  //       }
-  //       if (boundingBoxMax.y > maximum.y) {
-  //         maximum.y = boundingBoxMax.y;
-  //       }
-  //       if (boundingBoxMax.z > maximum.z) {
-  //         maximum.z = boundingBoxMax.z;
-  //       }
-  //     }
-  //   }
-  //   return [minimum ?? Vector3.Zero(), maximum ?? Vector3.Zero()];
-  // };
-
-  // private getBoundingBoxFor(gameObject: GameObjectRuntime): BoundingBox {
-  //   const meshComponents = gameObject.components.filter((component) => component instanceof MeshComponent);
-  //   const meshComponentBoundingBoxes = meshComponents.map((meshComponent) => {
-  //     const meshPartsBoundingBoxes = meshComponent.allSelectableMeshes.map((mesh) => {
-  //       const boundingBox = mesh.getBoundingInfo().boundingBox;
-  //       return [boundingBox.minimumWorld, boundingBox.maximumWorld] as BoundingBox;
-  //     });
-  //     return this.combineBoundingBoxes(meshPartsBoundingBoxes);
-  //   });
-  //   const childrenBoundingBoxes = gameObject.transform.children.map((child) => this.getBoundingBoxFor(child.gameObject));
-
-  //   if (meshComponentBoundingBoxes.length === 0 && childrenBoundingBoxes.length === 0) {
-  //     // GameObject has no MeshComponents OR children. Just return simple bounding box
-  //     const DefaultBoundingBoxHalfWidth = 0.5;
-  //     return [
-  //       new Vector3(
-  //         gameObject.transform.absolutePosition.x - DefaultBoundingBoxHalfWidth,
-  //         gameObject.transform.absolutePosition.y - DefaultBoundingBoxHalfWidth,
-  //         gameObject.transform.absolutePosition.z - DefaultBoundingBoxHalfWidth,
-  //       ),
-  //       new Vector3(
-  //         gameObject.transform.absolutePosition.x + DefaultBoundingBoxHalfWidth,
-  //         gameObject.transform.absolutePosition.y + DefaultBoundingBoxHalfWidth,
-  //         gameObject.transform.absolutePosition.z + DefaultBoundingBoxHalfWidth,
-  //       ),
-  //     ];
-  //   } else {
-  //     // GameObject has at least one MeshComponent or child GameObject
-  //     return this.combineBoundingBoxes(meshComponentBoundingBoxes.concat(childrenBoundingBoxes));
-  //   }
-  // }
 
   public addToSelectionCache(gameObjectId: string, component: ISelectableObject): void {
     this.selectionCache.add(gameObjectId, component.allSelectableMeshes);

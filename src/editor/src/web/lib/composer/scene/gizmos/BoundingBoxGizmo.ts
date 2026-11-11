@@ -8,13 +8,13 @@ import { GizmoConfig } from "./config";
 
 /** Draws bounds for a GameObject and its descendants, aligned with the gizmo's axes. */
 export class BoundingBoxGizmoNode extends SceneNode {
-  private box: BoxColliderNode;
+  private readonly _box: BoxColliderNode;
   private attachedGameObject: GameObject | undefined;
 
   public constructor(scene: IScene, parent?: SceneNode) {
     super(scene, `gizmo:bounding-box`, parent);
-    this.box = new BoxColliderNode(scene, `${this.name}:box`, GizmoConfig.GizmoColliderGroup, Vector3.zero(), this);
-    this.box.drawWireframe = true;
+    this._box = new BoxColliderNode(scene, `${this.name}:box`, GizmoConfig.GizmoColliderGroup, Vector3.zero(), this);
+    this._box.drawWireframe = true;
   }
 
   public override onUpdate(_dt: number, _time: number): void {
@@ -101,4 +101,5 @@ export class BoundingBoxGizmoNode extends SceneNode {
     this.updateBounds();
   }
 
+  public get box(): BoxColliderNode { return this._box; }
 }

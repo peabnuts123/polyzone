@@ -1,5 +1,5 @@
 import { makeAutoObservable } from "mobx";
-import { Scene as LoPolyScene, ObjectNode } from '@lopoly/engine/scene';
+import { BoxColliderNode, Scene as LoPolyScene, ObjectNode } from '@lopoly/engine/scene';
 import { Enum } from '@lopoly/engine/util/types';
 import { PointerState } from "@lopoly/engine/input";
 
@@ -242,6 +242,12 @@ export class SelectionManager {
         default:
           console.error(`[${SelectionManager.name}] (currentGizmo) Unimplemented tool type: ${this.currentTool}`);
       }
+    }
+  }
+
+  public get selectedObjectBoundingBox(): BoxColliderNode | undefined {
+    if (this.boundingBoxGizmo.enabled) {
+      return this.boundingBoxGizmo.box;
     }
   }
 }

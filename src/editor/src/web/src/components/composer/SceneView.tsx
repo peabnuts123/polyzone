@@ -186,7 +186,7 @@ function handleKeyPress(controller: ISceneViewController, e: KeyboardEvent): voi
   } else if (controller.selectedObject !== undefined && e.key === 'f') {
     /* Focus selected object */
     e.preventDefault();
-    controller.focusObject(controller.selectedObject);
+    controller.focusSelected();
   }
 }
 

@@ -190,29 +190,24 @@ export abstract class GizmoNodeBase<TGizmoHandleType extends string, TActiveStat
     // Find the most orthogonal axis to the camera's viewing direction
     // by computing its dot product with the other 2 axes and returning the
     // plane that contains the axis + the most orthogonal axis
-    return this.sceneViewController.camera.rayCastFromCamera(
-      this.scene.engine.canvas.width / 2,
-      this.scene.engine.canvas.height / 2,
-      (_, cameraVector) => {
-        switch (axis) {
-          case 'x': {
-            const dotY = cameraVector.dot(this.worldMatrix.transformDirectionInPlace(new Vector3(0, 1, 0)));
-            const dotZ = cameraVector.dot(this.worldMatrix.transformDirectionInPlace(new Vector3(0, 0, 1)));
-            return Math.abs(dotY) < Math.abs(dotZ) ? GizmoPlane.XY : GizmoPlane.XZ;
-          }
-          case 'y': {
-            const dotX = cameraVector.dot(this.worldMatrix.transformDirectionInPlace(new Vector3(1, 0, 0)));
-            const dotZ = cameraVector.dot(this.worldMatrix.transformDirectionInPlace(new Vector3(0, 0, 1)));
-            return Math.abs(dotX) < Math.abs(dotZ) ? GizmoPlane.XY : GizmoPlane.YZ;
-          }
-          case 'z': {
-            const dotX = cameraVector.dot(this.worldMatrix.transformDirectionInPlace(new Vector3(1, 0, 0)));
-            const dotY = cameraVector.dot(this.worldMatrix.transformDirectionInPlace(new Vector3(0, 1, 0)));
-            return Math.abs(dotX) < Math.abs(dotY) ? GizmoPlane.XZ : GizmoPlane.YZ;
-          }
-        }
-      },
-    );
+    const cameraVector = this.sceneViewController.camera.getViewingDirection();
+    switch (axis) {
+      case 'x': {
+        const dotY = cameraVector.dot(this.worldMatrix.transformDirectionInPlace(new Vector3(0, 1, 0)));
+        const dotZ = cameraVector.dot(this.worldMatrix.transformDirectionInPlace(new Vector3(0, 0, 1)));
+        return Math.abs(dotY) < Math.abs(dotZ) ? GizmoPlane.XY : GizmoPlane.XZ;
+      }
+      case 'y': {
+        const dotX = cameraVector.dot(this.worldMatrix.transformDirectionInPlace(new Vector3(1, 0, 0)));
+        const dotZ = cameraVector.dot(this.worldMatrix.transformDirectionInPlace(new Vector3(0, 0, 1)));
+        return Math.abs(dotX) < Math.abs(dotZ) ? GizmoPlane.XY : GizmoPlane.YZ;
+      }
+      case 'z': {
+        const dotX = cameraVector.dot(this.worldMatrix.transformDirectionInPlace(new Vector3(1, 0, 0)));
+        const dotY = cameraVector.dot(this.worldMatrix.transformDirectionInPlace(new Vector3(0, 1, 0)));
+        return Math.abs(dotX) < Math.abs(dotY) ? GizmoPlane.XZ : GizmoPlane.YZ;
+      }
+    }
   }
 
   /**
