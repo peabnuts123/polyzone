@@ -16,6 +16,13 @@ export interface Library {
   onPageUnload: () => void;
 }
 
+// @NOTE Disable hot-reloading for any module updates under `lib/`.
+// Many updates cannot meaningfully hot-reload, since their state is already captured
+// in react state and not reloaded anyway. So in these files, we just trigger a full reload.
+if (module.hot) {
+  module.hot.decline();
+}
+
 /* eslint-disable react-hooks/rules-of-hooks */ // I guess eslint is sad because the function is not called `use____()`
 export function createLibrary(): Library {
 
