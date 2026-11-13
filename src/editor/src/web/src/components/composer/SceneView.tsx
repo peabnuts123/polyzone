@@ -28,7 +28,7 @@ const SceneViewComponent: FunctionComponent<Props> = observer(({ controller }) =
       canvasParentRef.current.appendChild(controller.canvas);
     }
 
-    return controller.startBabylonView();
+    return controller.startView();
   }, [controller, controller.canvas]);
 
   // Keyboard shortcuts

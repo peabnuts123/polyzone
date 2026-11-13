@@ -405,13 +405,13 @@ export class SceneViewController implements ISceneViewController {
     await this.createGameObjectComponent(componentData, gameObjectInstance, gameObjectData, componentIndex);
   }
 
-  // @TODO we should maybe just "Resume" the engine rather than tearing it down / up all the time
   public async reloadSceneData(scene: SceneDbRecord): Promise<void> {
     // Clear out the scene
     this.selectionManager.deselectAll();
     this.selectionCache.clear();
     this.componentDependencyManager.clear();
-    this.scene.topLevelGameObjects.forEach((topLevelGameObject) => {
+    // @NOTE Clone the collection to mutate it while iterating
+    [...this.scene.topLevelGameObjects].forEach((topLevelGameObject) => {
       this.scene.destroyGameObject(topLevelGameObject);
     });
 
@@ -426,8 +426,7 @@ export class SceneViewController implements ISceneViewController {
   }
 
   /* IViewController implementation through encapsulated object */
-  // @TODO Rename
-  public startBabylonView(): () => void { return this.viewController.startBabylonView(); }
+  public startView(): () => void { return this.viewController.startView(); }
   public get canvas(): HTMLCanvasElement { return this.viewController.canvas; }
   public get assetCache(): AssetCache { return this.viewController.assetCache; }
   public get mutator(): SceneViewMutator { return this.viewController.mutator; }

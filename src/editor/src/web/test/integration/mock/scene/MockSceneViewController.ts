@@ -83,7 +83,7 @@ export class MockSceneViewController implements ISceneViewController {
     );
   }
 
-  startBabylonView: Func<Func<void>> = () => {
+  startView: Func<Func<void>> = () => {
     return () => { };
   };
   destroy: Func<void> = () => {

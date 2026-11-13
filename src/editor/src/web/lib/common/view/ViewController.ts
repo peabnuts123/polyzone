@@ -10,7 +10,7 @@ import { Engine } from "@lopoly/engine";
 import { AssetCache } from "@polyzone/runtime/assets";
 import { Scene } from "@polyzone/runtime/scene";
 import { ScriptLoader } from "@polyzone/runtime/ScriptLoader";
-import { OnClickPressFn, ViewCamera } from "./ViewCamera";
+import { ViewCamera } from "./ViewCamera";
 import { Vector3 } from "@polyzone/core/math";
 
 export type AnyViewController = IViewController<Mutator<any>, MutatorNew<any>>;
@@ -20,7 +20,7 @@ export interface IViewController<TMutator extends Mutator<any>, TMutatorNew exte
   get canvas(): HTMLCanvasElement;
   get mutator(): TMutator;
   get mutatorNew(): TMutatorNew;
-  startBabylonView(): () => void;
+  startView(): () => void;
   destroy(): void;
 }
 
@@ -74,19 +74,9 @@ export class ViewController<TMutator extends Mutator<any>, TMutatorNew extends M
     this.bindScene(this._sceneData, this._sceneJson);
   }
 
-  // @TODO Rename
-  public startBabylonView(): () => void {
-    let stopEngine: (() => void) | undefined;
-    // let isStopped = false;
-    this.engine.run((dt, time, stop) => {
-      if (stopEngine === undefined) {
-        stopEngine = stop;
-      }
-
+  public startView(): () => void {
+    const stopEngine = this.engine.run((dt, time) => {
       this.scene.onUpdate(dt, time);
-      // if (isStopped) {
-      //   stop();
-      // }
     });
 
     const resizeObserver = new ResizeObserver((entries) => {
@@ -97,21 +87,17 @@ export class ViewController<TMutator extends Mutator<any>, TMutatorNew extends M
       this.canvas.height = newSize.height * devicePixelRatio;
 
     });
-    resizeObserver.observe(this.canvas as unknown as Element); // @TODO FUCK YOU REACT!!!!!!
+    resizeObserver.observe(this.canvas);
 
     this.mutationController.setMutatorActive(this.mutatorNew, true);
 
     /* Teardown - when scene view is unloaded */
-    const onDestroyView = (): void => {
-      resizeObserver.unobserve(this.canvas as unknown as Element); // @TODO FUCK YOU REACT!!!!!!
-      if (stopEngine) {
-        stopEngine();
-      } else {
-        console.error(`COULDN'T STOP! - engine has never rendered`);
-      }
+    const onStopView = (): void => {
+      resizeObserver.unobserve(this.canvas);
+      stopEngine();
       this.mutationController.setMutatorActive(this.mutatorNew, false);
     };
-    return onDestroyView;
+    return onStopView;
   }
 
   public bindScene(sceneData: SceneData, sceneJson?: JsoncContainer<SceneDefinition>): void {
