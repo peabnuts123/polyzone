@@ -38,6 +38,7 @@ export class GameObject extends GameObjectCore {
 
   public onDestroy(): void {
     this.components.forEach((component) => component.onDestroy());
+    this.sceneNode.destroy();
     // @TODO should this be enabled? It previously wasn't here. But surely we need it?
     // this.sceneNode.forEachChildGameObject((child) => child.destroy());
   }
