@@ -46,10 +46,10 @@ describe(RemoveGameObjectComponentMutation.name, () => {
     );
     const mockGameObjectData = mockScene.data.getGameObject(mockGameObjectDefinition.id);
     const meshComponentToRemove = mockGameObjectData.getComponent(mockMeshComponentDefinition.id, MeshComponentData);
-    const mockGameObject = mockSceneViewController.findGameObjectById(mockGameObjectData.id)!;
+    const mockEditorObject = mockSceneViewController.findEditorObjectById(mockGameObjectData.id)!;
 
     const initialDataComponents = [...mockGameObjectData.components];
-    const initialBabylonComponents = [...mockGameObject.components];
+    const initialBabylonComponents = [...mockEditorObject.components];
     const initialDefinitionComponents = [...mockSceneViewController.sceneDefinition.objects[0].components];
 
     const mutation = new RemoveGameObjectComponentMutation(mockGameObjectData, meshComponentToRemove);
@@ -58,7 +58,7 @@ describe(RemoveGameObjectComponentMutation.name, () => {
     await mockSceneViewController.mutatorNew.apply(mutation);
 
     const finalDataComponents = mockGameObjectData.components;
-    const finalBabylonComponents = mockGameObject.components;
+    const finalBabylonComponents = mockEditorObject.components;
     const finalDefinitionComponents = mockSceneViewController.sceneDefinition.objects[0].components;
 
     // Assert
@@ -113,10 +113,10 @@ describe(RemoveGameObjectComponentMutation.name, () => {
     const mockGameObjectData = mockScene.data.getGameObject(mockGameObjectDefinition.id);
     const meshComponentToRemove = mockGameObjectData.getComponent(mockMeshComponentDefinition.id, MeshComponentData);
     const pointLightComponentToKeep = mockGameObjectData.getComponent(mockPointLightComponentDefinition.id, PointLightComponentData);
-    const mockGameObject = mockSceneViewController.findGameObjectById(mockGameObjectData.id)!;
+    const mockEditorObject = mockSceneViewController.findEditorObjectById(mockGameObjectData.id)!;
 
     const initialDataComponents = [...mockGameObjectData.components];
-    const initialBabylonComponents = [...mockGameObject.components];
+    const initialBabylonComponents = [...mockEditorObject.components];
     const initialDefinitionComponents = [...mockSceneViewController.sceneDefinition.objects[0].components];
 
     const mutation = new RemoveGameObjectComponentMutation(mockGameObjectData, meshComponentToRemove);
@@ -125,7 +125,7 @@ describe(RemoveGameObjectComponentMutation.name, () => {
     await mockSceneViewController.mutatorNew.apply(mutation);
 
     const finalDataComponents = mockGameObjectData.components;
-    const finalBabylonComponents = mockGameObject.components;
+    const finalBabylonComponents = mockEditorObject.components;
     const finalDefinitionComponents = mockSceneViewController.sceneDefinition.objects[0].components;
 
     // Assert

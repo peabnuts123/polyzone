@@ -41,10 +41,10 @@ describe(SetGameObjectPositionMutation.name, () => {
       mockScene,
     );
     const mockGameObjectData = mockScene.data.getGameObject(mockGameObjectDefinition.id);
-    const mockGameObject = mockSceneViewController.findGameObjectById(mockGameObjectData.id)!;
+    const mockEditorObject = mockSceneViewController.findEditorObjectById(mockGameObjectData.id)!;
 
     const initialDataPosition = mockGameObjectData.transform.position;
-    const initialBabylonPosition = mockGameObject.transform.localPosition.clone();
+    const initialBabylonPosition = mockEditorObject.transform.localPosition.clone();
     const initialDefinitionPosition = mockSceneViewController.sceneDefinition.objects[0].transform.position;
 
     const mutation = new SetGameObjectPositionMutation(mockGameObjectData.id);
@@ -62,7 +62,7 @@ describe(SetGameObjectPositionMutation.name, () => {
 
       // Each update should modify the data and Babylon state
       expectVector3ToEqual(mockGameObjectData.transform.position, finalPosition, `GameObject data position should be updated after step ${i}`);
-      expectVector3ToEqual(mockGameObject.transform.localPosition, finalPosition, `Babylon GameObject position should be updated after step ${i}`);
+      expectVector3ToEqual(mockEditorObject.transform.localPosition, finalPosition, `Babylon GameObject position should be updated after step ${i}`);
 
       // But definition should not be updated until apply()
       const afterUpdateDefinitionPosition = mockSceneViewController.sceneDefinition.objects[0].transform.position;
@@ -73,7 +73,7 @@ describe(SetGameObjectPositionMutation.name, () => {
     await mockSceneViewController.mutatorNew.apply(mutation);
 
     const finalDataPosition = mockGameObjectData.transform.position;
-    const finalBabylonPosition = mockGameObject.transform.localPosition;
+    const finalBabylonPosition = mockEditorObject.transform.localPosition;
     const finalDefinitionPosition = mockSceneViewController.sceneDefinition.objects[0].transform.position;
 
     // Assert
@@ -161,11 +161,11 @@ describe(SetGameObjectPositionMutation.name, () => {
       mockScene,
     );
     const mockGameObjectData = mockScene.data.getGameObject(mockGameObjectDefinition.id);
-    const mockGameObject = mockSceneViewController.findGameObjectById(mockGameObjectData.id)!;
+    const mockEditorObject = mockSceneViewController.findEditorObjectById(mockGameObjectData.id)!;
 
     // Capture initial state
     const initialDataPosition = mockGameObjectData.transform.position;
-    const initialBabylonPosition = mockGameObject.transform.localPosition.clone();
+    const initialBabylonPosition = mockEditorObject.transform.localPosition.clone();
     const initialDefinitionPosition = mockSceneViewController.sceneDefinition.objects[0].transform.position;
 
     const mutation = new SetGameObjectPositionMutation(mockGameObjectData.id);
@@ -177,7 +177,7 @@ describe(SetGameObjectPositionMutation.name, () => {
 
     // Capture state after mutation
     const afterMutationDataPosition = mockGameObjectData.transform.position;
-    const afterMutationBabylonPosition = mockGameObject.transform.localPosition.clone();
+    const afterMutationBabylonPosition = mockEditorObject.transform.localPosition.clone();
     const afterMutationDefinitionPosition = mockSceneViewController.sceneDefinition.objects[0].transform.position;
 
     // Undo the mutation
@@ -185,7 +185,7 @@ describe(SetGameObjectPositionMutation.name, () => {
 
     // Capture state after undo
     const afterUndoDataPosition = mockGameObjectData.transform.position;
-    const afterUndoBabylonPosition = mockGameObject.transform.localPosition.clone();
+    const afterUndoBabylonPosition = mockEditorObject.transform.localPosition.clone();
     const afterUndoDefinitionPosition = mockSceneViewController.sceneDefinition.objects[0].transform.position;
 
     // Assert initial state

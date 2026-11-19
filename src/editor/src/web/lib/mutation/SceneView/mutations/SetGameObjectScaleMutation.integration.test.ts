@@ -41,10 +41,10 @@ describe(SetGameObjectScaleMutation.name, () => {
       mockScene,
     );
     const mockGameObjectData = mockScene.data.getGameObject(mockGameObjectDefinition.id);
-    const mockGameObject = mockSceneViewController.findGameObjectById(mockGameObjectData.id)!;
+    const mockEditorObject = mockSceneViewController.findEditorObjectById(mockGameObjectData.id)!;
 
     const initialDataScale = mockGameObjectData.transform.scale.clone();
-    const initialBabylonScale = mockGameObject.transform.localScale.clone();
+    const initialBabylonScale = mockEditorObject.transform.localScale.clone();
     const initialDefinitionScale = mockSceneViewController.sceneDefinition.objects[0].transform.scale;
 
     const mutation = new SetGameObjectScaleMutation(mockGameObjectData.id);
@@ -62,7 +62,7 @@ describe(SetGameObjectScaleMutation.name, () => {
 
       // Each update should modify the data and Babylon state
       expectVector3ToEqual(mockGameObjectData.transform.scale, finalScale, `GameObject data scale should be updated after step ${i}`);
-      expectVector3ToEqual(mockGameObject.transform.localScale, finalScale, `Babylon GameObject scale should be updated after step ${i}`);
+      expectVector3ToEqual(mockEditorObject.transform.localScale, finalScale, `Babylon GameObject scale should be updated after step ${i}`);
 
       // But definition should not be updated until apply()
       const afterUpdateDefinitionScale = mockSceneViewController.sceneDefinition.objects[0].transform.scale;
@@ -73,7 +73,7 @@ describe(SetGameObjectScaleMutation.name, () => {
     await mockSceneViewController.mutatorNew.apply(mutation);
 
     const finalDataScale = mockGameObjectData.transform.scale;
-    const finalBabylonScale = mockGameObject.transform.localScale;
+    const finalBabylonScale = mockEditorObject.transform.localScale;
     const finalDefinitionScale = mockSceneViewController.sceneDefinition.objects[0].transform.scale;
 
     // Assert
@@ -117,10 +117,10 @@ describe(SetGameObjectScaleMutation.name, () => {
       mockScene,
     );
     const mockGameObjectData = mockScene.data.getGameObject(mockGameObjectDefinition.id);
-    const mockGameObject = mockSceneViewController.findGameObjectById(mockGameObjectData.id)!;
+    const mockEditorObject = mockSceneViewController.findEditorObjectById(mockGameObjectData.id)!;
 
     const initialDataScale = mockGameObjectData.transform.scale.clone();
-    const initialBabylonScale = mockGameObject.transform.localScale.clone();
+    const initialBabylonScale = mockEditorObject.transform.localScale.clone();
     const initialDefinitionScale = mockSceneViewController.sceneDefinition.objects[0].transform.scale;
 
     const mutation = new SetGameObjectScaleMutation(mockGameObjectData.id);
@@ -146,7 +146,7 @@ describe(SetGameObjectScaleMutation.name, () => {
 
       // Each update should modify the data and Babylon state
       expectVector3ToEqual(mockGameObjectData.transform.scale, expectedScale, `GameObject data scale should be updated after delta step ${i}`);
-      expectVector3ToEqual(mockGameObject.transform.localScale, expectedScale, `Babylon GameObject scale should be updated after delta step ${i}`);
+      expectVector3ToEqual(mockEditorObject.transform.localScale, expectedScale, `Babylon GameObject scale should be updated after delta step ${i}`);
 
       // But definition should not be updated until apply()
       const afterUpdateDefinitionScale = mockSceneViewController.sceneDefinition.objects[0].transform.scale;
@@ -157,7 +157,7 @@ describe(SetGameObjectScaleMutation.name, () => {
     await mockSceneViewController.mutatorNew.apply(mutation);
 
     const finalDataScale = mockGameObjectData.transform.scale;
-    const finalBabylonScale = mockGameObject.transform.localScale;
+    const finalBabylonScale = mockEditorObject.transform.localScale;
     const finalDefinitionScale = mockSceneViewController.sceneDefinition.objects[0].transform.scale;
 
     // Assert

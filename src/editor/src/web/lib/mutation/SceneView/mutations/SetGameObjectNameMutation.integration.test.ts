@@ -32,10 +32,10 @@ describe(SetGameObjectNameMutation.name, () => {
       mockScene,
     );
     const mockGameObjectData = mockScene.data.getGameObject(mockGameObjectDefinition.id);
-    const mockGameObject = mockSceneViewController.findGameObjectById(mockGameObjectData.id)!;
+    const mockEditorObject = mockSceneViewController.findEditorObjectById(mockGameObjectData.id)!;
 
     const initialDataValue = mockGameObjectData.name;
-    const initialBabylonValue = mockGameObject.name;
+    const initialBabylonValue = mockEditorObject.name;
     const initialDefinitionValue = mockSceneViewController.sceneDefinition.objects[0].name;
 
     const mutation = new SetGameObjectNameMutation(mockGameObjectData.id);
@@ -50,7 +50,7 @@ describe(SetGameObjectNameMutation.name, () => {
 
       // Each update should modify the data and Babylon state
       expect(mockGameObjectData.name, `GameObject data should have intermediate name after update ${i}`).toEqual(intermediateName);
-      expect(mockGameObject.name, `Babylon GameObject should have intermediate name after update ${i}`).toEqual(intermediateName);
+      expect(mockEditorObject.name, `Babylon GameObject should have intermediate name after update ${i}`).toEqual(intermediateName);
 
       // But definition should not be updated until apply()
       const afterUpdateDefinitionValue = mockSceneViewController.sceneDefinition.objects[0].name;
@@ -61,7 +61,7 @@ describe(SetGameObjectNameMutation.name, () => {
     await mockSceneViewController.mutatorNew.apply(mutation);
 
     const finalDataValue = mockGameObjectData.name;
-    const finalBabylonValue = mockGameObject.name;
+    const finalBabylonValue = mockEditorObject.name;
     const finalDefinitionValue = mockSceneViewController.sceneDefinition.objects[0].name;
 
     // Assert

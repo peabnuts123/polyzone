@@ -44,10 +44,10 @@ describe(SetGameObjectRotationMutation.name, () => {
       mockScene,
     );
     const mockGameObjectData = mockScene.data.getGameObject(mockGameObjectDefinition.id);
-    const mockGameObject = mockSceneViewController.findGameObjectById(mockGameObjectData.id)!;
+    const mockEditorObject = mockSceneViewController.findEditorObjectById(mockGameObjectData.id)!;
 
     const initialDataRotation = mockGameObjectData.transform.rotation;
-    const initialBabylonRotation = mockGameObject.transform.localRotation.clone();
+    const initialBabylonRotation = mockEditorObject.transform.localRotation.clone();
     const initialDefinitionRotation = mockSceneViewController.sceneDefinition.objects[0].transform.rotation;
 
     const mutation = new SetGameObjectRotationMutation(mockGameObjectData.id);
@@ -78,7 +78,7 @@ describe(SetGameObjectRotationMutation.name, () => {
 
       // Each update should modify the data and Babylon state
       expectVector3ToEqual(truncateVector3(mockGameObjectData.transform.rotation), finalRotationEuler, `GameObject data rotation should be updated after step ${i}`);
-      expectQuaternionToEqual(mockGameObject.transform.localRotation, finalRotationQuaternion, `Babylon GameObject rotation should be updated after step ${i}`);
+      expectQuaternionToEqual(mockEditorObject.transform.localRotation, finalRotationQuaternion, `Babylon GameObject rotation should be updated after step ${i}`);
 
       // But definition should not be updated until apply()
       const afterUpdateDefinitionRotation = mockSceneViewController.sceneDefinition.objects[0].transform.rotation;
@@ -89,7 +89,7 @@ describe(SetGameObjectRotationMutation.name, () => {
     await mockSceneViewController.mutatorNew.apply(mutation);
 
     const finalDataRotation = mockGameObjectData.transform.rotation;
-    const finalBabylonRotation = mockGameObject.transform.localRotation;
+    const finalBabylonRotation = mockEditorObject.transform.localRotation;
     const finalDefinitionRotation = mockSceneViewController.sceneDefinition.objects[0].transform.rotation;
 
     // Assert

@@ -99,12 +99,12 @@ describe(CreateGameObjectFromDefinitionMutation.name, () => {
         mockScene,
       );
       const mockParentGameObjectData = mockScene.data.getGameObject(mockParentGameObjectDefinition.id);
-      const mockParentGameObject = mockSceneViewController.findGameObjectById(mockParentGameObjectData.id)!;
+      const mockParentEditorObject = mockSceneViewController.findEditorObjectById(mockParentGameObjectData.id)!;
 
       const initialDataObjects = [...mockScene.data.objects];
       const initialParentChildren = [...mockParentGameObjectData.children];
       const initialBabylonGameObjects = mockSceneViewController.babylonScene.transformNodes.length;
-      const initialBabylonParentChildren = mockParentGameObject.transform.children.length;
+      const initialBabylonParentChildren = mockParentEditorObject.transform.children.length;
       const initialDefinitionObjects = [...mockSceneViewController.sceneDefinition.objects];
       const initialDefinitionParentChildren = [...(mockSceneViewController.sceneDefinition.objects[0].children ?? [])];
 
@@ -120,7 +120,7 @@ describe(CreateGameObjectFromDefinitionMutation.name, () => {
       const finalDataObjects = mockScene.data.objects;
       const finalParentChildren = mockParentGameObjectData.children;
       const finalBabylonGameObjects = mockSceneViewController.babylonScene.transformNodes.length;
-      const finalBabylonParentChildren = mockParentGameObject.transform.children.length;
+      const finalBabylonParentChildren = mockParentEditorObject.transform.children.length;
       const finalDefinitionObjects = mockSceneViewController.sceneDefinition.objects;
       const finalDefinitionParentChildren = mockSceneViewController.sceneDefinition.objects[0].children ?? [];
 

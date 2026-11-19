@@ -32,11 +32,11 @@ describe(AddGameObjectComponentMutation.name, () => {
       mockScene,
     );
     const mockGameObjectData = mockScene.data.getGameObject(mockGameObjectDefinition.id);
-    const mockGameObject = mockSceneViewController.findGameObjectById(mockGameObjectData.id)!;
+    const mockEditorObject = mockSceneViewController.findEditorObjectById(mockGameObjectData.id)!;
 
     const newMeshComponent = MeshComponentData.createDefault();
     const initialDataComponents = [...mockGameObjectData.components];
-    const initialBabylonComponents = [...mockGameObject.components];
+    const initialBabylonComponents = [...mockEditorObject.components];
     const initialDefinitionComponents = [...mockSceneViewController.sceneDefinition.objects[0].components];
 
     const mutation = new AddGameObjectComponentMutation(mockGameObjectData.id, newMeshComponent);
@@ -45,7 +45,7 @@ describe(AddGameObjectComponentMutation.name, () => {
     await mockSceneViewController.mutatorNew.apply(mutation);
 
     const finalDataComponents = mockGameObjectData.components;
-    const finalBabylonComponents = mockGameObject.components;
+    const finalBabylonComponents = mockEditorObject.components;
     const finalDefinitionComponents = mockSceneViewController.sceneDefinition.objects[0].components;
 
     // Assert

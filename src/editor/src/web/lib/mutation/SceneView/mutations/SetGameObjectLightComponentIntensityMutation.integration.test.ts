@@ -45,8 +45,8 @@ describe(SetGameObjectLightComponentIntensityMutation.name, () => {
     );
     const mockGameObjectData = mockScene.data.getGameObject(mockGameObjectDefinition.id);
     const mockDirectionalLightComponentData = mockGameObjectData.getComponent(mockDirectionalLightComponentDefinition.id, DirectionalLightComponentData);
-    const mockGameObject = mockSceneViewController.findGameObjectById(mockGameObjectData.id)!;
-    const mockDirectionalLightComponent = mockGameObject.getComponent(mockDirectionalLightComponentDefinition.id, DirectionalLightComponent);
+    const mockEditorObject = mockSceneViewController.findEditorObjectById(mockGameObjectData.id)!;
+    const mockDirectionalLightComponent = mockEditorObject.getComponent(mockDirectionalLightComponentDefinition.id, DirectionalLightComponent);
 
     const initialDataValue = mockDirectionalLightComponentData.intensity;
     const initialBabylonValue = mockDirectionalLightComponent.intensity;
@@ -122,8 +122,8 @@ describe(SetGameObjectLightComponentIntensityMutation.name, () => {
     );
     const mockGameObjectData = mockScene.data.getGameObject(mockGameObjectDefinition.id);
     const mockPointLightComponentData = mockGameObjectData.getComponent(mockPointLightComponentDefinition.id, PointLightComponentData);
-    const mockGameObject = mockSceneViewController.findGameObjectById(mockGameObjectData.id)!;
-    const mockPointLightComponent = mockGameObject.getComponent(mockPointLightComponentDefinition.id, PointLightComponent);
+    const mockEditorObject = mockSceneViewController.findEditorObjectById(mockGameObjectData.id)!;
+    const mockPointLightComponent = mockEditorObject.getComponent(mockPointLightComponentDefinition.id, PointLightComponent);
 
     const initialDataValue = mockPointLightComponentData.intensity;
     const initialBabylonValue = mockPointLightComponent.intensity;

@@ -46,8 +46,8 @@ describe(SetGameObjectLightComponentColorMutation.name, () => {
     );
     const mockGameObjectData = mockScene.data.getGameObject(mockGameObjectDefinition.id);
     const mockDirectionalLightComponentData = mockGameObjectData.getComponent(mockDirectionalLightComponentDefinition.id, DirectionalLightComponentData);
-    const mockGameObject = mockSceneViewController.findGameObjectById(mockGameObjectData.id)!;
-    const mockDirectionalLightComponent = mockGameObject.getComponent(mockDirectionalLightComponentDefinition.id, DirectionalLightComponent);
+    const mockEditorObject = mockSceneViewController.findEditorObjectById(mockGameObjectData.id)!;
+    const mockDirectionalLightComponent = mockEditorObject.getComponent(mockDirectionalLightComponentDefinition.id, DirectionalLightComponent);
 
     const initialDataValue = mockDirectionalLightComponentData.color;
     const initialBabylonValue = toColor3Core(mockDirectionalLightComponent.color); // @NOTE Explicitly convert WrappedColor3Babylon into Color3
@@ -124,8 +124,8 @@ describe(SetGameObjectLightComponentColorMutation.name, () => {
     );
     const mockGameObjectData = mockScene.data.getGameObject(mockGameObjectDefinition.id);
     const mockPointLightComponentData = mockGameObjectData.getComponent(mockPointLightComponentDefinition.id, PointLightComponentData);
-    const mockGameObject = mockSceneViewController.findGameObjectById(mockGameObjectData.id)!;
-    const mockPointLightComponent = mockGameObject.getComponent(mockPointLightComponentDefinition.id, PointLightComponent);
+    const mockEditorObject = mockSceneViewController.findEditorObjectById(mockGameObjectData.id)!;
+    const mockPointLightComponent = mockEditorObject.getComponent(mockPointLightComponentDefinition.id, PointLightComponent);
 
     const initialDataValue = mockPointLightComponentData.color;
     const initialBabylonValue = toColor3Core(mockPointLightComponent.color); // @NOTE Explicitly convert WrappedColor3Babylon into Color3
