@@ -2,14 +2,14 @@ import { runInAction } from 'mobx';
 import { v4 as uuid } from 'uuid';
 
 import { AssetType } from '@polyzone/runtime/src/cartridge';
+import { MaterialDefinition } from '@polyzone/runtime/assets/MaterialAsset';
 
 import { JsoncContainer, resolvePath } from '@lib/util/JsoncContainer';
 import { MaterialAssetDefinition, ProjectDefinition } from '@lib/project/definition';
 import { invoke } from '@lib/util/TauriCommands';
+import { MaterialAssetData } from '@lib/project/data';
 import { IProjectMutation } from "../IProjectMutation";
 import { ProjectMutationArguments } from "../ProjectMutationArguments";
-import { MaterialDefinition } from '@polyzone/runtime/src/world';
-import { MaterialAssetData } from '@lib/project/data';
 
 export class CreateNewMaterialAssetMutation implements IProjectMutation {
   private path: string;
@@ -20,7 +20,6 @@ export class CreateNewMaterialAssetMutation implements IProjectMutation {
 
   public async apply({ ProjectController }: ProjectMutationArguments): Promise<void> {
     // New Data
-
     const newMaterialAssetDefinition: MaterialDefinition = {};
     const newMaterialJsonc = new JsoncContainer(JSON.stringify(newMaterialAssetDefinition, null, 2));
     const newMaterialJsoncBytes = new TextEncoder().encode(
@@ -43,7 +42,6 @@ export class CreateNewMaterialAssetMutation implements IProjectMutation {
         id: newAssetDefinition.id,
         hash: newAssetDefinition.hash,
         path: newAssetDefinition.path,
-        resolverProtocol: ProjectController.project.assets.fileSystem.resolverProtocol,
       }));
     });
 

@@ -10,7 +10,7 @@ import { AssetDefinition, ProjectDefinition } from "../definition";
 import type { IProjectController } from "../ProjectController";
 import { AssetData } from "../data/AssetData";
 import { createAssetData } from "../data/AssetDb";
-import { AnyViewController } from "@lib/common/ViewController";
+import { AnyViewController } from "@lib/common/view/ViewController";
 
 
 // EVENTS - INCOMING

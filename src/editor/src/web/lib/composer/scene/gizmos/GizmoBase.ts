@@ -3,19 +3,18 @@ import { Model } from "@lopoly/engine/models";
 import { Material } from "@lopoly/engine/materials";
 import { AxisAlignedBoundingBox, RayCast } from "@lopoly/engine/collision";
 import { IInputSystem, PointerState } from "@lopoly/engine/input";
+import { Transform } from '@lopoly/engine/transform';
+import { GltfLoader, ModelDefinition, ModelPartDefinition } from '@lopoly/engine/loaders';
+import { WebFileSystem } from '@lopoly/engine/filesystem';
 
 import { Color4, Vector3 } from "@polyzone/core/math";
-import { GameObject } from "@polyzone/runtime/objects";
 
 import { ClaimedPointerCallbacks } from "@lib/common/view";
+import { EditorObject } from '@lib/common/objects';
 import type { ISceneViewController } from "../SceneViewController";
-
 import { GizmoConfig } from './config';
 import { GizmoPlane } from './GizmoPlane';
 import { mapAabbToCollider } from './util';
-import { WebFileSystem } from '@lopoly/engine/filesystem';
-import { GltfLoader, ModelDefinition, ModelPartDefinition } from '@lopoly/engine/loaders';
-import { Transform } from '@lopoly/engine/transform';
 
 export interface LoadResourcesOptions<TGizmoHandleType extends string> {
   modelPath: string;
@@ -51,7 +50,7 @@ export abstract class GizmoNodeBase<TGizmoHandleType extends string, TActiveStat
   protected readonly materials: GizmoData<TGizmoHandleType, Material>;
 
   // State
-  protected attachedGameObject: GameObject | undefined;
+  protected attachedEditorObject: EditorObject | undefined;
   protected activeState: TActiveState | undefined;
 
   public constructor(
@@ -74,18 +73,18 @@ export abstract class GizmoNodeBase<TGizmoHandleType extends string, TActiveStat
   }
 
   /**
-   * Attach this gizmo to a {@link GameObject}.
+   * Attach this gizmo to a {@link EditorObject}.
    */
-  public attachToGameObject(gameObject: GameObject): void {
-    this.attachedGameObject = gameObject;
+  public attachToEditorObject(object: EditorObject): void {
+    this.attachedEditorObject = object;
     this.enabled = true;
   }
 
   /**
-   * Detach this gizmo from the current {@link GameObject}.
+   * Detach this gizmo from the current {@link EditorObject}.
    */
   public detach(): void {
-    this.attachedGameObject = undefined;
+    this.attachedEditorObject = undefined;
     this.enabled = false;
   }
 

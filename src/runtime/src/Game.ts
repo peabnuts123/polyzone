@@ -42,10 +42,14 @@ export class Game {
     const bootScene = this.cartridge.sceneDb.allScenes[0];
     await this.loadScene(bootScene);
 
-    this.engine.run((dt, time, stop) => {
-      this.onUpdate(dt, time, stop);
+    this.engine.run((dt, time) => {
+      this.onUpdate(dt, time);
       onUpdate?.(dt, time);
     });
+  }
+
+  public stop(): void {
+    this.engine.stop();
   }
 
   private async loadScene(cartridgeScene: SceneData): Promise<void> {
@@ -75,7 +79,7 @@ export class Game {
     this.currentScene = scene;
   }
 
-  private onUpdate(dt: number, time: number, _stop: () => void): void {
+  private onUpdate(dt: number, time: number): void {
     if (this.currentScene !== undefined) {
       this.currentScene.onUpdate(dt, time);
     }

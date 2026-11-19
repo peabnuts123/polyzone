@@ -1,13 +1,10 @@
-import { ClassReference } from "@lopoly/engine/util";
-
-// import { ClassReference, Color3 } from "@polyzone/core/src/util";
-import { GameObjectComponent } from "@polyzone/core/objects";
-import { DirectionalLightComponent, PointLightComponent } from "@polyzone/runtime/objects/components";
-import { Color3Definition, DirectionalLightComponentDefinition, PointLightComponentDefinition } from "@polyzone/runtime/src/cartridge";
+import { ClassReference } from "@polyzone/core/util/types";
 import { Color3 } from "@polyzone/core/math";
+import { Color3Definition, DirectionalLightComponentDefinition, PointLightComponentDefinition } from "@polyzone/runtime/src/cartridge";
 
 import { DirectionalLightComponentData, GameObjectData, IComposerComponentData, PointLightComponentData } from "@lib/project/data";
 import { resolvePathForSceneObjectMutation } from "@lib/mutation/util";
+import { EditorDirectionalLightComponent, EditorPointLightComponent, IEditorObjectComponent } from "@lib/common/objects";
 import { SceneViewMutationArguments } from "../SceneViewMutationArguments";
 import { BaseContinuousSceneMutation } from "../IContinuousSceneMutation";
 
@@ -20,10 +17,10 @@ interface AnyLightComponentData extends IComposerComponentData {
   color: Color3;
 }
 const LightComponentDataTypes: ClassReference<AnyLightComponentData>[] = [DirectionalLightComponentData, PointLightComponentData];
-interface AnyLightComponent extends GameObjectComponent {
+interface AnyLightComponent extends IEditorObjectComponent {
   color: Color3;
 }
-const LightComponentTypes: ClassReference<AnyLightComponent>[] = [DirectionalLightComponent, PointLightComponent];
+const LightComponentTypes: ClassReference<AnyLightComponent>[] = [EditorDirectionalLightComponent, EditorPointLightComponent];
 
 export class SetGameObjectLightComponentColorMutation extends BaseContinuousSceneMutation<SetGameObjectLightComponentColorMutationUpdateArgs> {
   private readonly gameObjectId: string;
@@ -39,13 +36,13 @@ export class SetGameObjectLightComponentColorMutation extends BaseContinuousScen
   public override update({ SceneViewController }: SceneViewMutationArguments, { color }: SetGameObjectLightComponentColorMutationUpdateArgs): Promise<void> {
     const gameObjectData = SceneViewController.sceneData.getGameObject(this.gameObjectId);
     const componentData = gameObjectData.getComponent(this.componentId, LightComponentDataTypes);
-    const gameObject = SceneViewController.findGameObjectById(this.gameObjectId);
-    if (gameObject === undefined) throw new Error(`Cannot apply mutation - no game object exists in the scene with id '${this.gameObjectId}'`);
-    const component = gameObject.getComponent(this.componentId, LightComponentTypes);
+    const editorObject = SceneViewController.findEditorObjectById(this.gameObjectId);
+    if (editorObject === undefined) throw new Error(`Cannot apply mutation - no editor object exists in the scene with id '${this.gameObjectId}'`);
+    const component = editorObject.getComponent(this.componentId, LightComponentTypes);
 
     // - 1. Data
     componentData.color = color;
-    // - 2. Babylon state
+    // - 2. Editor state
     component.color = color;
 
     return Promise.resolve();

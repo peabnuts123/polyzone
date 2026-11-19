@@ -76,6 +76,10 @@ export class Runtime {
     console.log(`[${Runtime.name}] (${this.run.name}) Loaded game in ${Math.trunc(performance.now() - timerStart)}ms`);
   }
 
+  public stop(): void {
+    this.game?.stop();
+  }
+
   public onUpdate(callback: OnUpdateCallback): void {
     this.onUpdateHooks.push(callback);
   }

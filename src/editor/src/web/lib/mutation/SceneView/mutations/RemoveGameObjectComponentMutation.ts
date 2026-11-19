@@ -1,4 +1,3 @@
-import { GameObjectComponent } from "@polyzone/core/objects";
 import { CameraComponentData, GameObjectData, IComposerComponentData, MeshComponentData, ScriptComponentData } from "@lib/project/data";
 import { isSelectableObject } from "@lib/composer/scene/components";
 import { resolvePathForSceneObjectMutation } from "@lib/mutation/util";
@@ -40,13 +39,13 @@ export class RemoveGameObjectComponentMutation extends BaseSceneMutation<Mutatio
     // 2. Update scene
     // @NOTE Don't need to update scene for certain types (since they aren't instantiated in the composer)
     if (!ComponentTypesThatDontExistInTheComposer.some((Type) => componentToRemove instanceof Type)) {
-      const gameObject = SceneViewController.findGameObjectById(this.gameObjectId);
-      if (gameObject === undefined) throw new Error(`Cannot apply mutation - no game object exists in the scene with id '${this.gameObjectId}'`);
-      const sceneComponent = gameObject.getComponent(componentToRemove.id, GameObjectComponent);
+      const editorObject = SceneViewController.findEditorObjectById(this.gameObjectId);
+      if (editorObject === undefined) throw new Error(`Cannot apply mutation - no editor object exists in the scene with id '${this.gameObjectId}'`);
+      const sceneComponent = editorObject.getComponent(componentToRemove.id);
       if (isSelectableObject(sceneComponent)) {
-        SceneViewController.removeFromSelectionCache(sceneComponent);
+        SceneViewController.scene.removeFromSelectionCache(sceneComponent);
       }
-      gameObject.removeComponent(componentToRemove.id);
+      editorObject.removeComponent(componentToRemove.id);
 
       // - Update selection gizmo if component was a mesh
       if (componentToRemove instanceof MeshComponentData) {
@@ -73,9 +72,9 @@ export class RemoveGameObjectComponentMutation extends BaseSceneMutation<Mutatio
     gameObjectData.components.splice(this.removedComponentIndex, 0, removedComponentData);
 
     // 2. Update scene
-    const gameObject = SceneViewController.findGameObjectById(this.gameObjectId);
-    if (gameObject === undefined) throw new Error(`Cannot apply mutation - no game object exists in the scene with id '${this.gameObjectId}'`);
-    await SceneViewController.createGameObjectComponent(removedComponentData, gameObject, gameObjectData, this.removedComponentIndex);
+    const editorObject = SceneViewController.findEditorObjectById(this.gameObjectId);
+    if (editorObject === undefined) throw new Error(`Cannot apply mutation - no editor object exists in the scene with id '${this.gameObjectId}'`);
+    await SceneViewController.scene.createEditorObjectComponent(removedComponentData, editorObject, gameObjectData, this.removedComponentIndex);
 
     // 3. Update JSONC
     const newComponentDefinition = removedComponentData.toComponentDefinition();

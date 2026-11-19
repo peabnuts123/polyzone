@@ -32,6 +32,7 @@ export class ScriptComponent extends ScriptComponentCore implements IGameObjectC
   }
 
   public onDestroy(): void {
+    this.sceneNode.destroy();
     this.script?.onDestroy();
   }
 

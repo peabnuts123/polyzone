@@ -1,5 +1,6 @@
 import { v4 as uuid } from 'uuid';
 
+import { Enum } from '@polyzone/core/util/types';
 import { GameObjectDefinition } from "@polyzone/runtime/src/cartridge";
 
 import { GameObjectData, loadObjectDefinition } from "@lib/project/data";
@@ -9,16 +10,15 @@ import { BaseSceneMutation } from '../ISceneMutation';
 import { SiblingTarget } from './SetGameObjectParentMutation';
 
 
-// @TODO enumify
 export const CreateGameObjectType = {
   CreateNew: 'CreateNew',
   Paste: 'Paste',
   Duplicate: 'Duplicate',
 } as const;
-export type CreateGameObjectTypeValue = keyof typeof CreateGameObjectType;
+export type CreateGameObjectType = Enum<typeof CreateGameObjectType>;
 
 export interface CreateGameObjectFromDefinitionMutationArgs {
-  type: CreateGameObjectTypeValue
+  type: CreateGameObjectType
   definition: GameObjectDefinition;
   parent?: GameObjectData;
   siblingTarget?: SiblingTarget;
@@ -27,7 +27,7 @@ export interface CreateGameObjectFromDefinitionMutationArgs {
 export class CreateGameObjectFromDefinitionMutation extends BaseSceneMutation {
   public override readonly useCustomUndo: boolean = true;
 
-  private readonly type: CreateGameObjectTypeValue;
+  private readonly type: CreateGameObjectType;
   private readonly definition: GameObjectDefinition;
   private readonly parentGameObjectId: string | undefined;
   private readonly siblingTarget: SiblingTarget | undefined;
@@ -106,9 +106,9 @@ export class CreateGameObjectFromDefinitionMutation extends BaseSceneMutation {
       parentGameObjectData.children.splice(targetIndex, 0, newGameObjectData);
 
       // 2. Update Scene
-      const parentGameObject = SceneViewController.findGameObjectById(this.parentGameObjectId);
-      if (parentGameObject === undefined) throw new Error(`Cannot apply mutation - no game object exists in the scene with id '${this.parentGameObjectId}'`);
-      await SceneViewController.createGameObject(newGameObjectData, parentGameObject);
+      const parentEditorObject = SceneViewController.findEditorObjectById(this.parentGameObjectId);
+      if (parentEditorObject === undefined) throw new Error(`Cannot apply mutation - no game object exists in the scene with id '${this.parentGameObjectId}'`);
+      await SceneViewController.scene.createEditorObject(newGameObjectData, parentEditorObject);
 
       // 3. Update JSONC
       const mutationPath = resolvePathForSceneObjectMutation(
@@ -123,7 +123,7 @@ export class CreateGameObjectFromDefinitionMutation extends BaseSceneMutation {
       SceneViewController.sceneData.objects.splice(targetIndex, 0, newGameObjectData);
 
       // 2. Update Scene
-      await SceneViewController.createGameObject(newGameObjectData);
+      await SceneViewController.scene.createEditorObject(newGameObjectData);
 
       // 3. Update JSONC
       SceneViewController.sceneJson.mutate(
@@ -152,9 +152,9 @@ export class CreateGameObjectFromDefinitionMutation extends BaseSceneMutation {
     }
 
     // 2. Update Scene
-    const gameObject = SceneViewController.findGameObjectById(this.definition.id);
-    if (gameObject === undefined) throw new Error(`Cannot undo mutation - no game object exists in the scene with id '${this.definition.id}'`);
-    gameObject.destroy();
+    const editorObject = SceneViewController.findEditorObjectById(this.definition.id);
+    if (editorObject === undefined) throw new Error(`Cannot undo mutation - no editor object exists in the scene with id '${this.definition.id}'`);
+    editorObject.destroy();
     if (SceneViewController.selectionManager.selectedObjectId === gameObjectData.id) {
       SceneViewController.selectionManager.deselectAll();
     }

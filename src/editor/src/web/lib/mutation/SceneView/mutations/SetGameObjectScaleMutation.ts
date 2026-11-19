@@ -1,5 +1,5 @@
-import { Vector3Definition as ArchiveVector3 } from "@polyzone/runtime/src/cartridge/archive/util";
 import { Vector3 } from "@polyzone/core/math";
+import { Vector3Definition as ArchiveVector3 } from "@polyzone/runtime/src/cartridge/archive/util";
 
 import { resolvePathForSceneObjectMutation } from "@lib/mutation/util";
 import { SceneViewMutationArguments } from "../SceneViewMutationArguments";
@@ -27,21 +27,21 @@ export class SetGameObjectScaleMutation extends BaseContinuousSceneMutation<SetG
 
   public override update({ SceneViewController }: SceneViewMutationArguments, updateArgs: SetGameObjectScaleMutationUpdateArgs): void {
     const gameObjectData = SceneViewController.sceneData.getGameObject(this.gameObjectId);
-    const gameObject = SceneViewController.findGameObjectById(this.gameObjectId);
-    if (gameObject === undefined) throw new Error(`Cannot update mutation - no game object exists in the scene with id '${this.gameObjectId}'`);
+    const editorObject = SceneViewController.findEditorObjectById(this.gameObjectId);
+    if (editorObject === undefined) throw new Error(`Cannot update mutation - no editor object exists in the scene with id '${this.gameObjectId}'`);
 
     if ('scaleDelta' in updateArgs) {
       const { scaleDelta } = updateArgs;
       // - 1. Update Data
       gameObjectData.transform.scale.scaleSelf(scaleDelta);
       // - 2. Update Scene
-      gameObject.scale.scaleSelf(scaleDelta);
+      editorObject.scale.scaleSelf(scaleDelta);
     } else {
       const { scale } = updateArgs;
       // - 1. Update Data
       gameObjectData.transform.scale = scale;
       // - 2. Update Scene
-      gameObject.scale.setValue(scale);
+      editorObject.scale.setValue(scale);
     }
 
     if (updateArgs.resetGizmo) {

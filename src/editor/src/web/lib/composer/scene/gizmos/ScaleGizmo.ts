@@ -79,7 +79,7 @@ export class ScaleGizmoNode extends GizmoNodeBase<ScaleGizmoHandleType, ScaleGiz
    * @param type Which type of handle was clicked.
    */
   protected override onInteractBegin(pointer: PointerState, type: ScaleGizmoHandleType): void {
-    if (pointer.x === undefined || pointer.y === undefined || this.attachedGameObject === undefined) return;
+    if (pointer.x === undefined || pointer.y === undefined || this.attachedEditorObject === undefined) return;
 
     // Determine pointer's initial offset from gizmo's origin
     let initialClickOffset: Vector3 | undefined = undefined;
@@ -123,8 +123,8 @@ export class ScaleGizmoNode extends GizmoNodeBase<ScaleGizmoHandleType, ScaleGiz
     // Initialise state
     this.activeState = {
       controlType: type,
-      initialObjectScale: this.attachedGameObject.scale.clone(),
-      mutation: new SetGameObjectScaleMutation(this.attachedGameObject.id),
+      initialObjectScale: this.attachedEditorObject.scale.clone(),
+      mutation: new SetGameObjectScaleMutation(this.attachedEditorObject.id),
       initialClickOffset,
     };
 
@@ -137,7 +137,7 @@ export class ScaleGizmoNode extends GizmoNodeBase<ScaleGizmoHandleType, ScaleGiz
    * @param pointer Pointer state.
    */
   protected override onInteractUpdate(pointer: PointerState): void {
-    if (this.activeState === undefined || pointer.x === undefined || pointer.y === undefined || this.attachedGameObject === undefined) return;
+    if (this.activeState === undefined || pointer.x === undefined || pointer.y === undefined || this.attachedEditorObject === undefined) return;
 
     /**
      * `newPosition` is calculated in coordinates relative to the gizmo PARENT

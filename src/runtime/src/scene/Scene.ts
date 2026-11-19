@@ -1,7 +1,9 @@
-import { IEngine, Scene as LoPolyScene } from "@lopoly/engine";
+import { type IEngine } from "@lopoly/engine/Engine";
+import { Scene as LoPolyScene, SceneLighting } from "@lopoly/engine/scene";
 
 import { IQueryResult, Scene as SceneCore } from '@polyzone/core/scene';
 import { QueryFn } from "@polyzone/core/scene";
+import { Color3 } from "@polyzone/core/math";
 import {
   SceneData,
   MeshComponentData,
@@ -35,21 +37,21 @@ export class Scene extends SceneCore {
   private readonly scriptLoader: ScriptLoader;
 
   // State
-  private readonly _topLevelGameObjects: GameObject[];
+  public readonly topLevelGameObjects: GameObject[];
 
   public constructor(data: SceneData, engine: IEngine, assetCache: AssetCache, scriptLoader: ScriptLoader) {
     super();
     this.path = data.path;
     this.assetCache = assetCache;
     this.scriptLoader = scriptLoader;
-    this._topLevelGameObjects = [];
+    this.topLevelGameObjects = [];
 
     // LoPoly scene
     this.lopolyScene = new LoPolyScene(engine);
     // Lighting
-    // @TODO This is just a hack for old cart compat
-    this.lopolyScene.lighting.ambientColor = data.config.lighting.ambient.color.scaleSelf(data.config.lighting.ambient.intensity);
-    this.lopolyScene.clearColour = data.config.clearColor;
+    // @TODO Remove `ambient.intensity`
+    this.lighting.ambientColor = data.config.lighting.ambient.color.scaleSelf(data.config.lighting.ambient.intensity);
+    this.clearColour = data.config.clearColor;
   }
 
   public init(): void {
@@ -100,7 +102,7 @@ export class Scene extends SceneCore {
       if (index === -1) {
         throw new Error(`Error trying to destroy ${GameObject.name} with no parent - it is not present in the collection of top-level game objects. Does this ${GameObject.name} belong to this scene?`);
       }
-      this._topLevelGameObjects.splice(index, 1);
+      this.topLevelGameObjects.splice(index, 1);
     }
 
     gameObject.onDestroy();
@@ -109,7 +111,6 @@ export class Scene extends SceneCore {
   public async createGameObject(
     gameObjectData: IGameObjectData,
     parent: GameObject | undefined,
-    // scene: Scene,
   ): Promise<GameObject> {
     // Construct blank GameObject
     const gameObject = new GameObject(
@@ -172,7 +173,7 @@ export class Scene extends SceneCore {
   }
 
   public addGameObject(gameObject: GameObject): void {
-    this._topLevelGameObjects.push(gameObject);
+    this.topLevelGameObjects.push(gameObject);
   }
 
   public findGameObjectById(gameObjectId: string): GameObject | undefined {
@@ -189,5 +190,7 @@ export class Scene extends SceneCore {
     return undefined;
   }
 
-  public get topLevelGameObjects(): readonly GameObject[] { return this._topLevelGameObjects; }
+  public get lighting(): SceneLighting { return this.lopolyScene.lighting; }
+  public get clearColour(): Color3 { return this.lopolyScene.clearColor; }
+  public set clearColour(value: Color3) { this.lopolyScene.clearColor = value; }
 }

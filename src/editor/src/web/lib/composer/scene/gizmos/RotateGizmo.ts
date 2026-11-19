@@ -72,7 +72,7 @@ export class RotateGizmoNode extends GizmoNodeBase<RotateGizmoHandleType, Rotate
    * @param type Which type of handle was clicked.
    */
   protected override onInteractBegin(pointer: PointerState, type: RotateGizmoHandleType): void {
-    if (pointer.x === undefined || pointer.y === undefined || this.attachedGameObject === undefined) return;
+    if (pointer.x === undefined || pointer.y === undefined || this.attachedEditorObject === undefined) return;
 
     // Determine pointer's initial offset from gizmo's origin
     let initialClickOffset: Vector3 | undefined = undefined;
@@ -100,8 +100,8 @@ export class RotateGizmoNode extends GizmoNodeBase<RotateGizmoHandleType, Rotate
     // Initialise state
     this.activeState = {
       controlType: type,
-      initialObjectRotation: this.attachedGameObject.rotation.q.clone(),
-      mutation: new SetGameObjectRotationMutation(this.attachedGameObject.id),
+      initialObjectRotation: this.attachedEditorObject.rotation.q.clone(),
+      mutation: new SetGameObjectRotationMutation(this.attachedEditorObject.id),
       initialClickOffset,
     };
 
@@ -114,7 +114,7 @@ export class RotateGizmoNode extends GizmoNodeBase<RotateGizmoHandleType, Rotate
    * @param pointer Pointer state.
    */
   protected override onInteractUpdate(pointer: PointerState): void {
-    if (this.activeState === undefined || pointer.x === undefined || pointer.y === undefined || this.attachedGameObject === undefined) return;
+    if (this.activeState === undefined || pointer.x === undefined || pointer.y === undefined || this.attachedEditorObject === undefined) return;
 
     // Look up plane of rotation for gizmo control
     let rotationPlane: GizmoPlane;
@@ -175,8 +175,8 @@ export class RotateGizmoNode extends GizmoNodeBase<RotateGizmoHandleType, Rotate
     void this.sceneViewController.mutatorNew.apply(this.activeState.mutation);
 
     // Reset gizmo & parent to attached object
-    if (this.attachedGameObject !== undefined) {
-      this.parent.absoluteRotation.q = this.attachedGameObject.absoluteRotation.q;
+    if (this.attachedEditorObject !== undefined) {
+      this.parent.absoluteRotation.q = this.attachedEditorObject.absoluteRotation.q;
       this.rotation.setValue(Quaternion.identity());
     }
 

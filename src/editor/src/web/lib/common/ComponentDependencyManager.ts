@@ -5,8 +5,8 @@ import { GameObjectData, IComposerComponentData } from "@lib/project/data";
 export interface ComponentDependency {
   /** Data for the component which has a dependency on some assets */
   componentData: IComposerComponentData;
-  /** Data for the game object that holds this component */
-  gameObjectData: GameObjectData;
+  /** Data for the object that holds this component */
+  objectData: GameObjectData;
   /** IDs of the assets on which the component is dependent */
   assetIds: string[];
 }
@@ -36,15 +36,15 @@ export class ComponentDependencyManager {
 
   /**
    * @param componentData Data for the component whose dependencies are being registered.
-   * @param gameObjectData Data for the game object on which this component lives
+   * @param objectData Data for the object on which this component lives
    * @param assetIds IDs of the assets on which this component has a dependency
    */
-  public registerDependency(componentData: IComposerComponentData, gameObjectData: GameObjectData, assetIds: string[]): void {
+  public registerDependency(componentData: IComposerComponentData, objectData: GameObjectData, assetIds: string[]): void {
     let componentDependencyData = this.componentDependencies.get(componentData.id);
     if (componentDependencyData === undefined) {
       componentDependencyData = {
         componentData,
-        gameObjectData,
+        objectData: objectData,
         assetIds: [],
       };
     }

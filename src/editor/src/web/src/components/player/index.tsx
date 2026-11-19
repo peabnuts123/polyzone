@@ -20,7 +20,7 @@ const Player: FunctionComponent<Props> = ({ cartridge }) => {
         );
 
       return () => {
-        runtime.dispose();
+        runtime.stop();
       };
     }
   }, [cartridge]);

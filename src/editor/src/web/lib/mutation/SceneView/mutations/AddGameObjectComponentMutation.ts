@@ -1,7 +1,8 @@
 import { IComposerComponentData } from "@lib/project/data";
+import { resolvePathForSceneObjectMutation } from "@lib/mutation/util";
 import { BaseSceneMutation } from "../ISceneMutation";
 import { SceneViewMutationArguments } from "../SceneViewMutationArguments";
-import { resolvePathForSceneObjectMutation } from "@lib/mutation/util";
+
 
 interface MutationArgs {
   newComponent: IComposerComponentData;
@@ -22,9 +23,9 @@ export class AddGameObjectComponentMutation extends BaseSceneMutation<MutationAr
     gameObjectData.components.push(newComponent);
 
     // 2. Update scene
-    const gameObject = SceneViewController.findGameObjectById(this.gameObjectId);
-    if (gameObject === undefined) throw new Error(`Cannot apply mutation - no game object exists in the scene with id '${this.gameObjectId}'`);
-    await SceneViewController.createGameObjectComponent(newComponent, gameObject, gameObjectData);
+    const editorObject = SceneViewController.findEditorObjectById(this.gameObjectId);
+    if (editorObject === undefined) throw new Error(`Cannot apply mutation - no game object exists in the scene with id '${this.gameObjectId}'`);
+    await SceneViewController.scene.createEditorObjectComponent(newComponent, editorObject, gameObjectData);
 
     // 3. Update JSONC
     const newComponentDefinition = newComponent.toComponentDefinition();
@@ -43,7 +44,7 @@ export class AddGameObjectComponentMutation extends BaseSceneMutation<MutationAr
     gameObjectData.components.splice(componentToRemoveDataIndex, 1);
 
     // 2. Update scene
-    const gameObject = SceneViewController.findGameObjectById(this.gameObjectId);
+    const gameObject = SceneViewController.findEditorObjectById(this.gameObjectId);
     if (gameObject === undefined) throw new Error(`Cannot undo mutation - no game object exists in the scene with id '${this.gameObjectId}'`);
     gameObject.removeComponent(newComponent.id);
 

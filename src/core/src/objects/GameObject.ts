@@ -1,6 +1,7 @@
 // @TODO `Rotation` should be throwing a lint / ts error because it is only used as a type
 import { type Vector3, Rotation } from "@polyzone/core/math";
 import { Scene } from "../scene/Scene";
+import { GameObjectComponent } from "./GameObjectComponent";
 
 export type GameObjectId = string;
 
@@ -9,7 +10,7 @@ export type GameObjectId = string;
  * Components are used to build up behaviours, whereas a GameObject by itself does nothing.
  */
 export abstract class GameObject {
-  // @TODO createComponent(gameObjectData: GameObjectData) // Not necessarily data but just some kind of definition.
+  // @TODO createComponent(componentDefinition: IComponentDefinition) // Some kind of definition
   // /**
   //  * Add a component to this GameObject
   //  */
@@ -41,6 +42,23 @@ export abstract class GameObject {
   public abstract destroy(): void;
 
   /**
+   * Iterate through the children of this {@link GameObject}.
+   * @param fn Iterator function.
+   * @param recursive True = Iterate children-of-children, etc. False = Iterate direct children only. Default value: False.
+   */
+  public abstract forEachChild(fn: (child: GameObject) => void, recursive?: boolean): void;
+
+  /**
+   * Find a specific {@link GameObject} within this {@link GameObject}'s children using a tester function.
+   * The first {@link GameObject} that the function returns `true` for will be returned.
+   *
+   * @param fn Tester function.
+   * @param recursive True = Iterate children-of-children, etc. False = Iterate direct children only. Default value: False.
+   */
+  public abstract findChild(fn: (child: GameObject) => boolean, recursive?: boolean): GameObject | undefined;
+
+
+  /**
    * Called when this GameObject is destroyed.
    */
   // public abstract onDestroy(): void;
@@ -56,6 +74,7 @@ export abstract class GameObject {
   /** Unique identifier for this GameObject */
   public abstract get id(): GameObjectId;
   /** Human-friendly name for this object */
+  public abstract set name(value: string);
   public abstract get name(): string;
 
   public abstract get parent(): GameObject | undefined;
@@ -70,6 +89,10 @@ export abstract class GameObject {
   public abstract get absoluteRotation(): Rotation;
   public abstract get absoluteScale(): Vector3;
   public abstract set absoluteScale(value: Vector3);
+  // public abstract get worldMatrix(): Matrix4; // @TODO Matrix4 type
+
 
   public abstract get scene(): Scene;
+  public abstract get components(): readonly GameObjectComponent[];
+
 }

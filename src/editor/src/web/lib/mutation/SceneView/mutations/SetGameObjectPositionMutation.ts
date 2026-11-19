@@ -20,14 +20,14 @@ export class SetGameObjectPositionMutation extends BaseContinuousSceneMutation<S
 
   public override update({ SceneViewController }: SceneViewMutationArguments, { position, resetGizmo }: SetGameObjectPositionMutationUpdateArgs): void {
     const gameObjectData = SceneViewController.sceneData.getGameObject(this.gameObjectId);
-    const gameObject = SceneViewController.findGameObjectById(this.gameObjectId);
-    if (gameObject === undefined) throw new Error(`Cannot apply mutation - no game object exists in the scene with id '${this.gameObjectId}'`);
+    const editorObject = SceneViewController.findEditorObjectById(this.gameObjectId);
+    if (editorObject === undefined) throw new Error(`Cannot apply mutation - no editor object exists in the scene with id '${this.gameObjectId}'`);
 
     // - 1. Update data
     gameObjectData.transform.position = position;
 
     // - 2. Update scene
-    gameObject.position.setValue(position);
+    editorObject.position.setValue(position);
     if (resetGizmo) {
       SceneViewController.selectionManager.updateGizmos();
     }

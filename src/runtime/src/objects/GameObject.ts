@@ -4,31 +4,32 @@ import { GameObject as GameObjectCore } from '@polyzone/core/objects/GameObject'
 import { Vector3, Rotation } from '@polyzone/core/math';
 import { Scene } from '@polyzone/runtime/scene';
 import { GameObjectComponent } from './components';
+import { ClassReference } from '@polyzone/core/util/types';
 
 export class GameObject extends GameObjectCore {
   public readonly id: string;
   public readonly scene: Scene;
   private readonly _components: GameObjectComponent[];
-  private sceneNode: GameObjectNode;
+  private sceneNode: ComponentsObjectNode;
 
   public constructor(id: string, name: string, scene: Scene, parent?: GameObject) {
     super();
     this.id = id;
     this.scene = scene;
     this._components = [];
-    this.sceneNode = new GameObjectNode(scene.lopolyScene, name, this, parent?.sceneNode);
+    this.sceneNode = new ComponentsObjectNode(scene.lopolyScene, name, this, parent?.sceneNode);
   }
 
   // @NOTE Intended to be always be called once when creating a new game object.
   // When instantiating a scene, all objects are first created before init() is called.
   public override init(): void {
     this.components.forEach((component) => component.init());
-    this.sceneNode.forEachChildGameObject((child) => child.init());
+    this.sceneNode.forEachChildObject((child) => child.init());
   }
 
   public override onUpdate(deltaTime: number, time: number): void {
     this.components.forEach((component) => component.onUpdate(deltaTime, time));
-    this.sceneNode.forEachChildGameObject((child) => child.onUpdate(deltaTime, time));
+    this.sceneNode.forEachChildObject((child) => child.onUpdate(deltaTime, time));
   }
 
   public override destroy(): void {
@@ -61,19 +62,11 @@ export class GameObject extends GameObjectCore {
     return componentInstance;
   }
 
-  // public addComponentInstance(componentInstance: GameObjectComponent): void {
-  //   if (this.components.includes(componentInstance)) {
-  //     throw new Error(`Cannot add component to ${GameObject.name}: component already belongs to this ${GameObject.name}`);
-  //   }
-
-  //   this._components.push(componentInstance);
-  //   componentInstance.sceneNode.parent = this.sceneNode.componentNodesParent;
-  // }
-  public removeComponent(componentId: string): void {
+  public override removeComponent(componentId: string): void {
     const componentIndex = this.components.findIndex((component) => component.id === componentId);
 
     if (componentIndex === undefined) {
-      throw new Error(`Cannot remove component from GameObject. No component exists on GameObject with Id: '${componentId}'`);
+      throw new Error(`Cannot remove component from ${GameObject.name}. No component exists on ${GameObject.name} with Id: '${componentId}'`);
     }
 
     const componentInstance = this._components.splice(componentIndex, 0)[0];
@@ -82,120 +75,132 @@ export class GameObject extends GameObjectCore {
     componentInstance.sceneNode.destroy();
   }
 
-  // @TODO Put into core?
-  // /**
-  //  * Get a component on this GameObjectData. If the component cannot be found or is not of the expected type,
-  //  * an Error is thrown.
-  //  * @param componentId Id of the component to get.
-  //  * @param ExpectedComponentType Expected type of the component.
-  //  */
-  // public getComponent<TComponent extends GameObjectComponent>(componentId: string, ExpectedComponentType: ClassReference<TComponent>): TComponent;
-  // /**
-  //  * Get a component on this GameObjectData. If the component cannot be found or is not of the expected type,
-  //  * an Error is thrown.
-  //  * @param componentId Id of the component to get.
-  //  * @param ExpectedComponentType Array of possible expected types of the component.
-  //  */
-  // public getComponent<TComponent extends GameObjectComponent>(componentId: string, ExpectedComponentTypes: ClassReference<TComponent>[]): TComponent;
-  // public getComponent<TComponent extends GameObjectComponent>(componentId: string, expectedTypeOrTypes: ClassReference<TComponent> | ClassReference<TComponent>[]): TComponent {
-  //   // const component = this.componentNodesParent.findComponent((component) => component.id === componentId);
-  //   const componentInstance = this.componentInstances.find(({ component }) => component.id === componentId);
-  //   if (componentInstance === undefined) {
-  //     throw new Error(`No component with ID '${componentId}' exists on GameObject '${this.name}' (${this.id})`);
-  //   }
+  /**
+   * Get a component on this {@link GameObject}. If the component cannot be found, an Error is thrown.
+   * @param componentId Id of the component to get.
+   */
+  public getComponent(componentId: string): GameObjectComponent;
+  /**
+   * Get a component on this {@link GameObject}. If the component cannot be found or is not of the expected type,
+   * an Error is thrown.
+   * @param componentId Id of the component to get.
+   * @param ExpectedComponentType Expected type of the component.
+   */
+  public getComponent<TComponent extends GameObjectComponent>(componentId: string, ExpectedComponentType: ClassReference<TComponent>): TComponent;
+  /**
+   * Get a component on this {@link GameObject}. If the component cannot be found or is not of the expected type,
+   * an Error is thrown.
+   * @param componentId Id of the component to get.
+   * @param ExpectedComponentType Array of possible expected types of the component.
+   */
+  public getComponent<TComponent extends GameObjectComponent>(componentId: string, ExpectedComponentTypes: ClassReference<TComponent>[]): TComponent;
+  public getComponent<TComponent extends GameObjectComponent>(componentId: string, maybeExpectedTypeOrTypes?: ClassReference<TComponent> | ClassReference<TComponent>[]): TComponent {
+    const component = this.components.find((component) => component.id === componentId);
+    if (component === undefined) {
+      throw new Error(`No component with ID '${componentId}' exists on ${GameObject.name} '${this.name}' (${this.id})`);
+    }
 
-  //   const { component } = componentInstance;
+    if (maybeExpectedTypeOrTypes === undefined) {
+      // Pretty sure in this scenario `TComponent` will just be `GameObjectComponent`
+      return component as TComponent;
+    }
 
-  //   let expectedComponentTypes: ClassReference<TComponent>[] = [];
-  //   if (Array.isArray(expectedTypeOrTypes)) {
-  //     expectedComponentTypes = expectedTypeOrTypes;
-  //   } else {
-  //     expectedComponentTypes.push(expectedTypeOrTypes);
-  //   }
+    let expectedComponentTypes: ClassReference<TComponent>[] = [];
+    if (Array.isArray(maybeExpectedTypeOrTypes)) {
+      expectedComponentTypes = maybeExpectedTypeOrTypes;
+    } else {
+      expectedComponentTypes.push(maybeExpectedTypeOrTypes);
+    }
 
-  //   const instanceOfAnyComponentType = expectedComponentTypes.some((ComponentType) => component instanceof ComponentType);
-  //   if (!instanceOfAnyComponentType) {
-  //     const expectedComponentTypeNames = expectedComponentTypes.map((x) => x.name).join('|');
-  //     throw new Error(`Component with ID '${componentId}' on GameObject '${this.name}' (${this.id}) is not of expected type. (Expected='${expectedComponentTypeNames}') (Actual='${component.constructor.name}')`);
-  //   }
+    const instanceOfAnyComponentType = expectedComponentTypes.some((ComponentType) => component instanceof ComponentType);
+    if (!instanceOfAnyComponentType) {
+      const expectedComponentTypeNames = expectedComponentTypes.map((x) => x.name).join('|');
+      throw new Error(`Component with ID '${componentId}' on ${GameObject.name} '${this.name}' (${this.id}) is not of expected type. (Expected='${expectedComponentTypeNames}') (Actual='${component.constructor.name}')`);
+    }
 
-  //   // Sadly we have to launder as the `instanceof` check is inside a `some()` aggregation
-  //   return component as TComponent;
-  // }
-
-  // @TODO lift into core?
-
-  public forEachChild(fn: (child: GameObject) => void, recursive: boolean = false): void {
-    this.sceneNode.forEachChildGameObject(fn, recursive);
+    // Sadly we have to launder as the `instanceof` check is inside a `some()` aggregation
+    return component as TComponent;
   }
 
-  public findChild(fn: (child: GameObject) => boolean, recursive: boolean = false): GameObject | undefined {
-    return this.sceneNode.findChildGameObject(fn, recursive);
+  public override forEachChild(fn: (child: GameObject) => void, recursive: boolean = false): void {
+    this.sceneNode.forEachChildObject(fn, recursive);
   }
 
-  public override get parent(): GameObject | undefined { return this.sceneNode.parent?.gameObject; }
+  public override findChild(fn: (child: GameObject) => boolean, recursive: boolean = false): GameObject | undefined {
+    return this.sceneNode.findChildObject(fn, recursive);
+  }
+
+  public override get parent(): GameObject | undefined { return this.sceneNode.parent?.object; }
   public override set parent(value: GameObject | undefined) { this.sceneNode.parent = value?.sceneNode; }
+  public override set name(value: string) { this.sceneNode.name = value; }
   public override get name(): string { return this.sceneNode.name; }
-  public get worldMatrix(): Matrix4 { return this.sceneNode.worldMatrix; }
-  public get position(): Vector3 { return this.sceneNode.position; }
-  public set position(value: Vector3) { this.sceneNode.position = value; }
-  public get rotation(): Rotation { return this.sceneNode.rotation; }
-  public get scale(): Vector3 { return this.sceneNode.scale; }
-  public set scale(value: Vector3) { this.sceneNode.scale = value; }
-  public get absolutePosition(): Vector3 { return this.sceneNode.absolutePosition; }
-  public set absolutePosition(value: Vector3) { this.sceneNode.absolutePosition = value; }
-  public get absoluteRotation(): Rotation { return this.sceneNode.absoluteRotation; }
-  public get absoluteScale(): Vector3 { return this.sceneNode.absoluteScale; }
-  public set absoluteScale(value: Vector3) { this.sceneNode.absoluteScale = value; }
+  public /* @TODO override */ get worldMatrix(): Matrix4 { return this.sceneNode.worldMatrix; }
+  public override get position(): Vector3 { return this.sceneNode.position; }
+  public override set position(value: Vector3) { this.sceneNode.position = value; }
+  public override get rotation(): Rotation { return this.sceneNode.rotation; }
+  public override get scale(): Vector3 { return this.sceneNode.scale; }
+  public override set scale(value: Vector3) { this.sceneNode.scale = value; }
+  public override get absolutePosition(): Vector3 { return this.sceneNode.absolutePosition; }
+  public override set absolutePosition(value: Vector3) { this.sceneNode.absolutePosition = value; }
+  public override get absoluteRotation(): Rotation { return this.sceneNode.absoluteRotation; }
+  public override get absoluteScale(): Vector3 { return this.sceneNode.absoluteScale; }
+  public override set absoluteScale(value: Vector3) { this.sceneNode.absoluteScale = value; }
 
-  public get components(): readonly GameObjectComponent[] { return this._components; }
+  public override get components(): readonly GameObjectComponent[] { return this._components; }
 }
 
-export class GameObjectNode extends SceneNode {
-  public readonly gameObject: GameObject;
+
+/**
+ * A {@link SceneNode} that implements PolyZone's object-type hierarchy:
+ * Objects that have children as well as components.
+ */
+export class ComponentsObjectNode<TObject = GameObject> extends SceneNode {
+  public readonly object: TObject;
+
   public readonly componentNodesParent: ObjectNode;
 
-  public constructor(scene: IScene, name: string, gameObject: GameObject, parent?: GameObjectNode) {
+  public constructor(scene: IScene, name: string, object: TObject, parent?: ComponentsObjectNode<TObject>) {
     super(scene, name, parent);
-    this.gameObject = gameObject;
+    this.object = object;
     this.componentNodesParent = new ObjectNode(scene, `__components`, this);
   }
 
   /*
     @NOTE We need to leave base class methods `forEachChild` and `findChild` untouched
     as they are called by LoPoly as part of the engine. We instead offer these two
-    GameObject-specific overloads, which should be more useful anyway.
-    Just note that base methods will return native LoPoly types (e.g. `SceneNode`).
+    strongly-typed overloads, which should be more useful anyway.
+    Just note that base methods will return native LoPoly types (e.g. `SceneNode`) and won't
+    skip component children.
   */
 
-  public forEachChildGameObject(fn: (gameObject: GameObject) => void, recursive: boolean = false): void {
+  public forEachChildObject(fn: (child: TObject) => void, recursive: boolean = false): void {
     super.forEachChild((child) => {
       if (child !== this.componentNodesParent) {
-        const childGameObjectNode = child as GameObjectNode;
-        fn(childGameObjectNode.gameObject);
+        const childObjectNode = child as ComponentsObjectNode<TObject>;
+        fn(childObjectNode.object);
         if (recursive) {
-          childGameObjectNode.forEachChildGameObject(fn, recursive);
+          childObjectNode.forEachChildObject(fn, recursive);
         }
       }
     }, { includeDisabled: false });
   }
 
-  public findChildGameObject(fn: (gameObject: GameObject) => boolean, recursive: boolean = false): GameObject | undefined {
-    let result: GameObject | undefined;
+  public findChildObject(fn: (child: TObject) => boolean, recursive: boolean = false): TObject | undefined {
+    let result: TObject | undefined;
     super.forEachChild((child) => {
       // Stop iterating if we've found a result already (we have no way of `break`ing this loop)
       if (result !== undefined) return;
 
       if (child !== this.componentNodesParent) {
-        const childGameObjectNode = child as GameObjectNode;
-        if (fn(childGameObjectNode.gameObject)) {
+        const childObjectNode = child as ComponentsObjectNode<TObject>;
+        if (fn(childObjectNode.object)) {
           // Direct child is result
-          result = childGameObjectNode.gameObject;
+          result = childObjectNode.object;
           return;
         }
 
         if (recursive) {
-          const childResult = childGameObjectNode.findChildGameObject(fn, recursive);
+          const childResult = childObjectNode.findChildObject(fn, recursive);
           if (childResult) {
             // Nested descendent is result
             result = childResult;
@@ -208,10 +213,10 @@ export class GameObjectNode extends SceneNode {
     return result;
   }
 
-  public override get parent(): GameObjectNode | undefined {
-    return super.parent as GameObjectNode;
+  public override get parent(): ComponentsObjectNode<TObject> | undefined {
+    return super.parent as ComponentsObjectNode<TObject>;
   }
-  public override set parent(value: GameObjectNode | undefined) {
+  public override set parent(value: ComponentsObjectNode<TObject> | undefined) {
     super.parent = value;
   }
 }

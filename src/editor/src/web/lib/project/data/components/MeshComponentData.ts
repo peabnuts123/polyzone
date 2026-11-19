@@ -9,15 +9,16 @@ import {
   type ComponentDefinition,
 } from "@polyzone/runtime/cartridge";
 
-import type { MeshComponent } from "@lib/composer/scene/components";
 import type { MeshAssetData } from "@lib/project/data/assets";
+import { EditorMeshComponent } from "@lib/common/objects/components";
 import type { IComposerComponentData } from "./IComposerComponentData";
 
 export class MeshComponentData implements IComposerComponentData, IMeshComponentData {
   private _meshComponentData: MeshComponentDataRuntime;
 
   // @TODO is this good? Is this useful? I think maybe it should be removed
-  public componentInstance: MeshComponent | undefined = undefined;
+  // +1 I agree (2026/11/18)
+  public componentInstance: EditorMeshComponent | undefined = undefined;
 
   public constructor(id: string, meshAsset: MeshAssetData | undefined) {
     this._meshComponentData = new MeshComponentDataRuntime(id, meshAsset);

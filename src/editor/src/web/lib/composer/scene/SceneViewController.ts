@@ -4,14 +4,6 @@ import { IEngine } from '@lopoly/engine/Engine';
 import { Scene as LoPolyScene } from '@lopoly/engine/scene';
 import { RayCast, RayCastMode } from '@lopoly/engine/collision';
 
-import {
-  GameObject as GameObjectRuntime,
-  GameObject,
-  GameObjectComponent,
-  DirectionalLightComponent as DirectionalLightComponentRuntime,
-  PointLightComponent as PointLightComponentRuntime,
-} from '@polyzone/runtime/objects';
-import { Scene } from '@polyzone/runtime/scene';
 import { AssetCache } from '@polyzone/runtime/assets';
 import { tanDegrees } from '@polyzone/core/math/util';
 
@@ -24,31 +16,28 @@ import { ProjectSceneEventType } from '@lib/project/watcher/scenes';
 import { ProjectFileEventType } from '@lib/project/watcher/project';
 import { SceneDbRecord } from '@lib/project/data/SceneDb';
 import { ProjectAssetEventType } from '@lib/project/watcher/assets';
-import { ComponentDependencyManager } from '@lib/common/ComponentDependencyManager';
 import { MutationController } from '@lib/mutation/MutationController';
 import { IViewController, ViewCamera, ViewController } from '@lib/common/view';
-import { CameraComponentData, DirectionalLightComponentData, IComposerComponentData, MeshComponentData, PointLightComponentData, ScriptComponentData } from '@lib/project/data/components';
+import { IComposerComponentData } from '@lib/project/data/components';
+import { EditorScene } from '@lib/common/scene';
+import { EditorObject } from '@lib/common/objects';
 
-import { SceneViewSelectionCache } from './SceneViewSelectionCache';
-import { isAssetDependentComponent, ISelectableObject, isSelectableObject, MeshComponent } from './components';
+import { isAssetDependentComponent, isSelectableObject } from './components';
 import { CurrentSelectionTool, SelectionManager, SelectionManagerResources } from './SelectionManager';
 
 
 export interface ISceneViewController extends IViewController<SceneViewMutator, SceneViewMutatorNew> {
   setCurrentTool(tool: CurrentSelectionTool): void;
   focusSelected(): void;
-  addToSelectionCache(gameObjectId: string, component: ISelectableObject): void;
-  removeFromSelectionCache(component: ISelectableObject): void;
-  createGameObject(gameObjectData: GameObjectData, parentGameObject?: GameObject): Promise<GameObjectRuntime>;
-  createGameObjectComponent(componentData: IComposerComponentData, gameObject: GameObjectRuntime, gameObjectData: GameObjectData, atIndex?: number): Promise<void>;
-  reinitializeComponentInstance(componentData: IComposerComponentData, gameObjectData: GameObjectData): Promise<void>;
+  reinitializeComponentInstance(componentData: IComposerComponentData, objectData: GameObjectData): Promise<void>;
   reloadSceneData(scene: SceneDbRecord): Promise<void>;
-  findGameObjectById(gameObjectId: string): GameObjectRuntime | undefined;
+  findEditorObjectById(objectId: string): EditorObject | undefined;
 
+  get scene(): EditorScene;
   get sceneData(): SceneData;
   get sceneJson(): JsoncContainer<SceneDefinition>;
   get sceneDefinition(): SceneDefinition;
-  get selectedObject(): GameObjectRuntime | undefined
+  get selectedObject(): EditorObject | undefined
   get selectedObjectData(): GameObjectData | undefined;
   get selectedObjectId(): string | undefined;
   get selectionManager(): SelectionManager;
@@ -56,29 +45,27 @@ export interface ISceneViewController extends IViewController<SceneViewMutator, 
 }
 
 export class SceneViewController implements ISceneViewController {
-  private readonly componentDependencyManager: ComponentDependencyManager;
   private readonly _selectionManager: SelectionManager;
-  private readonly selectionCache: SceneViewSelectionCache;
   private readonly unlistenToFileSystemEvents: () => void;
 
+  private _sceneData: SceneData;
+  private _sceneJson: JsoncContainer<SceneDefinition>;
   private readonly viewController: ViewController<SceneViewMutator, SceneViewMutatorNew>;
 
   private constructor(
-    scene: SceneData,
+    sceneData: SceneData,
     sceneJson: JsoncContainer<SceneDefinition>,
     projectController: IProjectController,
     mutationController: MutationController,
     selectionManagerResources: SelectionManagerResources,
   ) {
-    this.componentDependencyManager = new ComponentDependencyManager();
-    this.selectionCache = new SceneViewSelectionCache();
+    this._sceneData = sceneData;
+    this._sceneJson = sceneJson;
     this.viewController = new ViewController(
       projectController,
       mutationController,
       new SceneViewMutator(this, projectController),
       new SceneViewMutatorNew(this, projectController, mutationController),
-      scene,
-      sceneJson,
     );
 
     this.configureInput(this.engine);
@@ -121,17 +108,17 @@ export class SceneViewController implements ISceneViewController {
           ];
 
           // Find all components that depend on these affected assets
-          const allAffectedComponentData = this.componentDependencyManager.getAllDependentsForAssetIds(allAffectedAssets);
+          const allAffectedComponentData = this.scene.componentDependencyManager.getAllDependentsForAssetIds(allAffectedAssets);
 
           // Reinitialise all affected components
-          for (const { componentData, gameObjectData, assetIds } of allAffectedComponentData) {
+          for (const { componentData, objectData, assetIds } of allAffectedComponentData) {
             if (assetIds.includes(event.asset.id)) {
-              console.log(`[DEBUG] [SceneViewController] (filesWatcher.onAssetChanged) Reinitializing component due to asset change: (assetId='${event.asset.id}') (componentId='${componentData.id}') (gameObjectId='${gameObjectData.id}')`);
+              console.log(`[DEBUG] [SceneViewController] (filesWatcher.onAssetChanged) Reinitializing component due to asset change: (assetId='${event.asset.id}') (componentId='${componentData.id}') (objectId='${objectData.id}')`);
             } else {
-              console.log(`[DEBUG] [SceneViewController] (filesWatcher.onAssetChanged) Reinitializing component due to TRANSITIVE asset change: (source assetId='${event.asset.id}') (componentId='${componentData.id}') (gameObjectId='${gameObjectData.id}')`);
+              console.log(`[DEBUG] [SceneViewController] (filesWatcher.onAssetChanged) Reinitializing component due to TRANSITIVE asset change: (source assetId='${event.asset.id}') (componentId='${componentData.id}') (objectId='${objectData.id}')`);
             }
 
-            void this.reinitializeComponentInstance(componentData, gameObjectData);
+            void this.reinitializeComponentInstance(componentData, objectData);
           }
           break;
         }
@@ -155,7 +142,7 @@ export class SceneViewController implements ISceneViewController {
   public static async create(scene: SceneData, sceneJson: JsoncContainer<SceneDefinition>, projectController: IProjectController, mutationController: MutationController): Promise<SceneViewController> {
     const selectionManagerResources = await SelectionManager.loadResources();
     const sceneViewController = new SceneViewController(scene, sceneJson, projectController, mutationController, selectionManagerResources);
-    await sceneViewController.buildScene();
+    await sceneViewController.createScene();
     return sceneViewController;
   }
 
@@ -191,33 +178,13 @@ export class SceneViewController implements ISceneViewController {
     });
   }
 
-  private async buildScene(): Promise<void> {
-    await this.createScene();
-
-    // @TODO Raycasting
-    // this.lopolyScene.onPointerObservable.add((pointerInfo) => {
-    //   if (pointerInfo.type === PointerEventTypes.POINTERTAP) {
-    //     if (!pointerInfo.pickInfo?.hit) {
-    //       this.selectionManager.deselectAll();
-    //     } else if (pointerInfo.pickInfo && pointerInfo.pickInfo.pickedMesh !== null) {
-    //       const pickedGameObjectId = this.selectionCache.get(pointerInfo.pickInfo.pickedMesh);
-    //       if (pickedGameObjectId === undefined) {
-    //         console.error(`Picked mesh but found no corresponding GameObject ID in cache. Has it been populated or updated? Picked mesh:`, pointerInfo.pickInfo.pickedMesh);
-    //       } else {
-    //         this.selectionManager.select(pickedGameObjectId);
-    //       }
-    //     }
-    //   }
-    // });
-  }
-
   private onClickSelect(pointer: PointerState): void {
     if (pointer.x !== undefined && pointer.y !== undefined) {
       this.camera.rayCastFromCamera(pointer.x, pointer.y, (rayOrigin, rayDirection) => {
         const result = RayCast.scene(rayOrigin, rayDirection, this.lopolyScene, RayCastMode.Infinite);
         const pickedModel = result?.target;
         if (pickedModel !== undefined) {
-          const pickedGameObjectId = this.selectionCache.get(pickedModel);
+          const pickedGameObjectId = this.scene.selectionCache.get(pickedModel);
           if (pickedGameObjectId === undefined) {
             console.error(`Picked mesh but found no corresponding GameObject ID in cache. Has it been populated or updated? Picked mesh: '${pickedModel.name}'`);
           } else {
@@ -241,100 +208,13 @@ export class SceneViewController implements ISceneViewController {
   private async createScene(): Promise<void> {
     await Promise.all(
       this.sceneData.objects.map((sceneObject) =>
-        this.createGameObject(sceneObject),
+        this.scene.createEditorObject(sceneObject),
       ),
     );
-  }
 
-  /**
-   * Wrapper for `createGameObject()` with bindings into this SceneViewController.
-   */
-  public async createGameObject(gameObjectData: GameObjectData, parentGameObject?: GameObject): Promise<GameObjectRuntime> {
-    // Construct blank GameObject
-    const gameObject = new GameObject(
-      gameObjectData.id,
-      gameObjectData.name,
-      this.scene,
-      parentGameObject,
-    );
-    gameObject.position = gameObjectData.transform.position;
-    gameObject.rotation.euler = gameObjectData.transform.rotation;
-    gameObject.scale = gameObjectData.transform.scale;
-
-    // Construct child objects recursively
-    await Promise.all(gameObjectData.children.map((childObjectData) =>
-      this.createGameObject(
-        childObjectData,
-        gameObject,
-      )),
-    );
-
-    // Load game object components
-    await Promise.all(gameObjectData.components.map(async (componentData) =>
-      this.createGameObjectComponent(
-        componentData,
-        gameObject,
-        gameObjectData,
-      ),
-    ));
-
-    // Add top-level objects to scene
-    if (parentGameObject === undefined) {
-      this.scene.addGameObject(gameObject);
-    }
-
-    return gameObject;
-  }
-
-  /**
-   * Wrapper for `createEditorGameObjectComponent()` with bindings into this SceneViewController.
-   */
-  public async createGameObjectComponent(
-    componentData: IComposerComponentData,
-    gameObject: GameObjectRuntime,
-    gameObjectData: GameObjectData,
-    atIndex?: number,
-  ): Promise<void> {
-    let newComponent: GameObjectComponent | undefined = undefined;
-
-    if (componentData instanceof MeshComponentData) {
-      /* Mesh component */
-      // @TODO Just use runtime component IMO, refactor selection stuff below
-      newComponent = await MeshComponent.instantiateFromData(componentData, gameObject, atIndex, this.assetCache);
-    } else if (componentData instanceof ScriptComponentData) {
-      /* Custom component script */
-      /* @NOTE Script has no effect in the Composer */
-    } else if (componentData instanceof CameraComponentData) {
-      /* Camera component */
-      /* @NOTE Camera has no effect in the Composer */
-    } else if (componentData instanceof DirectionalLightComponentData) {
-      /* Directional Light component */
-      // @TODO
-      newComponent = await DirectionalLightComponentRuntime.instantiateFromData(componentData, gameObject, atIndex);
-    } else if (componentData instanceof PointLightComponentData) {
-      /* Point Light component */
-      newComponent = await PointLightComponentRuntime.instantiateFromData(componentData, gameObject, atIndex);
-    } else {
-      throw new Error(`Unimplemented component data type: ${componentData.constructor.name}`);
-    }
-
-    // Only continue processing if a component was actually made
-    if (newComponent === undefined) return;
-
-    // Store selectable objects in cache (for efficient lookup of model => game object on click)
-    // @TODO move selectable object stuff to here outside of MeshComponent
-    if (isSelectableObject(newComponent)) {
-      this.addToSelectionCache(gameObjectData.id, newComponent);
-    }
-
-    // Store asset dependencies in a cache (for reloading components when assets change)
-    if (isAssetDependentComponent(newComponent)) {
-      this.componentDependencyManager.registerDependency(
-        componentData,
-        gameObjectData,
-        newComponent.assetDependencyIds,
-      );
-    }
+    // @TODO Delete lighting intensity
+    this.scene.lighting.ambientColor = this.sceneData.config.lighting.ambient.color.scaleSelf(this.sceneData.config.lighting.ambient.intensity);
+    this.scene.clearColour = this.sceneData.config.clearColor;
   }
 
   public setCurrentTool(tool: CurrentSelectionTool): void {
@@ -367,62 +247,50 @@ export class SceneViewController implements ISceneViewController {
     }
   }
 
-  public addToSelectionCache(gameObjectId: string, component: ISelectableObject): void {
-    this.selectionCache.add(gameObjectId, component.allSelectableMeshes);
-  }
-
-  public removeFromSelectionCache(component: ISelectableObject): void {
-    this.selectionCache.remove(component.allSelectableMeshes);
-  }
-
   /**
    * Reload the instance of a component from its definition for an object loaded in the scene view.
-   * @param componentData Data for GameObjectComponent. The previous instance of this component will be destroyed.
-   * @param gameObjectData GameObject on which this component lives
+   * @param componentData Data for object component. The previous instance of this component will be destroyed.
+   * @param objectData Data for the object on which this component lives
    */
-  public async reinitializeComponentInstance(componentData: IComposerComponentData, gameObjectData: GameObjectData): Promise<void> {
-    const gameObjectInstance = this.findGameObjectById(gameObjectData.id);
-    if (gameObjectInstance === undefined) throw new Error(`Cannot reinitialize component. No GameObject with id '${gameObjectData.id}' could be found in the scene`);
-    const componentIndex = gameObjectInstance.components.findIndex((component) => component.id === componentData.id);
-    if (componentIndex === undefined) throw new Error(`Cannot reinitialize component. Component with ID '${componentData.id}' is not a component of GameObject with ID '${gameObjectData.id}'`);
+  public async reinitializeComponentInstance(componentData: IComposerComponentData, objectData: GameObjectData): Promise<void> {
+    const objectInstance = this.findEditorObjectById(objectData.id);
+    if (objectInstance === undefined) throw new Error(`Cannot reinitialize component. No object with id '${objectData.id}' could be found in the scene`);
+    const componentIndex = objectInstance.components.findIndex((component) => component.id === componentData.id);
+    if (componentIndex === undefined) throw new Error(`Cannot reinitialize component. Component with ID '${componentData.id}' is not a component of object with ID '${objectData.id}'`);
 
-    const componentInstance = gameObjectInstance.components[componentIndex];
+    const componentInstance = objectInstance.components[componentIndex];
 
     // Remove selectable components from selection cache
     if (isSelectableObject(componentInstance)) {
-      this.removeFromSelectionCache(componentInstance);
+      this.scene.removeFromSelectionCache(componentInstance);
     }
 
     // Remove registered asset dependency (since component instance is about to be destroyed)
     if (isAssetDependentComponent(componentInstance)) {
-      this.componentDependencyManager.unregisterDependency(componentInstance.id);
+      this.scene.componentDependencyManager.unregisterDependency(componentInstance.id);
     }
 
     // Remove (and destroy) component instance
-    gameObjectInstance.removeComponent(componentInstance.id);
+    objectInstance.removeComponent(componentInstance.id);
 
     // Re-create component instance
-    await this.createGameObjectComponent(componentData, gameObjectInstance, gameObjectData, componentIndex);
+    await this.scene.createEditorObjectComponent(componentData, objectInstance, objectData, componentIndex);
   }
 
   public async reloadSceneData(scene: SceneDbRecord): Promise<void> {
     // Clear out the scene
     this.selectionManager.deselectAll();
-    this.selectionCache.clear();
-    this.componentDependencyManager.clear();
-    // @NOTE Clone the collection to mutate it while iterating
-    [...this.scene.topLevelGameObjects].forEach((topLevelGameObject) => {
-      this.scene.destroyGameObject(topLevelGameObject);
-    });
+    this.scene.clear();
 
     // Update scene data
-    this.viewController.bindScene(scene.data, scene.jsonc);
+    this._sceneData = scene.data;
+    this._sceneJson = scene.jsonc;
 
     await this.createScene();
   }
 
-  public findGameObjectById(gameObjectId: string): GameObjectRuntime | undefined {
-    return this.scene.findGameObjectById(gameObjectId);
+  public findEditorObjectById(objectId: string): EditorObject | undefined {
+    return this.scene.findEditorObjectById(objectId);
   }
 
   /* IViewController implementation through encapsulated object */
@@ -432,16 +300,16 @@ export class SceneViewController implements ISceneViewController {
   public get mutator(): SceneViewMutator { return this.viewController.mutator; }
   public get mutatorNew(): SceneViewMutatorNew { return this.viewController.mutatorNew; }
   private get engine(): IEngine { return this.viewController.engine; }
-  private get scene(): Scene { return this.viewController.scene; }
+  public get scene(): EditorScene { return this.viewController.scene; }
   private get lopolyScene(): LoPolyScene { return this.scene.lopolyScene; }
 
-  public get sceneData(): SceneData { return this.viewController.sceneData; }
-  public get sceneJson(): JsoncContainer<SceneDefinition> { return this.viewController.sceneJson; }
-  public get sceneDefinition(): SceneDefinition { return this.viewController.sceneJson.value; }
+  public get sceneData(): SceneData { return this._sceneData; }
+  public get sceneJson(): JsoncContainer<SceneDefinition> { return this._sceneJson; }
+  public get sceneDefinition(): SceneDefinition { return this._sceneJson.value; }
 
-  public get selectedObject(): GameObjectRuntime | undefined {
+  public get selectedObject(): EditorObject | undefined {
     if (this.selectedObjectId) {
-      return this.findGameObjectById(this.selectedObjectId);
+      return this.findEditorObjectById(this.selectedObjectId);
     } else {
       return undefined;
     }

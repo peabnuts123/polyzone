@@ -103,8 +103,8 @@ export class SelectionManager {
     };
   }
 
-  public select(gameObjectId: string): void {
-    this.selectedObjectId = gameObjectId;
+  public select(objectId: string): void {
+    this.selectedObjectId = objectId;
   }
 
   public deselectAll(): void {
@@ -131,8 +131,8 @@ export class SelectionManager {
     // this.boundingBoxGizmo.attachedMesh = null;
 
     if (this.selectedObjectId !== undefined) {
-      const selectedObjectInstance = this.sceneViewController.findGameObjectById(this.selectedObjectId);
-      if (selectedObjectInstance === undefined) throw new Error(`Cannot update gizmos, no game object exists in the scene with id '${this.selectedObjectId}'`);
+      const selectedObjectInstance = this.sceneViewController.findEditorObjectById(this.selectedObjectId);
+      if (selectedObjectInstance === undefined) throw new Error(`Cannot update gizmos, no object exists in the scene with id '${this.selectedObjectId}'`);
       //   const realTransformTarget = selectedObjectInstance.transform.node;
 
       //   // Construct a new dummy transform target if we need one and it doesn't exist
@@ -180,8 +180,8 @@ export class SelectionManager {
 
       // Enable only the current tool
       // this.currentGizmo!.enabled = true;
-      this.currentGizmo?.attachToGameObject(selectedObjectInstance);
-      this.boundingBoxGizmo.attachToGameObject(selectedObjectInstance);
+      this.currentGizmo?.attachToEditorObject(selectedObjectInstance);
+      this.boundingBoxGizmo.attachToEditorObject(selectedObjectInstance);
       // switch (this.currentTool) {
       //   case CurrentSelectionTool.Move:
       //     // this.moveGizmo.attachedNode = this.fakeTransformTarget;

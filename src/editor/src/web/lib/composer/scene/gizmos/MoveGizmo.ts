@@ -78,7 +78,7 @@ export class MoveGizmoNode extends GizmoNodeBase<MoveGizmoHandleType, MoveGizmoA
    * @param type Which type of handle was clicked.
    */
   protected override onInteractBegin(pointer: PointerState, type: MoveGizmoHandleType): void {
-    if (pointer.x === undefined || pointer.y === undefined || this.attachedGameObject === undefined) return;
+    if (pointer.x === undefined || pointer.y === undefined || this.attachedEditorObject === undefined) return;
 
     // Determine pointer's initial offset from gizmo's origin
     let initialClickOffset: Vector3 | undefined = undefined;
@@ -118,8 +118,8 @@ export class MoveGizmoNode extends GizmoNodeBase<MoveGizmoHandleType, MoveGizmoA
     // Initialise state
     this.activeState = {
       controlType: type,
-      initialObjectPosition: this.attachedGameObject.position.clone(),
-      mutation: new SetGameObjectPositionMutation(this.attachedGameObject.id),
+      initialObjectPosition: this.attachedEditorObject.position.clone(),
+      mutation: new SetGameObjectPositionMutation(this.attachedEditorObject.id),
       initialClickOffset,
     };
 
@@ -132,9 +132,9 @@ export class MoveGizmoNode extends GizmoNodeBase<MoveGizmoHandleType, MoveGizmoA
    * @param pointer Pointer state.
    */
   protected override onInteractUpdate(pointer: PointerState): void {
-    if (this.activeState === undefined || pointer.x === undefined || pointer.y === undefined || this.attachedGameObject === undefined) return;
+    if (this.activeState === undefined || pointer.x === undefined || pointer.y === undefined || this.attachedEditorObject === undefined) return;
 
-    const attachedObject = this.attachedGameObject;
+    const attachedObject = this.attachedEditorObject;
 
     /**
      * `newPosition` is calculated in coordinates relative to the gizmo PARENT
@@ -213,7 +213,7 @@ export class MoveGizmoNode extends GizmoNodeBase<MoveGizmoHandleType, MoveGizmoA
     // Move gizmo instance to new position
     this.position.setValue(newPosition);
 
-    // Convert new position's gizmo-relative coordinates to local space relative to the attached game object
+    // Convert new position's gizmo-relative coordinates to local space relative to the attached object
     /* Scale */
     const parentScale = attachedObject.parent?.absoluteScale ?? Vector3.one();
     if (parentScale.x <= Number.EPSILON) console.warn(`[${MoveGizmoNode.name}] (${this.onInteractUpdate.name}) Moving object whose parentScale.x is 0. x coordinate can not be extrapolated and will remain unmodified`);
@@ -244,8 +244,8 @@ export class MoveGizmoNode extends GizmoNodeBase<MoveGizmoHandleType, MoveGizmoA
     void this.sceneViewController.mutatorNew.apply(this.activeState.mutation);
 
     // Reset gizmo & parent to attached object
-    if (this.attachedGameObject !== undefined) {
-      this.parent.absolutePosition = this.attachedGameObject.absolutePosition;
+    if (this.attachedEditorObject !== undefined) {
+      this.parent.absolutePosition = this.attachedEditorObject.absolutePosition;
       this.position = Vector3.zero();
     }
 

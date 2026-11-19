@@ -1,3 +1,4 @@
+import { Vector3 } from "@polyzone/core/math";
 import { GameObjectDefinition } from "@polyzone/runtime/src/cartridge";
 
 import { GameObjectData } from "@lib/project/data";
@@ -6,7 +7,6 @@ import { MutationPath, readValueAtPath, resolvePath } from "@lib/util/JsoncConta
 import { SceneDefinition } from "@lib/project/definition/scene/SceneDefinition";
 import { BaseSceneMutation } from "../ISceneMutation";
 import { SceneViewMutationArguments } from "../SceneViewMutationArguments";
-import { Vector3 } from "@polyzone/core/math";
 
 interface SetGameObjectParentMutationArgs {
   gameObject: GameObjectData;
@@ -110,24 +110,24 @@ export class SetGameObjectParentMutation extends BaseSceneMutation<MutationArgs>
     //  Babylon scene and read the results from there.
 
     // 2. Update scene
-    const gameObject = SceneViewController.findGameObjectById(this.gameObjectId);
-    if (gameObject === undefined) throw new Error(`Cannot apply mutation - no game object exists in the scene with id '${this.gameObjectId}'`);
+    const editorObject = SceneViewController.findEditorObjectById(this.gameObjectId);
+    if (editorObject === undefined) throw new Error(`Cannot apply mutation - no editor object exists in the scene with id '${this.gameObjectId}'`);
     if (newParentData !== undefined) {
       // Set parent to new object
-      const newParent = SceneViewController.findGameObjectById(newParentData.id);
-      if (newParent === undefined) throw new Error(`Cannot apply mutation - no game object exists in the scene with id '${newParentData.id}'`);
+      const newParent = SceneViewController.findEditorObjectById(newParentData.id);
+      if (newParent === undefined) throw new Error(`Cannot apply mutation - no editor object exists in the scene with id '${newParentData.id}'`);
 
-      gameObject.transform.parent = newParent.transform;
+      editorObject.parent = newParent;
     } else {
       // Set parent to undefined i.e. top-level object
-      gameObject.transform.parent = undefined;
+      editorObject.parent = undefined;
     }
     // @TODO update World list of object instances if parent is null (?)
 
     // 1B. Update transform with new absolute values
-    const newLocalPosition = gameObject.position;
-    const newLocalRotation = gameObject.rotation.euler;
-    const newLocalScale = gameObject.scale;
+    const newLocalPosition = editorObject.position;
+    const newLocalRotation = editorObject.rotation.euler;
+    const newLocalScale = editorObject.scale;
 
     gameObjectData.transform.position = newLocalPosition;
     gameObjectData.transform.rotation = new Vector3(newLocalRotation);

@@ -1,17 +1,15 @@
+import { Vector3 } from "@polyzone/core/math";
+
 import { MutationController } from "@lib/mutation/MutationController";
 import { Mutator } from "@lib/mutation/Mutator";
 import { MutatorNew } from "@lib/mutation/MutatorNew";
-import { SceneData } from "@lib/project/data/SceneData";
-import { SceneDefinition } from "@lib/project/definition/scene";
 import { IProjectController } from "@lib/project/ProjectController";
-import { JsoncContainer } from "@lib/util/JsoncContainer";
 import { Engine } from "@lopoly/engine";
 
 import { AssetCache } from "@polyzone/runtime/assets";
-import { Scene } from "@polyzone/runtime/scene";
-import { ScriptLoader } from "@polyzone/runtime/ScriptLoader";
+
+import { EditorScene } from "@lib/common/scene";
 import { ViewCamera } from "./ViewCamera";
-import { Vector3 } from "@polyzone/core/math";
 
 export type AnyViewController = IViewController<Mutator<any>, MutatorNew<any>>;
 
@@ -30,27 +28,21 @@ export class ViewController<TMutator extends Mutator<any>, TMutatorNew extends M
   public readonly canvas: HTMLCanvasElement;
   public readonly mutator: TMutator;
   public readonly mutatorNew: TMutatorNew;
-  public readonly scene: Scene;
+  public readonly scene: EditorScene;
   public readonly camera: ViewCamera;
   private readonly projectController: IProjectController;
   private readonly mutationController: MutationController;
-
-  private _sceneJson: JsoncContainer<SceneDefinition>;
-  private _sceneData: SceneData;
 
   public constructor(
     projectController: IProjectController,
     mutationController: MutationController,
     mutator: TMutator,
     mutatorNew: TMutatorNew,
-    sceneData: SceneData,
-    sceneJson?: JsoncContainer<SceneDefinition>,
   ) {
     this.projectController = projectController;
     this.mutationController = mutationController;
     this.mutator = mutator;
     this.mutatorNew = mutatorNew;
-
 
     this.projectController.registerViewController(this);
 
@@ -61,23 +53,16 @@ export class ViewController<TMutator extends Mutator<any>, TMutatorNew extends M
 
     this.engine = new Engine(this.canvas, projectController.fileSystem);
     this.assetCache = new AssetCache(this.engine, projectController.project.assets);
-    // @NOTE ScriptLoader not needed by editor. We should restructure something here.
-    this.scene = new Scene(sceneData, this.engine, this.assetCache, new ScriptLoader());
+    this.scene = new EditorScene(this.engine, this.assetCache);
 
     this.camera = new ViewCamera(this.scene.lopolyScene, "camera:main", 50);
     // @TODO @DEBUG lol
     this.camera.position.setValue(6, -1, 2);
     this.camera.pointAt(Vector3.zero());
-
-    this._sceneData = sceneData;
-    this._sceneJson = sceneJson ?? new JsoncContainer(JSON.stringify(sceneData));
-    this.bindScene(this._sceneData, this._sceneJson);
   }
 
   public startView(): () => void {
-    const stopEngine = this.engine.run((dt, time) => {
-      this.scene.onUpdate(dt, time);
-    });
+    this.engine.run();
 
     const resizeObserver = new ResizeObserver((entries) => {
       // https://webglfundamentals.org/webgl/lessons/webgl-resizing-the-canvas.html
@@ -94,25 +79,14 @@ export class ViewController<TMutator extends Mutator<any>, TMutatorNew extends M
     /* Teardown - when scene view is unloaded */
     const onStopView = (): void => {
       resizeObserver.unobserve(this.canvas);
-      stopEngine();
+      this.engine.stop();
       this.mutationController.setMutatorActive(this.mutatorNew, false);
     };
     return onStopView;
-  }
-
-  public bindScene(sceneData: SceneData, sceneJson?: JsoncContainer<SceneDefinition>): void {
-    this._sceneData = sceneData;
-    this._sceneJson = sceneJson ?? new JsoncContainer(JSON.stringify(sceneData));
-
-    this.scene.lopolyScene.lighting.ambientColor = this.sceneData.config.lighting.ambient.color;
-    this.scene.lopolyScene.clearColour = this.sceneData.config.clearColor;
   }
 
   public destroy(): void {
     this.projectController.unregisterViewController(this);
     this.scene.destroy();
   }
-
-  public get sceneData(): SceneData { return this._sceneData; }
-  public get sceneJson(): JsoncContainer<SceneDefinition> { return this._sceneJson; }
 }

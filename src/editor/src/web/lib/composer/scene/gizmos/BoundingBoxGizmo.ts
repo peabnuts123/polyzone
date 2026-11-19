@@ -1,15 +1,15 @@
 import { Matrix4 } from "@lopoly/engine/math";
-import { BoxColliderNode, IScene, ModelNode, SceneNode } from "@lopoly/engine/scene";
+import { BoxColliderNode, IScene, SceneNode } from "@lopoly/engine/scene";
 
 import { Quaternion, Vector3 } from "@polyzone/core/math";
-import { GameObject, GameObjectComponent, MeshComponent } from "@polyzone/runtime/objects";
 
+import { EditorMeshComponent, EditorObject, IEditorObjectComponent } from "@lib/common/objects";
 import { GizmoConfig } from "./config";
 
-/** Draws bounds for a GameObject and its descendants, aligned with the gizmo's axes. */
+/** Draws bounds for an EditorObject and its descendants, aligned with the gizmo's axes. */
 export class BoundingBoxGizmoNode extends SceneNode {
   private readonly _box: BoxColliderNode;
-  private attachedGameObject: GameObject | undefined;
+  private attachedEditorObject: EditorObject | undefined;
 
   public constructor(scene: IScene, parent?: SceneNode) {
     super(scene, `gizmo:bounding-box`, parent);
@@ -18,8 +18,8 @@ export class BoundingBoxGizmoNode extends SceneNode {
   }
 
   public override onUpdate(_dt: number, _time: number): void {
-    // @NOTE Check for `attachedGameObject` proactively so that we don't clear bounds every frame
-    if (this.attachedGameObject !== undefined) {
+    // @NOTE Check for `attachedEditorObject` proactively so that we don't clear bounds every frame
+    if (this.attachedEditorObject !== undefined) {
       this.updateBounds();
     }
   }
@@ -28,9 +28,9 @@ export class BoundingBoxGizmoNode extends SceneNode {
   private tmp_updateBounds_maxPoint = Vector3.zero();
   private tmp_updateBounds_worldToLocal = new Matrix4();
   private updateBounds(): void {
-    if (this.attachedGameObject !== undefined) {
+    if (this.attachedEditorObject !== undefined) {
       // Ensure rotation always matches the attached object
-      this.absoluteRotation.q = this.attachedGameObject.absoluteRotation.q;
+      this.absoluteRotation.q = this.attachedEditorObject.absoluteRotation.q;
 
       // Reset bounds
       this.tmp_updateBounds_minPoint.setValue(Infinity, Infinity, Infinity);
@@ -38,8 +38,8 @@ export class BoundingBoxGizmoNode extends SceneNode {
       this.tmp_updateBounds_worldToLocal.setValue(this.worldMatrix).invertSelf();
 
       // Update bounds with min / max points from each child model node
-      this.updateTmpRangesForEachComponent(this.attachedGameObject.components);
-      this.attachedGameObject.forEachChild((childObject) => {
+      this.updateTmpRangesForEachComponent(this.attachedEditorObject.components);
+      this.attachedEditorObject.forEachChild((childObject) => {
         this.updateTmpRangesForEachComponent(childObject.components);
       }, true);
 
@@ -61,10 +61,10 @@ export class BoundingBoxGizmoNode extends SceneNode {
   }
 
   private tmp_updateTmpRangesForEachComponent_vertex = Vector3.zero();
-  private updateTmpRangesForEachComponent(components: readonly GameObjectComponent[]): void {
+  private updateTmpRangesForEachComponent(components: readonly IEditorObjectComponent[]): void {
     for (const component of components) {
-      if (component instanceof MeshComponent) {
-        for (const worldVertex of (component.sceneNode as ModelNode).geometry.allVertexPositions) {
+      if (component instanceof EditorMeshComponent && component.modelNode !== undefined) {
+        for (const worldVertex of component.modelNode.geometry.allVertexPositions) {
           // @NOTE Need to convert vertex position in local space to be able to calculate max / min
           const vertex = this.tmp_updateBounds_worldToLocal.transformPointInPlace(
             this.tmp_updateTmpRangesForEachComponent_vertex.setValue(worldVertex),
@@ -84,19 +84,19 @@ export class BoundingBoxGizmoNode extends SceneNode {
   }
 
   /**
-   * Attach this gizmo to a {@link GameObject}.
+   * Attach this gizmo to a {@link EditorObject}.
    */
-  public attachToGameObject(gameObject: GameObject): void {
-    this.attachedGameObject = gameObject;
+  public attachToEditorObject(object: EditorObject): void {
+    this.attachedEditorObject = object;
     this.updateBounds();
     this.enabled = true;
   }
 
   /**
-   * Detach this gizmo from the current {@link GameObject}.
+   * Detach this gizmo from the current {@link EditorObject}.
    */
   public detach(): void {
-    this.attachedGameObject = undefined;
+    this.attachedEditorObject = undefined;
     this.enabled = false;
     this.updateBounds();
   }

@@ -20,7 +20,6 @@ export class PointLightComponent extends PointLightComponentCore implements IGam
   public init(): void { }
   public onUpdate(): void { }
   public onDestroy(): void {
-    this.pointLightNode.color = Color3.fuchsia();
     this.pointLightNode.destroy();
   }
 

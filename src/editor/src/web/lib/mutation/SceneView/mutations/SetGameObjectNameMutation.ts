@@ -17,13 +17,13 @@ export class SetGameObjectNameMutation extends BaseContinuousSceneMutation<SetGa
 
   public override update({ SceneViewController }: SceneViewMutationArguments, { name }: SetGameObjectNameMutationUpdateArgs): Promise<void> {
     const gameObjectData = SceneViewController.sceneData.getGameObject(this.gameObjectId);
-    const gameObject = SceneViewController.findGameObjectById(this.gameObjectId);
-    if (gameObject === undefined) throw new Error(`Cannot update mutation - no game object exists in the scene with id '${this.gameObjectId}'`);
+    const editorObject = SceneViewController.findEditorObjectById(this.gameObjectId);
+    if (editorObject === undefined) throw new Error(`Cannot update mutation - no editor object exists in the scene with id '${this.gameObjectId}'`);
 
     // - 1. Data
     gameObjectData.name = name;
     // - 2. Babylon state
-    gameObject.name = name;
+    editorObject.name = name;
 
     return Promise.resolve();
   }

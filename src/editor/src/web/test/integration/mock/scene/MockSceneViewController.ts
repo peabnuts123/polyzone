@@ -138,7 +138,7 @@ export class MockSceneViewController implements ISceneViewController {
   reloadSceneData: (scene: SceneDbRecord) => Promise<void> = () => {
     return Promise.resolve();
   };
-  findGameObjectById: (gameObjectId: string) => GameObjectRuntime | undefined = (gameObjectId) => {
+  findEditorObjectById: (gameObjectId: string) => GameObjectRuntime | undefined = (gameObjectId) => {
     return this.gameObjectInstances.find((gameObject) => gameObject.id === gameObjectId);
   };
   // addGameObject: (gameObject: GameObjectRuntime) => void = (gameObject) => {

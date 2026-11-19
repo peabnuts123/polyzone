@@ -1,5 +1,5 @@
-import { Vector3Definition as ArchiveVector3 } from "@polyzone/runtime/src/cartridge/archive/util";
 import { Quaternion, Vector3 } from "@polyzone/core/math";
+import { Vector3Definition as ArchiveVector3 } from "@polyzone/runtime/src/cartridge/archive/util";
 
 import { resolvePathForSceneObjectMutation } from "@lib/mutation/util";
 import { SceneViewMutationArguments } from "../SceneViewMutationArguments";
@@ -21,13 +21,13 @@ export class SetGameObjectRotationMutation extends BaseContinuousSceneMutation<S
 
   public override update({ SceneViewController }: SceneViewMutationArguments, { rotation, resetGizmo }: SetGameObjectRotationMutationUpdateArgs): void {
     const gameObjectData = SceneViewController.sceneData.getGameObject(this.gameObjectId);
-    const gameObject = SceneViewController.findGameObjectById(this.gameObjectId);
-    if (gameObject === undefined) throw new Error(`Cannot update mutation - no game object exists in the scene with id '${this.gameObjectId}'`);
+    const editorObject = SceneViewController.findEditorObjectById(this.gameObjectId);
+    if (editorObject === undefined) throw new Error(`Cannot update mutation - no editor object exists in the scene with id '${this.gameObjectId}'`);
 
     // - 1. Update Data
     gameObjectData.transform.rotation = new Vector3(rotation.toEuler()); // @TODO do not cast to Vector3
     // - 2. Update Scene
-    gameObject.rotation.setValue(rotation);
+    editorObject.rotation.setValue(rotation);
     if (resetGizmo) {
       SceneViewController.selectionManager.updateGizmos();
     }

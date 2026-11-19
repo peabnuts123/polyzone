@@ -47,6 +47,7 @@ export class Color3 extends LoPolyColor3 {
     return new Color4(this, alpha);
   }
 
+  // @TODO These need `override` - why doesn't vscode show this?
   public static white(): Color3 { return new Color3(0xFF, 0xFF, 0xFF); }
   public static black(): Color3 { return new Color3(0, 0, 0); }
   public static red(): Color3 { return new Color3(0xFF, 0, 0); }

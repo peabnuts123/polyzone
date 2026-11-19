@@ -1,7 +1,7 @@
 import { GameObjectData } from "@lib/project/data";
+import { resolvePathForSceneObjectMutation } from "@lib/mutation/util";
 import { BaseSceneMutation } from '../ISceneMutation';
 import { SceneViewMutationArguments } from "../SceneViewMutationArguments";
-import { resolvePathForSceneObjectMutation } from "@lib/mutation/util";
 
 export class DeleteGameObjectMutation extends BaseSceneMutation {
   public override readonly useCustomUndo: boolean = true;
@@ -43,9 +43,9 @@ export class DeleteGameObjectMutation extends BaseSceneMutation {
     gameObjectDataCollection.splice(targetIndex, 1);
 
     // 2. Update Scene
-    const gameObject = SceneViewController.findGameObjectById(this.gameObjectId);
-    if (gameObject === undefined) throw new Error(`Cannot apply mutation - no game object exists in the scene with id '${this.gameObjectId}'`);
-    gameObject.destroy();
+    const editorObject = SceneViewController.findEditorObjectById(this.gameObjectId);
+    if (editorObject === undefined) throw new Error(`Cannot apply mutation - no editor object exists in the scene with id '${this.gameObjectId}'`);
+    editorObject.destroy();
     if (SceneViewController.selectionManager.selectedObjectId === gameObjectData.id) {
       SceneViewController.selectionManager.deselectAll();
     }
@@ -81,9 +81,9 @@ export class DeleteGameObjectMutation extends BaseSceneMutation {
       parentGameObjectData.children.splice(this.deletedGameObjectDataIndex, 0, this.deletedGameObjectData);
 
       // 2. Update Scene
-      const parentGameObject = SceneViewController.findGameObjectById(this.deletedGameObjectParentId);
-      if (parentGameObject === undefined) throw new Error(`Cannot undo mutation - no game object exists in the scene with id '${this.deletedGameObjectParentId}'`);
-      await SceneViewController.createGameObject(this.deletedGameObjectData, parentGameObject);
+      const parentEditorObject = SceneViewController.findEditorObjectById(this.deletedGameObjectParentId);
+      if (parentEditorObject === undefined) throw new Error(`Cannot undo mutation - no editor object exists in the scene with id '${this.deletedGameObjectParentId}'`);
+      await SceneViewController.scene.createEditorObject(this.deletedGameObjectData, parentEditorObject);
 
       // 3. Update JSONC
       const mutationPath = resolvePathForSceneObjectMutation(
@@ -98,7 +98,7 @@ export class DeleteGameObjectMutation extends BaseSceneMutation {
       SceneViewController.sceneData.objects.splice(this.deletedGameObjectDataIndex, 0, this.deletedGameObjectData);
 
       // 2. Update Scene
-      await SceneViewController.createGameObject(this.deletedGameObjectData);
+      await SceneViewController.scene.createEditorObject(this.deletedGameObjectData);
 
       // 3. Update JSONC
       SceneViewController.sceneJson.mutate(
