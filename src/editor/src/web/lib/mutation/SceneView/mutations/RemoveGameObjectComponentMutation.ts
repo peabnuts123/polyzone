@@ -1,5 +1,5 @@
-import { CameraComponentData, GameObjectData, IComposerComponentData, MeshComponentData, ScriptComponentData } from "@lib/project/data";
-import { isSelectableObject } from "@lib/composer/scene/components";
+import { CameraComponentData, GameObjectData, IEditorComponentData, MeshComponentData, ScriptComponentData } from "@lib/project/data";
+import { isSelectableObject } from "@lib/common/objects/components";
 import { resolvePathForSceneObjectMutation } from "@lib/mutation/util";
 import { BaseSceneMutation } from "../ISceneMutation";
 import { SceneViewMutationArguments } from "../SceneViewMutationArguments";
@@ -12,7 +12,7 @@ const ComponentTypesThatDontExistInTheComposer = [
 ];
 
 interface MutationArgs {
-  componentToRemove: IComposerComponentData;
+  componentToRemove: IEditorComponentData;
 }
 
 export class RemoveGameObjectComponentMutation extends BaseSceneMutation<MutationArgs> {
@@ -22,7 +22,7 @@ export class RemoveGameObjectComponentMutation extends BaseSceneMutation<Mutatio
   // Undo data
   private removedComponentIndex: number | undefined = undefined;
 
-  public constructor(gameObject: GameObjectData, componentToRemove: IComposerComponentData) {
+  public constructor(gameObject: GameObjectData, componentToRemove: IEditorComponentData) {
     super({ componentToRemove });
     this.gameObjectId = gameObject.id;
   }

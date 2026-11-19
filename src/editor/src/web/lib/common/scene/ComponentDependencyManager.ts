@@ -1,10 +1,10 @@
 import { makeAutoObservable } from "mobx";
 
-import { GameObjectData, IComposerComponentData } from "@lib/project/data";
+import { GameObjectData, IEditorComponentData } from "@lib/project/data";
 
 export interface ComponentDependency {
   /** Data for the component which has a dependency on some assets */
-  componentData: IComposerComponentData;
+  componentData: IEditorComponentData;
   /** Data for the object that holds this component */
   objectData: GameObjectData;
   /** IDs of the assets on which the component is dependent */
@@ -39,7 +39,7 @@ export class ComponentDependencyManager {
    * @param objectData Data for the object on which this component lives
    * @param assetIds IDs of the assets on which this component has a dependency
    */
-  public registerDependency(componentData: IComposerComponentData, objectData: GameObjectData, assetIds: string[]): void {
+  public registerDependency(componentData: IEditorComponentData, objectData: GameObjectData, assetIds: string[]): void {
     let componentDependencyData = this.componentDependencies.get(componentData.id);
     if (componentDependencyData === undefined) {
       componentDependencyData = {

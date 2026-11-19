@@ -11,9 +11,9 @@ import {
 
 import type { MeshAssetData } from "@lib/project/data/assets";
 import { EditorMeshComponent } from "@lib/common/objects/components";
-import type { IComposerComponentData } from "./IComposerComponentData";
+import type { IEditorComponentData } from "./IEditorComponentData";
 
-export class MeshComponentData implements IComposerComponentData, IMeshComponentData {
+export class MeshComponentData implements IEditorComponentData, IMeshComponentData {
   private _meshComponentData: MeshComponentDataRuntime;
 
   // @TODO is this good? Is this useful? I think maybe it should be removed

@@ -1,18 +1,18 @@
-import { IComposerComponentData } from "@lib/project/data";
+import { IEditorComponentData } from "@lib/project/data";
 import { resolvePathForSceneObjectMutation } from "@lib/mutation/util";
 import { BaseSceneMutation } from "../ISceneMutation";
 import { SceneViewMutationArguments } from "../SceneViewMutationArguments";
 
 
 interface MutationArgs {
-  newComponent: IComposerComponentData;
+  newComponent: IEditorComponentData;
 }
 
 export class AddGameObjectComponentMutation extends BaseSceneMutation<MutationArgs> {
   public override readonly useCustomUndo: boolean = true;
   private readonly gameObjectId: string;
 
-  public constructor(gameObjectId: string, newComponent: IComposerComponentData) {
+  public constructor(gameObjectId: string, newComponent: IEditorComponentData) {
     super({ newComponent });
     this.gameObjectId = gameObjectId;
   }

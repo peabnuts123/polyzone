@@ -1,7 +1,7 @@
 import { ClassReference } from "@polyzone/core/util/types";
 import { DirectionalLightComponentDefinition, PointLightComponentDefinition } from "@polyzone/runtime/src/cartridge";
 
-import { DirectionalLightComponentData, GameObjectData, IComposerComponentData, PointLightComponentData } from "@lib/project/data";
+import { DirectionalLightComponentData, GameObjectData, IEditorComponentData, PointLightComponentData } from "@lib/project/data";
 import { EditorDirectionalLightComponent, EditorPointLightComponent, IEditorObjectComponent } from "@lib/common/objects";
 import { resolvePathForSceneObjectMutation } from "@lib/mutation/util";
 import { SceneViewMutationArguments } from "../SceneViewMutationArguments";
@@ -12,7 +12,7 @@ export interface SetGameObjectLightComponentIntensityMutationUpdateArgs {
 }
 
 type AnyLightComponentDefinition = DirectionalLightComponentDefinition | PointLightComponentDefinition;
-interface AnyLightComponentData extends IComposerComponentData {
+interface AnyLightComponentData extends IEditorComponentData {
   intensity: number;
 }
 const LightComponentDataTypes: ClassReference<AnyLightComponentData>[] = [DirectionalLightComponentData, PointLightComponentData];

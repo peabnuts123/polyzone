@@ -4,7 +4,7 @@ import { Color3, Vector3 } from "@polyzone/core/math";
 
 import { AssetDb, type IEditorAssetDb } from "@lib/project/data/AssetDb";
 import { MeshAssetData, ScriptAssetData } from "@lib/project/data/assets";
-import { CameraComponentData, DirectionalLightComponentData, IComposerComponentData, MeshComponentData, PointLightComponentData, ScriptComponentData } from "./components";
+import { CameraComponentData, DirectionalLightComponentData, IEditorComponentData, MeshComponentData, PointLightComponentData, ScriptComponentData } from "./components";
 import { GameObjectData } from "./GameObjectData";
 import { TransformData } from "./TransformData";
 
@@ -22,7 +22,7 @@ export const __loadObjectDefinitionForRuntime: LoadObjectDefinitionFn = (objectD
 };
 
 export function loadObjectDefinition(objectDefinition: GameObjectDefinition, assetDb: IEditorAssetDb): GameObjectData {
-  const components: IComposerComponentData[] = [];
+  const components: IEditorComponentData[] = [];
   for (const componentDefinition of objectDefinition.components) {
     switch (componentDefinition.type) {
       case ComponentDefinitionType.Mesh: {

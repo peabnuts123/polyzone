@@ -2,7 +2,7 @@ import { ClassReference } from "@polyzone/core/util/types";
 import { Color3 } from "@polyzone/core/math";
 import { Color3Definition, DirectionalLightComponentDefinition, PointLightComponentDefinition } from "@polyzone/runtime/src/cartridge";
 
-import { DirectionalLightComponentData, GameObjectData, IComposerComponentData, PointLightComponentData } from "@lib/project/data";
+import { DirectionalLightComponentData, GameObjectData, IEditorComponentData, PointLightComponentData } from "@lib/project/data";
 import { resolvePathForSceneObjectMutation } from "@lib/mutation/util";
 import { EditorDirectionalLightComponent, EditorPointLightComponent, IEditorObjectComponent } from "@lib/common/objects";
 import { SceneViewMutationArguments } from "../SceneViewMutationArguments";
@@ -13,7 +13,7 @@ export interface SetGameObjectLightComponentColorMutationUpdateArgs {
 }
 
 type AnyLightComponentDefinition = DirectionalLightComponentDefinition | PointLightComponentDefinition;
-interface AnyLightComponentData extends IComposerComponentData {
+interface AnyLightComponentData extends IEditorComponentData {
   color: Color3;
 }
 const LightComponentDataTypes: ClassReference<AnyLightComponentData>[] = [DirectionalLightComponentData, PointLightComponentData];

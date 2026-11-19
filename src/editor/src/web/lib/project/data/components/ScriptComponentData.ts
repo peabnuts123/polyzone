@@ -10,9 +10,9 @@ import {
 } from "@polyzone/runtime/cartridge";
 
 import type { ScriptAssetData } from "@lib/project/data/assets";
-import { IComposerComponentData } from "./IComposerComponentData";
+import { IEditorComponentData } from "./IEditorComponentData";
 
-export class ScriptComponentData implements IComposerComponentData, IScriptComponentData {
+export class ScriptComponentData implements IEditorComponentData, IScriptComponentData {
   private _scriptComponentData: ScriptComponentDataRuntime;
 
   public constructor(id: string, scriptAsset: ScriptAssetData | undefined) {

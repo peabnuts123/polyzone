@@ -10,9 +10,9 @@ import {
   type IDirectionalLightComponentData,
 } from "@polyzone/runtime/cartridge";
 
-import type { IComposerComponentData } from "./IComposerComponentData";
+import type { IEditorComponentData } from "./IEditorComponentData";
 
-export class DirectionalLightComponentData implements IComposerComponentData, IDirectionalLightComponentData {
+export class DirectionalLightComponentData implements IEditorComponentData, IDirectionalLightComponentData {
   private _directionalLightComponentData: DirectionalLightComponentDataRuntime;
 
   public constructor(id: string, intensity: number, color: Color3) {

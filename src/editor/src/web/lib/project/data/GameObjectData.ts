@@ -1,6 +1,6 @@
 import { makeAutoObservable } from "mobx";
 
-import type { IComposerComponentData } from "./components";
+import type { IEditorComponentData } from "./components";
 import type { TransformData } from "./TransformData";
 import { IGameObjectData, GameObjectData as GameObjectDataRuntime, GameObjectDefinition } from "@polyzone/runtime/cartridge";
 import { ClassReference } from "@lopoly/engine/util/types";
@@ -8,7 +8,7 @@ import { ClassReference } from "@lopoly/engine/util/types";
 export class GameObjectData implements IGameObjectData {
   private _gameObjectData: GameObjectDataRuntime;
 
-  public constructor(id: string, name: string, transform: TransformData, components: IComposerComponentData[], children: GameObjectData[]) {
+  public constructor(id: string, name: string, transform: TransformData, components: IEditorComponentData[], children: GameObjectData[]) {
     this._gameObjectData = new GameObjectDataRuntime(id, name, transform, components, children);
 
     makeAutoObservable(this);
@@ -19,22 +19,22 @@ export class GameObjectData implements IGameObjectData {
    * Get a component on this GameObjectData. If the component cannot be found, an Error is thrown.
    * @param componentId Id of the component to get.
    */
-  public getComponent(componentId: string): IComposerComponentData;
+  public getComponent(componentId: string): IEditorComponentData;
   /**
    * Get a component on this GameObjectData. If the component cannot be found or is not of the expected type,
    * an Error is thrown.
    * @param componentId Id of the component to get.
    * @param ExpectedComponentType Expected type of the component.
    */
-  public getComponent<TComponent extends IComposerComponentData>(componentId: string, ExpectedComponentType: ClassReference<TComponent>): TComponent;
+  public getComponent<TComponent extends IEditorComponentData>(componentId: string, ExpectedComponentType: ClassReference<TComponent>): TComponent;
   /**
    * Get a component on this GameObjectData. If the component cannot be found or is not of the expected type,
    * an Error is thrown.
    * @param componentId Id of the component to get.
    * @param ExpectedComponentType Array of possible expected types of the component.
    */
-  public getComponent<TComponent extends IComposerComponentData>(componentId: string, ExpectedComponentTypes: ClassReference<TComponent>[]): TComponent;
-  public getComponent<TComponent extends IComposerComponentData>(componentId: string, expectedTypeOrTypes: ClassReference<TComponent> | ClassReference<TComponent>[] | undefined = undefined): TComponent {
+  public getComponent<TComponent extends IEditorComponentData>(componentId: string, ExpectedComponentTypes: ClassReference<TComponent>[]): TComponent;
+  public getComponent<TComponent extends IEditorComponentData>(componentId: string, expectedTypeOrTypes: ClassReference<TComponent> | ClassReference<TComponent>[] | undefined = undefined): TComponent {
     const component = this.components.find((component) => component.id === componentId);
 
     if (component === undefined) {
@@ -126,8 +126,8 @@ export class GameObjectData implements IGameObjectData {
   public set name(name: string) { this._gameObjectData.name = name; }
   public get transform(): TransformData { return this._gameObjectData.transform as TransformData; }
   public set transform(transform: TransformData) { this._gameObjectData.transform = transform; }
-  public get components(): IComposerComponentData[] { return this._gameObjectData.components as IComposerComponentData[]; }
-  public set components(components: IComposerComponentData[]) { this._gameObjectData.components = components; }
+  public get components(): IEditorComponentData[] { return this._gameObjectData.components as IEditorComponentData[]; }
+  public set components(components: IEditorComponentData[]) { this._gameObjectData.components = components; }
   public get children(): GameObjectData[] { return this._gameObjectData.children as GameObjectData[]; }
   public set children(children: GameObjectData[]) { this._gameObjectData.children = children; }
 }

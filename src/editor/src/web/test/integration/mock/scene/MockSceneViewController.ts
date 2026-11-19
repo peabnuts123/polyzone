@@ -13,7 +13,7 @@ import { ISelectableObject } from "@lib/composer/scene";
 import { ISceneViewController } from "@lib/composer/scene/SceneViewController";
 import { CurrentSelectionTool, SelectionManager } from "@lib/composer/scene/SelectionManager";
 import { SceneDefinition } from "@lib/project";
-import { GameObjectData, IComposerComponentData, SceneData } from "@lib/project/data";
+import { GameObjectData, IEditorComponentData, SceneData } from "@lib/project/data";
 import { SceneDbRecord } from "@lib/project/data/SceneDb";
 import { JsoncContainer } from "@lib/util/JsoncContainer";
 import { Func } from '@lib/util/types';
@@ -106,7 +106,7 @@ export class MockSceneViewController implements ISceneViewController {
       (gameObject, componentData) => this.createGameObjectComponent(
         gameObjectData,
         gameObject,
-        componentData as IComposerComponentData,
+        componentData as IEditorComponentData,
       ),
     );
 
@@ -122,7 +122,7 @@ export class MockSceneViewController implements ISceneViewController {
 
     return gameObject;
   };
-  createGameObjectComponent: (gameObjectData: GameObjectData, gameObject: GameObjectRuntime, componentData: IComposerComponentData) => Promise<GameObjectComponent | undefined> = (gameObjectData, gameObject, componentData) => {
+  createGameObjectComponent: (gameObjectData: GameObjectData, gameObject: GameObjectRuntime, componentData: IEditorComponentData) => Promise<GameObjectComponent | undefined> = (gameObjectData, gameObject, componentData) => {
     return createEditorGameObjectComponent(
       gameObject,
       componentData,
@@ -132,7 +132,7 @@ export class MockSceneViewController implements ISceneViewController {
       () => { },
     );
   };
-  reinitializeComponentInstance: (componentData: IComposerComponentData, gameObjectData: GameObjectData) => Promise<void> = () => {
+  reinitializeComponentInstance: (componentData: IEditorComponentData, gameObjectData: GameObjectData) => Promise<void> = () => {
     return Promise.resolve();
   };
   reloadSceneData: (scene: SceneDbRecord) => Promise<void> = () => {

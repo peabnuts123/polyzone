@@ -3,11 +3,11 @@ import { observer } from "mobx-react-lite";
 import { TrashIcon } from '@heroicons/react/24/solid';
 
 
-import type { IComposerComponentData } from "@lib/project/data";
+import type { IEditorComponentData } from "@lib/project/data";
 import type { InspectorComponentProps } from "./InspectorComponent";
 import { RemoveGameObjectComponentMutation } from "@lib/mutation/SceneView/mutations";
 
-export const InspectorComponentBase: FunctionComponent<PropsWithChildren<InspectorComponentProps<IComposerComponentData>>> = observer(({ children, gameObject, component, controller }) => {
+export const InspectorComponentBase: FunctionComponent<PropsWithChildren<InspectorComponentProps<IEditorComponentData>>> = observer(({ children, gameObject, component, controller }) => {
   const onClickDeleteComponent = (): void => {
     void controller.mutatorNew.apply(new RemoveGameObjectComponentMutation(gameObject, component));
   };

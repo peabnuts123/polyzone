@@ -1,7 +1,7 @@
 import {
   CameraComponentData,
   DirectionalLightComponentData,
-  IComposerComponentData,
+  IEditorComponentData,
   MeshComponentData,
   PointLightComponentData,
   ScriptComponentData,
@@ -23,7 +23,7 @@ export * from './MeshComponentInspector';
 export * from './PointLightInspector';
 export * from './ScriptComponentInspector';
 
-const UnimplementedComponentInspector: InspectorComponent<IComposerComponentData> = ({ component, controller, gameObject }) => {
+const UnimplementedComponentInspector: InspectorComponent<IEditorComponentData> = ({ component, controller, gameObject }) => {
   return (
     <InspectorComponentBase component={component} controller={controller} gameObject={gameObject}>
       <p className="italic">Unimplemented Inspector UI!</p>
@@ -31,7 +31,7 @@ const UnimplementedComponentInspector: InspectorComponent<IComposerComponentData
   );
 };
 
-export function getInspectorFor<TComponentType extends IComposerComponentData>(gameObjectComponentConfig: TComponentType): InspectorComponent<TComponentType> {
+export function getInspectorFor<TComponentType extends IEditorComponentData>(gameObjectComponentConfig: TComponentType): InspectorComponent<TComponentType> {
   // @NOTE Assigning to a loosely-typed variable just to launder these types a bit
   // Seems TypeScript can't infer that if `gameObjectComponentConfig instanceof A` then result should be `InspectorComponent<A>`
   let result: FunctionComponent<any>;

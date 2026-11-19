@@ -18,18 +18,18 @@ import { SceneDbRecord } from '@lib/project/data/SceneDb';
 import { ProjectAssetEventType } from '@lib/project/watcher/assets';
 import { MutationController } from '@lib/mutation/MutationController';
 import { IViewController, ViewCamera, ViewController } from '@lib/common/view';
-import { IComposerComponentData } from '@lib/project/data/components';
+import { IEditorComponentData } from '@lib/project/data/components';
 import { EditorScene } from '@lib/common/scene';
 import { EditorObject } from '@lib/common/objects';
+import { isAssetDependentComponent, isSelectableObject } from '@lib/common/objects/components';
 
-import { isAssetDependentComponent, isSelectableObject } from './components';
 import { CurrentSelectionTool, SelectionManager, SelectionManagerResources } from './SelectionManager';
 
 
 export interface ISceneViewController extends IViewController<SceneViewMutator, SceneViewMutatorNew> {
   setCurrentTool(tool: CurrentSelectionTool): void;
   focusSelected(): void;
-  reinitializeComponentInstance(componentData: IComposerComponentData, objectData: GameObjectData): Promise<void>;
+  reinitializeComponentInstance(componentData: IEditorComponentData, objectData: GameObjectData): Promise<void>;
   reloadSceneData(scene: SceneDbRecord): Promise<void>;
   findEditorObjectById(objectId: string): EditorObject | undefined;
 
@@ -252,7 +252,7 @@ export class SceneViewController implements ISceneViewController {
    * @param componentData Data for object component. The previous instance of this component will be destroyed.
    * @param objectData Data for the object on which this component lives
    */
-  public async reinitializeComponentInstance(componentData: IComposerComponentData, objectData: GameObjectData): Promise<void> {
+  public async reinitializeComponentInstance(componentData: IEditorComponentData, objectData: GameObjectData): Promise<void> {
     const objectInstance = this.findEditorObjectById(objectData.id);
     if (objectInstance === undefined) throw new Error(`Cannot reinitialize component. No object with id '${objectData.id}' could be found in the scene`);
     const componentIndex = objectInstance.components.findIndex((component) => component.id === componentData.id);

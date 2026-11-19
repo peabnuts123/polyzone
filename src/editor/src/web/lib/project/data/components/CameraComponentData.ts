@@ -9,9 +9,9 @@ import {
   type ICameraComponentData,
 } from "@polyzone/runtime/cartridge";
 
-import type { IComposerComponentData } from "./IComposerComponentData";
+import type { IEditorComponentData } from "./IEditorComponentData";
 
-export class CameraComponentData implements IComposerComponentData, ICameraComponentData {
+export class CameraComponentData implements IEditorComponentData, ICameraComponentData {
   private _cameraComponentData: CameraComponentDataRuntime;
 
   public constructor(id: string) {

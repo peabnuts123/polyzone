@@ -13,7 +13,7 @@ import {
 import type { ISceneViewController } from "@lib/composer/scene";
 import { VectorInput, TextInput } from "@app/components/common/inputs";
 import { getInspectorFor } from "./GameObjectComponents";
-import { CameraComponentData, DirectionalLightComponentData, IComposerComponentData, MeshComponentData, PointLightComponentData, ScriptComponentData } from "@lib/project/data";
+import { CameraComponentData, DirectionalLightComponentData, IEditorComponentData, MeshComponentData, PointLightComponentData, ScriptComponentData } from "@lib/project/data";
 import { Quaternion } from "@lopoly/engine/math";
 
 
@@ -36,7 +36,7 @@ export const Inspector: FunctionComponent<Props> = observer(({ sceneViewControll
     // Ensure select control doesn't change to the selected value
     selectControl.value = "";
 
-    let newComponent: IComposerComponentData;
+    let newComponent: IEditorComponentData;
     switch (type) {
       case ComponentDefinitionType.Camera:
         newComponent = CameraComponentData.createDefault();

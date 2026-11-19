@@ -10,9 +10,9 @@ import {
   PointLightComponentData as PointLightComponentDataRuntime,
 } from "@polyzone/runtime/cartridge";
 
-import type { IComposerComponentData } from "./IComposerComponentData";
+import type { IEditorComponentData } from "./IEditorComponentData";
 
-export class PointLightComponentData implements IComposerComponentData, IPointLightComponentData {
+export class PointLightComponentData implements IEditorComponentData, IPointLightComponentData {
   private _pointLightComponentData: PointLightComponentDataRuntime;
 
   public constructor(id: string, intensity: number, color: Color3) {

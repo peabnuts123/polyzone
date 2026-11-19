@@ -1,7 +1,7 @@
 import { ModelNode } from '@lopoly/engine/scene/nodes';
 import { GameObjectId } from '@polyzone/core/objects/GameObject';
 
-export class SceneViewSelectionCache {
+export class SceneSelectionCache {
   private cache: Map<ModelNode, GameObjectId>;
 
   public constructor() {

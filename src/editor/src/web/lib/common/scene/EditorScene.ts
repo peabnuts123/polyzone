@@ -1,6 +1,9 @@
 import { type IEngine } from "@lopoly/engine/Engine";
 import { Scene as LoPolyScene, SceneLighting } from "@lopoly/engine/scene";
 
+import { Color3 } from "@polyzone/core/math";
+import { AssetCache } from "@polyzone/runtime/assets";
+
 import {
   MeshComponentData,
   ScriptComponentData,
@@ -17,20 +20,17 @@ import {
   IEditorObjectComponent,
 } from '@lib/common/objects/components';
 import { EditorObject } from "@lib/common/objects/EditorObject";
-import { AssetCache } from "@polyzone/runtime/assets";
-import { GameObjectData, IComposerComponentData } from "@lib/project/data";
-import { ISelectableObject, isSelectableObject } from "@lib/composer/scene/components/ISelectableObject";
-import { ComponentDependencyManager } from "../ComponentDependencyManager";
-import { SceneViewSelectionCache } from "@lib/composer/scene/SceneViewSelectionCache";
-import { isAssetDependentComponent } from "@lib/composer/scene/components/IAssetDependentComponent";
-import { Color3 } from "@polyzone/core/math";
+import { isAssetDependentComponent, ISelectableObject, isSelectableObject } from "@lib/common/objects/components";
+import { GameObjectData, IEditorComponentData } from "@lib/project/data";
+import { ComponentDependencyManager } from "./ComponentDependencyManager";
+import { SceneSelectionCache } from "./SceneViewSelectionCache";
 
 export class EditorScene {
   // References
   public readonly lopolyScene: LoPolyScene;
   private readonly assetCache: AssetCache;
   public readonly componentDependencyManager: ComponentDependencyManager;
-  public readonly selectionCache: SceneViewSelectionCache; // @TODO Rename / move type
+  public readonly selectionCache: SceneSelectionCache;
 
   // State
   public readonly topLevelEditorObjects: EditorObject[];
@@ -41,7 +41,7 @@ export class EditorScene {
   ) {
     this.assetCache = assetCache;
     this.componentDependencyManager = new ComponentDependencyManager();
-    this.selectionCache = new SceneViewSelectionCache();
+    this.selectionCache = new SceneSelectionCache();
     this.topLevelEditorObjects = [];
 
     this.lopolyScene = new LoPolyScene(engine);
@@ -113,7 +113,7 @@ export class EditorScene {
   }
 
   public async createEditorObjectComponent(
-    componentData: IComposerComponentData,
+    componentData: IEditorComponentData,
     object: EditorObject,
     objectData: GameObjectData,
     atIndex?: number,

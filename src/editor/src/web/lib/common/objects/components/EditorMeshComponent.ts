@@ -1,9 +1,9 @@
 import { ModelNode, ObjectNode, SceneNode } from '@lopoly/engine/scene';
 import { MeshComponentData } from '@polyzone/runtime/cartridge/data';
 import { AssetCache } from '@polyzone/runtime/assets';
-import { IEditorObjectComponent } from './IEditorObjectComponent';
+import { IAssetDependentComponent, ISelectableObject } from '@lib/common/objects/components';
 import { EditorObject } from '../EditorObject';
-import { IAssetDependentComponent, ISelectableObject } from '@lib/composer/scene/components';
+import { IEditorObjectComponent } from './IEditorObjectComponent';
 
 export class EditorMeshComponent implements IEditorObjectComponent, ISelectableObject, IAssetDependentComponent {
   public readonly id: string;
